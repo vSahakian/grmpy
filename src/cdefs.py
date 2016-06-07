@@ -29,6 +29,25 @@ class db:
         self.r=dist
         self.vs30=vs30
         
+    def plot_apga(self):
+        '''
+        Plots all PGA, regardless of M/r
+        '''
+        
+        from matplotlib import pyplot as plt
+        import numpy as np
+        
+        #Open figure
+        plt.figure()
+        
+        #Plot...
+        plt.scatter(self.mw,np.log10(self.pga),marker='o')
+        plt.xlabel(r"$\mathbf{M}$")
+        plt.ylabel(r"$\log_{10} PGA$")
+        plt.title(r"PGA vs. $\mathbf{M}$ for all distances")
+        
+        plt.show()
+        
 #class hdr:
 #    '''
 #    This class describes the header info for a db (like AB's for now)
