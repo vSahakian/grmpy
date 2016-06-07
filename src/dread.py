@@ -15,26 +15,78 @@ def mread(flatfile):
     '''
     
     import scipy.io as sio
+    import cdefs
     
+    
+    #Read in flatfile
     datr=sio.loadmat(flatfile)
     
-    devent=datr['event']
-    dsta=datr['sta']
-    dhdrs=datr['hdrs']
-    dN
-    dMl
-    dMw
-    dDA
-    dDV
-    dPGA
-    dPGV
-    dlogPGA
-    dlogPGV
-    dnewlogPGA
-    dnewlogPGV
-    dVs30
+    #Extract components:
+    devent=datr['event']            #event number
+    dsta=datr['sta']                #station name
+    dhdrs=datr['hdrs']              #header info...see below...
+    dN=datr['N']                    #station number         
+    dMl=datr['Ml']                  #catalog/local mag.
+    dMw=datr['Mw']                  #Ml converted to Mw
+    dDA=datr['DA']                  #PGA, geometrically averaged from 2 horiz. comp.
+    dDV=datr['DV']                  #PGV, geometrically averaged from 2 horiz. comp.
+    dPGA=datr['PGA']                #DA, adjusted for Vs30 and converted to g
+    dPGV=datr['PGV']                #DV, adjusted for Vs30 and converted to g
+    dlogPGA=datr['logPGA']          #DA adjusted to g
+    dlogPGV=datr['logPGV']          #DV adjusted to cm/s
+    dnewlogPGA=datr['newlogPGA']    #log10 of PGA adjusted to 10km
+    dnewlogPGV=datr['newlogPGV']    #log10 of PGV adjusted to 10km
+    dVs30=datr['Vs30']              #Vs30 for each station, reference in paper.
     
+    #Put into arrays (instead of array of arrays):
+    event=devent[0]
+    sta=dsta[0]
+    N=dN[0]
+    ml=dMl[:,0]
+    mw=dMw[:,0]
+    DA=dDA[:,0]
+    DV=dDV[:,0]
+    PGA=dPGA[:,0]
+    PGV=dPGV[:,0]
+    logPGA=dlogPGA[:,0]
+    logPGV=dlogPGV[:,0]
+    newlogPGA=dnewlogPGA[:,0]
+    newlogPGV=dnewlogPGV[:,0]
+    vs30=dVs30[0]
     
+    ##
+    #Split apart the header (dhdrs)
+    ddepmin=dhdrs['depmin']         #dependent (y) min
+    ddepmax=dhdrs['depmax']         #dependent (y) max
+    dmag=dhdrs['mag']               #magnitude (catalog)
+    ddist=dhdrs['dist']             #distance from source to site, epicentral...
+    daz=dhdrs['az']                 #source-site azimuth
+    dyear=dhdrs['year']             #year
+    dday=dhdrs['day']               #day
+    dhour=dhdrs['hour']             #hour
+    dmin=dhdrs['min']               #min
+    dsec=dhdrs['sec']               #sec
+    dmsec=dhdrs['msec']             #msec
+    dnevid=dhdrs['nevid']           #event number
+    didep=dhdrs['idep']             #units of the independent variable:
+                                    #5 implies no instrument response removed
+                                    #7 is velocity in nm/s
+                                    #8 is acceleration in nm/s/s
     
+    #Put into useful values...
+    depmin=ddepmin[0][0]
+    depmax=ddepmax[0][0]
+    mag=dmag[0][0]
+    dist=ddist[0][0]
+    az=daz[0][0]
+    year=dyear[0][0]
+    day=dday[0][0]
+    minu=dmin[0][0]
+    sec=dsec[0][0]
+    msec=dmsec[0][0]
+    nevid=dnevid[0][0]
+    idep=didep[0][0]
     
-    
+    #Return the event numeber, station name, station number, ml,mw, PGA,pgv, 
+    #epcentral distance (Dist), vs30
+    return event,sta,N,ml,mw,DA,DV,dist[:,0],vs30
