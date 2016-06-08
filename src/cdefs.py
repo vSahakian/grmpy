@@ -17,6 +17,10 @@ class db:
         station name (sta), station number (N), local mag (ml), moment mag (mw), 
         PGA (DA), PGV (DV), and source to site distance (dist)
         '''
+        import numpy as np
+        
+        #"Fictitions depth" or "Finite fault dimension factor"
+        c=4.5
         
         #Give these values to the db:
         self.evnum=event
@@ -28,6 +32,7 @@ class db:
         self.pgv=DV
         self.r=dist
         self.vs30=vs30
+        self.ffdf=np.sqrt(self.r**2 + c**2)
         
     def plot_apga(self):
         '''
