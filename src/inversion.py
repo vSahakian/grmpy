@@ -7,6 +7,12 @@ def iinit_pga(db,ncoeff,rng,sdist,smth):
     '''
     Make the d and G matrices for the inversion.  Can use ranges, where the 
     coefficients from teh inversion must be smooth at the edges of the ranges.
+    The reason for this is that Baltay and Hanks (2014) showed that different 
+    physical processes govern the magnitude-PGA relationship, depending on the 
+    magnitude range.  As such, the functional form will not fit the data well 
+    for all magnitude ranges, so this allows tailoring of the fit, without 
+    adding in the physical processes but while respecting the knowledge that 
+    their contributions affect resulting coefficients.
     
     Input:
         db:     Object of class database, from cdefs, with:
@@ -100,7 +106,7 @@ def iinit_pga(db,ncoeff,rng,sdist,smth):
         #Parts of G:
         a1=np.ones((numinbin[j]))
         a2=imw
-        a3=(8.5-imw**2)
+        a3=(8.5-imw)**2
         a4=np.log(iffdf)
         a5=ir
         
@@ -123,7 +129,7 @@ def iinit_pga(db,ncoeff,rng,sdist,smth):
             #Parts of G:
             a1=np.ones((numsmooth))
             a2=np.ones((numsmooth))*rng[j+1]
-            a3=np.ones((numsmooth))*(8.5 - rng[j+1]**2)
+            a3=np.ones((numsmooth))*(8.5 - rng[j+1])**2
             a4=np.log(Rsdist)
             a5=sdist
             
@@ -159,7 +165,7 @@ def iinit_pga(db,ncoeff,rng,sdist,smth):
 
 def invert(G,d):
     '''
-    Invert....
+    Invert....minimize the L2 norm.
     Input:
         G:      Left hand side matrix
         d:      Data vector
@@ -182,7 +188,7 @@ def invert(G,d):
     
     
     
-    m=lstsq(G,d)
+    m,residuals,rank,singular_vals=lstsq(G,d)
     
     
     return m

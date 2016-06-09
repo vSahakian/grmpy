@@ -41,3 +41,6 @@ sdist=np.array([1,5,10,15,20])
 smth=100
 
 G,d=inv.iinit_pga(abdb,rng,sdist,smth)
+
+#Plot against data to check:
+abdb.plot_rpga(bmin,bmax,step)
