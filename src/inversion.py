@@ -26,7 +26,7 @@ def iinit_pga(db,rng,sdist,smth):
     ###                                                                       ###                  
     ###  a1 + a2*M + a3*M^2 + a4*ln(R) + a5*Rrup                              ###
     ###  where R = np.sqrt(R^2 + c^2),                                        ###
-    ###  where c=4.5 is "fictitious depth: or "finite fault dimension factor" ###
+    ###  where c=4.5 is "fictitious depth" or "finite fault dimension factor" ###
     ######*****************************************************************######
     
     #Get the R for each smoothing distance:
@@ -40,8 +40,9 @@ def iinit_pga(db,rng,sdist,smth):
     #What are the sizes of G and d:
     #How many data points?
     pgalen=len(db.pga)
-    #How many smoothing equations, overall? One set per range...  
-    numeq=(numrng*numsmooth)
+    #How many smoothing equations, overall? One set per range boundary, so do 
+    #numrng - 1...  
+    numeq=((numrng-1)*numsmooth)
     #How long will d be then?  Add num of data points and number of smoothing eq
     dlen=pgalen+numeq
     
@@ -49,7 +50,7 @@ def iinit_pga(db,rng,sdist,smth):
     #d is n x 1, where n was defined above...
     d=np.zeros((dlen))
     #G is n x 5*number of ranges:
-    G=np.zeros((dlen,numrng*5))
+    G=np.zeros((dlen,(numrng)*5))
     
     #Get the indices where each magnitude fits in each bin - "digitize index":
     dig_i=np.digitize(db.mw,rng)
@@ -90,23 +91,29 @@ def iinit_pga(db,rng,sdist,smth):
         #the smoothing equations:
         G[j+crow:j+crow+looplen, j+ccol:j+ccol+5]=np.c_[np.ones((numinbin[j])), 
             imw, (8.5-imw**2), np.log(iffdf), ir] 
-        d[(j+crow):(j+crow+looplen)]=ipga
+        d[(j+crow):(j+crow+looplen)]=np.log10(ipga)
         
-        #Now fill it with the smoothing info, at the bottom of each:
-        G[j+crow+looplen:j+crow+looplen+numsmooth, j+ccol:j+ccol+10]=smth*np.c_[np.ones((numsmooth)), 
-            np.ones((numsmooth))*rng[j+1], np.ones((numsmooth))*(8.5 - rng[j+1]**2), 
-            np.log(Rsdist), sdist, -1*np.ones((numsmooth)), 
-            -1*np.ones((numsmooth))*rng[j+1], -1*np.ones((numsmooth))*(8.5 - rng[j+1]**2), 
-            -1*np.log(Rsdist), -1*sdist] 
-        d[j+crow+looplen:j+crow+looplen+numsmooth]=np.zeros((numsmooth))
-        
+        #If there are still more ranges after this one, add smoothing so that 
+        #the line is continuous between ranges...otherwise, don't add anything.
+        if j<(len(rng)-2):    
+            #Now fill it with the smoothing info, at the bottom of each range, 
+            #except the last range:
+            G[j+crow+looplen:j+crow+looplen+numsmooth, j+ccol:j+ccol+10]=smth*(np.c_[np.ones((numsmooth)), 
+                np.ones((numsmooth))*rng[j+1], np.ones((numsmooth))*(8.5 - rng[j+1]**2), 
+                np.log(Rsdist), sdist, -1*np.ones((numsmooth)), 
+                -1*np.ones((numsmooth))*rng[j+1], -1*np.ones((numsmooth))*(8.5 - rng[j+1]**2), 
+                -1*np.log(Rsdist), -1*sdist]) 
+            d[j+crow+looplen:j+crow+looplen+numsmooth]=np.zeros((numsmooth))
+            
         #To the counter indices, add on:
         #To the rows, add what we are past - so the number of recordings in this
-        #range, plus the number of smoothing equations added on:
-        crow=crow+looplen+numsmooth
+        #range, plus the number of smoothing equations added on, -1 because j
+        #increases by 1:
+        crow=crow+looplen+numsmooth-1
         #To the columns, add what we are past - we are now once range past, so 
-        #we are an extra 5 columns deep (on to the next 5 coefficients):
-        ccol=ccol+5
+        #we are an extra 5 columns deep (on to the next 5 coefficients), minus
+        #one since j increases by 1:
+        ccol=ccol+4
     
     
     return G, d

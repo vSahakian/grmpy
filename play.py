@@ -20,7 +20,7 @@ abdb=cdf.db(ev,sta,N,ml,mw,DA,DV,r,vs30)
 bmin=0
 bmax=22
 step=1
-abdb.plot_rpga(bmin,bmax,step)
+#abdb.plot_rpga(bmin,bmax,step)
 
 
 #Inverting:
