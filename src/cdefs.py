@@ -103,7 +103,7 @@ class db:
         
         plt.show()
         
-    def plot_rpga(self,bmin,bmax,step,m,rng,vref=True):
+    def plot_rpga(self,bmin,bmax,step,m,rng,sdist,vref=True):
         '''
         Plots log10 PGA, for various distance ranges specified by bmin, bmax,
         and step.
@@ -113,14 +113,19 @@ class db:
             step:       Step interval for bins
             m:          Model vector from inversion
             rng:        Magnitude ranges, same array used for inversion
+            sdist:      Distances array used for inversion
             vref:       Reference vs30 value (Default: 760 m/s)
         '''
         
         from matplotlib import pyplot as plt
         import numpy as np
         
+        #Vs30 reference:
         if vref==None:
             vref=760
+            
+        #Fictitious depth:
+        c=4.5
         
         #Get bins:
         bins=np.arange(bmin,bmax,step)
@@ -157,14 +162,28 @@ class db:
         plt.ylabel(r"$\log_{10} PGA$")
         plt.title(r"PGA vs. $\mathbf{M}$, binned by distance")
         
-        a1=m[0]
-        a2=m[1]
-        a3=m[2]
-        a4=m[3]
-        a5=m[4]
+        
+        for j in range(len(sdist)):
+            ffdf=np.sqrt(sdist[j]**2 + c**2)
             
-        d=a1+a2*self.mw + a3*(8.5-self.mw)**2 + a4*np.log(self.ffdf) + a5*self.r + 0.6*np.log(self.vs30/vref)
-        plt.plot(
+            for i in range(len(rng)-1):
+                #Get the magnitudes to plot against:
+                mw=np.linspace(rng[i],rng[i+1],100)
+                
+                #Get the coefficients for this range:
+                a1=m[i*5]
+                a2=m[(i*5)+1]
+                a3=m[(i*5)+2]
+                a4=m[(i*5)+3]
+                a5=m[(i*5)+4]
+                
+                #GMPE:
+                d=a1+a2*mw + a3*(8.5-mw)**2 + a4*np.log(ffdf) + \
+                    a5*sdist[j] 
+                    # Don't add this yet...I think it should only go with the 
+                    #data for residuals... 
+                    #+ 0.6*np.log(self.vs30/vref)
+                f=plt.plot(mw,d)
         
         plt.show()
         
@@ -191,4 +210,4 @@ class db:
 #    This class describes one event
 #    '''
 #    
-#    def __init__(self,event,sta,N,ml,mw,DA,DV,
+#    def __init__(self,event,sta,N,ml,mw,DA,DV)

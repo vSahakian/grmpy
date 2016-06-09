@@ -182,9 +182,12 @@ def invert(G,d):
     
     if shape_G[0]!=shape_d[0]:
         if np.size(shape_d)==1:
-            print 'G and d dimensions do not agree, G: '+np.str(shape_G[0])+' x '+np.str(shape_G[1])+', d: '+np.str(shape_d[0])+' x 1'
+            print 'G and d dimensions do not agree, G: '+np.str(shape_G[0])+ \
+                ' x '+np.str(shape_G[1])+', d: '+np.str(shape_d[0])+' x 1'
         else:
-            print 'G and d dimensions do not agree, G: '+np.str(shape_G[0])+' x '+np.str(shape_G[1])+', d: '+np.str(shape_d[0])+' x '+np.str(shape_d[1])
+            print 'G and d dimensions do not agree, G: '+np.str(shape_G[0])+ \
+                ' x '+np.str(shape_G[1])+', d: '+np.str(shape_d[0])+' x '+ \
+                np.str(shape_d[1])
     
     
     
