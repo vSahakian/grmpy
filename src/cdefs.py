@@ -103,7 +103,7 @@ class db:
         
         plt.show()
         
-    def plot_rpga(self,bmin,bmax,step,m,rng,sdist,vref=True):
+    def plot_rpga_withmodel(self,bmin,bmax,step,m,rng,sdist,vref=True):
         '''
         Plots log10 PGA, for various distance ranges specified by bmin, bmax,
         and step.

@@ -40,7 +40,8 @@ sdist=np.array([1,5,10,15,20])
 #Smoothing factor
 smth=100
 
-G,d=inv.iinit_pga(abdb,rng,sdist,smth)
+G,d=inv.iinit_pga(abdb,ncoeff,rng,sdist,smth)
+m, resid, rank, svals=inv.invert(G,d)
 
 #Plot against data to check:
-abdb.plot_rpga(bmin,bmax,step)
+abdb.plot_rpga_withmodel(bmin,bmax,step,m,rng,sdist)

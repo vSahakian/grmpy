@@ -191,9 +191,9 @@ def invert(G,d):
     
     
     
-    m,residuals,rank,singular_vals=lstsq(G,d)
+    m,residual,rank,singular_vals=lstsq(G,d)
     
     
-    return m
+    return m, residual, rank, singular_vals
     
         
