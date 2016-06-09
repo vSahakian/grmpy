@@ -182,6 +182,9 @@ def invert(G,d):
     
     
     
+    m=lstsq(G,d)
     
+    
+    return m
     
         
