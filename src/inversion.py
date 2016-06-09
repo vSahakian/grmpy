@@ -3,7 +3,7 @@
 
 #Make the d and G matrices.....
 
-def iinit_pga(db,rng,sdist,smth):
+def iinit_pga(db,ncoeff,rng,sdist,smth):
     '''
     Make the d and G matrices for the inversion.  Can use ranges, where the 
     coefficients from teh inversion must be smooth at the edges of the ranges.
@@ -13,6 +13,7 @@ def iinit_pga(db,rng,sdist,smth):
                 mw:     Moment magnitude array (n x 1)
                 r:      Distance array (n x 1)
                 pga:    log10pga array (n x 1)
+        ncoeff: Number of coefficients
         rng:    Array with limits of M ranges, 
                 i.e.: [0, 2, 5] means two ranges: M0 - M2, M2 - M5.
         sdist:  Array with distances to include for smoothing (i.e, [1,5,10]
@@ -40,6 +41,7 @@ def iinit_pga(db,rng,sdist,smth):
     #What are the sizes of G and d:
     #How many data points?
     pgalen=len(db.pga)
+    
     #How many smoothing equations, overall? One set per range boundary, so do 
     #numrng - 1...  
     numeq=((numrng-1)*numsmooth)
@@ -49,8 +51,8 @@ def iinit_pga(db,rng,sdist,smth):
     #Initiate G and d:
     #d is n x 1, where n was defined above...
     d=np.zeros((dlen))
-    #G is n x 5*number of ranges:
-    G=np.zeros((dlen,(numrng)*5))
+    #G is n x ncoeff*number of ranges:
+    G=np.zeros((dlen,(numrng)*ncoeff))
     
     #Get the indices where each magnitude fits in each bin - "digitize index":
     dig_i=np.digitize(db.mw,rng)
@@ -89,21 +91,46 @@ def iinit_pga(db,rng,sdist,smth):
         
         #With that in mind, populate the G and d matrices with the data, before 
         #the smoothing equations:
-        G[j+crow:j+crow+looplen, j+ccol:j+ccol+5]=np.c_[np.ones((numinbin[j])), 
-            imw, (8.5-imw**2), np.log(iffdf), ir] 
-        d[(j+crow):(j+crow+looplen)]=np.log10(ipga)
+        #Name the row and column ranges:
+        r_beg=j+crow
+        r_end=j+crow+looplen
+        c_beg=j+ccol
+        c_end=j+ccol+ncoeff
         
+        #Parts of G:
+        a1=np.ones((numinbin[j]))
+        a2=imw
+        a3=(8.5-imw**2)
+        a4=np.log(iffdf)
+        a5=ir
+        
+        #Define:
+        G[r_beg:r_end,c_beg:c_end]=np.c_[a1, a2, a3, a4, a5] 
+        d[r_beg:r_end]=np.log10(ipga)
+        
+        #SMOOTHING:
         #If there are still more ranges after this one, add smoothing so that 
         #the line is continuous between ranges...otherwise, don't add anything.
         if j<(len(rng)-2):    
             #Now fill it with the smoothing info, at the bottom of each range, 
             #except the last range:
-            G[j+crow+looplen:j+crow+looplen+numsmooth, j+ccol:j+ccol+10]=smth*(np.c_[np.ones((numsmooth)), 
-                np.ones((numsmooth))*rng[j+1], np.ones((numsmooth))*(8.5 - rng[j+1]**2), 
-                np.log(Rsdist), sdist, -1*np.ones((numsmooth)), 
-                -1*np.ones((numsmooth))*rng[j+1], -1*np.ones((numsmooth))*(8.5 - rng[j+1]**2), 
-                -1*np.log(Rsdist), -1*sdist]) 
-            d[j+crow+looplen:j+crow+looplen+numsmooth]=np.zeros((numsmooth))
+            #First, row and column ranges:
+            r_beg=j+crow+looplen
+            r_end=j+crow+looplen+numsmooth
+            c_beg=j+ccol
+            c_end=j+ccol+(2*ncoeff)
+            
+            #Parts of G:
+            a1=np.ones((numsmooth))
+            a2=np.ones((numsmooth))*rng[j+1]
+            a3=np.ones((numsmooth))*(8.5 - rng[j+1]**2)
+            a4=np.log(Rsdist)
+            a5=sdist
+            
+            #Define G, d smoothing:
+            G[r_beg:r_end, c_beg:c_end]=smth*(np.c_[a1, a2, a3, a4, a5, 
+                -1*a1, -1*a2, -1*a3, -1*a4, -1*a5]) 
+            d[r_beg:r_end]=np.zeros((numsmooth))
             
         #To the counter indices, add on:
         #To the rows, add what we are past - so the number of recordings in this
@@ -119,6 +146,17 @@ def iinit_pga(db,rng,sdist,smth):
     return G, d
     
 
+#def pltGd(G):
+#    '''
+#    Plot G, d to visualize them. 
+#    Input:
+#        G:      G matrix for inversion, made by iinit_pga
+#        d:      Data matrix for inversion, made by iinit_pga
+#    '''
+#    
+#    import matplotlib.pyplot as plt
+    
+    
     
     
     
