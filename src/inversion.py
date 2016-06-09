@@ -156,6 +156,29 @@ def iinit_pga(db,ncoeff,rng,sdist,smth):
 #    
 #    import matplotlib.pyplot as plt
     
+
+def invert(G,d):
+    '''
+    Invert....
+    Input:
+        G:      Left hand side matrix
+        d:      Data vector
+    Output:
+        m:      Model vector
+    '''
+    
+    from scipy.linalg import lstsq
+    import numpy as np
+    
+    #Get shape of G and d, check:
+    shape_G=G.shape
+    shape_d=d.shape
+    
+    if shape_G[0]!=shape_d[0]:
+        if np.size(shape_d)==1:
+            print 'G and d dimensions do not agree, G: '+np.str(shape_G[0])+' x '+np.str(shape_G[1])+', d: '+np.str(shape_d[0])+' x 1'
+        else:
+            print 'G and d dimensions do not agree, G: '+np.str(shape_G[0])+' x '+np.str(shape_G[1])+', d: '+np.str(shape_d[0])+' x '+np.str(shape_d[1])
     
     
     
