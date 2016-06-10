@@ -103,7 +103,7 @@ class db:
         
         plt.show()
         
-    def plot_rpga_withmodel(self,bmin,bmax,step,m,rng,sdist,vref=True):
+    def plot_rpga_withmodel(self,bmin,bmax,step,m,rng,sdist,axlims,vref=True):
         '''
         Plots log10 PGA, for various distance ranges specified by bmin, bmax,
         and step.
@@ -114,6 +114,7 @@ class db:
             m:          Model vector from inversion
             rng:        Magnitude ranges, same array used for inversion
             sdist:      Distances array used for inversion
+            axlims:     Array with lims: [[xmin,xmax],[ymin,ymax]]
             vref:       Reference vs30 value (Default: 760 m/s)
         '''
         
@@ -167,6 +168,9 @@ class db:
         for j in range(len(sdist)):
             ffdf=np.sqrt(sdist[j]**2 + c**2)
             
+            #Label for plot:
+            lab="R="+np.str(sdist[j])+"km"
+            
             for i in range(len(rng)-1):
                 #Get the magnitudes to plot against:
                 mw=np.linspace(rng[i],rng[i+1],100)
@@ -184,9 +188,22 @@ class db:
                     # Don't add this yet...I think it should only go with the 
                     #data for residuals... 
                     #+ 0.6*np.log(self.vs30/vref)
-                f=plt.plot(mw,d,color=colors_gmpe[j])
+                
+                #Plot
+                if i==0:
+                    f=plt.plot(mw,d,color=colors_gmpe[j],label=lab)
+                else:
+                    f=plt.plot(mw,d,color=colors_gmpe[j],label=None)
+        #Add legend:
+        plt.legend(loc=4)
+            
+        #Limits:
+        xlims=axlims[0]
+        ylims=axlims[1]
+        plt.xlim(xlims)
+        plt.ylim(ylims)
         
-        plt.show()
+        plt.show(f)
         
         
         

@@ -44,8 +44,11 @@ smth=100
 G,d=inv.iinit_pga(abdb,ncoeff,rng,sdist,smth)
 m, resid, rank, svals=inv.invert(G,d)
 
+#Plotting params...
+vref=760
+axlims=[[1,7],[2,12]]
 #Plot against data to check:
-abdb.plot_rpga_withmodel(bmin,bmax,step,m,rng,sdist)
+abdb.plot_rpga_withmodel(bmin,bmax,step,m,rng,sdist,axlims,vref)
 
 ##Save G, d, and m.....and other things...
 ##Put into an inversion object:
