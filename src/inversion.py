@@ -46,7 +46,7 @@ def iinit_pga(db,ncoeff,rng,sdist,smth):
     
     #What are the sizes of G and d:
     #How many data points?
-    pgalen=len(db.pga)
+    pgalen=len(db.pga_pg)
     
     #How many smoothing equations, overall? One set per range boundary, so do 
     #numrng - 1...  
@@ -90,7 +90,7 @@ def iinit_pga(db,ncoeff,rng,sdist,smth):
         imw=db.mw[bin_i]
         ir=db.r[bin_i]
         iffdf=db.ffdf[bin_i]
-        ipga=db.pga[bin_i]
+        ipga=db.pga_pg[bin_i]
         
         #How many recordings are in this loop/range?
         looplen=numinbin[j]

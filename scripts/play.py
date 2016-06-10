@@ -34,21 +34,31 @@ ncoeff=5
 #Define the ranges for the inversion - at each range boundary (i.e., between
 #[0:3.3], and [3.3:4.5], the solution will be smoothed so there is no jump at 
 #the range boundary
-rng=np.array([0,3.3,4.5,6.5])
+#rng=np.array([0,3.3,4.5,6.5])
+rng=np.array([0,1.5,3,4,6.5])
+
+
 #Number of distances to include in smoothing - there will be this many extra
 #equations added on at each range boundary
 sdist=np.array([1,5,10,15,20])
+
 #Smoothing factor
 smth=100
 
 G,d=inv.iinit_pga(abdb,ncoeff,rng,sdist,smth)
 m, resid, rank, svals=inv.invert(G,d)
 
+#m=np.array([  2.39195267e+00,   1.33068285e+00,   2.20961871e-18,
+#        9.00000000e-01,  -1.06447647e-01,   1.37851521e+01,
+#       -9.26696628e-01,  -1.45862809e-01,   9.00000000e-01,
+#       -1.06430279e-01,   6.38186568e+00,   5.41230552e-01,
+#       -9.60255039e-02,   9.00119541e-01,  -1.06435188e-01])
+
 #Plotting params...
 vref=760
-axlims=[[1,7],[2,12]]
+axlims=[[1,6],[-7,0]]
 #Plot against data to check:
-abdb.plot_rpga_withmodel(bmin,bmax,step,m,rng,sdist,axlims,vref)
+abdb.plot_rpga_withmodel(bmin,bmax,step,m,rng,sdist,axlims,resid,vref)
 
 ##Save G, d, and m.....and other things...
 ##Put into an inversion object:

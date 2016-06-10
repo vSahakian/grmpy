@@ -22,14 +22,22 @@ class db:
         #"Fictitions depth" or "Finite fault dimension factor"
         c=4.5
         
+        #Save pga + pgv in m/s/s, not nm/s/s
+        DAm=DA*1e-9
+        DVm=DV*1e-9
+        
+        #Get percent g:
+        pga_pg=DAm/9.81
+        
         #Give these values to the db:
         self.evnum=event
         self.sta=sta
         self.stnum=N
         self.ml=ml
         self.mw=mw
-        self.pga=DA
-        self.pgv=DV
+        self.pga=DAm
+        self.pgv=DVm
+        self.pga_pg=pga_pg
         self.r=dist
         self.vs30=vs30
         self.ffdf=np.sqrt(self.r**2 + c**2)
@@ -46,7 +54,7 @@ class db:
         plt.figure()
         
         #Plot...
-        plt.scatter(self.mw,np.log10(self.pga),marker='o')
+        plt.scatter(self.mw,np.log10(self.pga_pg),marker='o')
         plt.xlabel(r"$\mathbf{M}$")
         plt.ylabel(r"$\log_{10} PGA$")
         plt.title(r"PGA vs. $\mathbf{M}$ for all distances")
@@ -94,7 +102,7 @@ class db:
             #multiply it by an array of ones. (maybe I don't even need to do this?)
             clrs=np.ones((len(bind),4))*np.tile(colors[i,:],(len(bind),1))
             #plot
-            f=plt.scatter(self.mw[bind],np.log10(self.pga[bind]),edgecolors=clrs,facecolors='none',lw=0.5)
+            f=plt.scatter(self.mw[bind],np.log10(self.pga_pg[bind]),edgecolors=clrs,facecolors='none',lw=0.5)
 
         #Label the plot - Mbold on the x, log10PGA on the y, 
         plt.xlabel(r"$\mathbf{M}$")
@@ -103,7 +111,7 @@ class db:
         
         plt.show()
         
-    def plot_rpga_withmodel(self,bmin,bmax,step,m,rng,sdist,axlims,vref=True):
+    def plot_rpga_withmodel(self,bmin,bmax,step,m,rng,sdist,axlims,resid,vref=True):
         '''
         Plots log10 PGA, for various distance ranges specified by bmin, bmax,
         and step.
@@ -115,6 +123,7 @@ class db:
             rng:        Magnitude ranges, same array used for inversion
             sdist:      Distances array used for inversion
             axlims:     Array with lims: [[xmin,xmax],[ymin,ymax]]
+            resid:      Residual from inversion
             vref:       Reference vs30 value (Default: 760 m/s)
         '''
         
@@ -156,12 +165,12 @@ class db:
             #multiply it by an array of ones. (maybe I don't even need to do this?)
             clrs=np.ones((len(bind),4))*np.tile(colors[i,:],(len(bind),1))
             #plot
-            f=plt.scatter(self.mw[bind],np.log10(self.pga[bind]),edgecolors=clrs,facecolors='none',lw=0.5)
+            f=plt.scatter(self.mw[bind],np.log10(self.pga_pg[bind]),edgecolors=clrs,facecolors='none',lw=0.5)
 
         #Label the plot - Mbold on the x, log10PGA on the y, 
         plt.xlabel(r"$\mathbf{M}$")
         plt.ylabel(r"$\log_{10} PGA$")
-        plt.title(r"PGA vs. $\mathbf{M}$, binned by distance")
+        plt.title(r"PGA vs. $\mathbf{M}$, binned by distance; Residual="+np.str(resid))
         
         colors_gmpe=plt.cm.rainbow(sdist.astype(float)/sdist.max())
         
