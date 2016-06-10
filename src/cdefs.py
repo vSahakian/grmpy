@@ -162,6 +162,7 @@ class db:
         plt.ylabel(r"$\log_{10} PGA$")
         plt.title(r"PGA vs. $\mathbf{M}$, binned by distance")
         
+        colors_gmpe=plt.cm.rainbow(sdist.astype(float)/sdist.max())
         
         for j in range(len(sdist)):
             ffdf=np.sqrt(sdist[j]**2 + c**2)
@@ -183,7 +184,7 @@ class db:
                     # Don't add this yet...I think it should only go with the 
                     #data for residuals... 
                     #+ 0.6*np.log(self.vs30/vref)
-                f=plt.plot(mw,d)
+                f=plt.plot(mw,d,color=colors_gmpe[j])
         
         plt.show()
         

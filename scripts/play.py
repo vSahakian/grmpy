@@ -47,10 +47,10 @@ m, resid, rank, svals=inv.invert(G,d)
 #Plot against data to check:
 abdb.plot_rpga_withmodel(bmin,bmax,step,m,rng,sdist)
 
-#Save G, d, and m.....and other things...
-#Put into an inversion object:
-testinv=cdf.invinfo(G,d,m,resid,rank,svals,rng,sdist,smth)
-fname='inv1.pckl'
-f=open(fname,'w')
-pickle.dump(testinv,f)
-f.close()
+##Save G, d, and m.....and other things...
+##Put into an inversion object:
+#testinv=cdf.invinfo(G,d,m,resid,rank,svals,rng,sdist,smth)
+#fname='inv1.pckl'
+#f=open(fname,'w')
+#pickle.dump(testinv,f)
+#f.close()
