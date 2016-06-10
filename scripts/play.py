@@ -51,3 +51,6 @@ abdb.plot_rpga_withmodel(bmin,bmax,step,m,rng,sdist)
 #Put into an inversion object:
 testinv=cdf.invinfo(G,d,m,resid,rank,svals,rng,sdist,smth)
 fname='inv1.pckl'
+f=open(fname,'w')
+pickle.dump(testinv,f)
+f.close()
