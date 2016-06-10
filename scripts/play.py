@@ -4,6 +4,7 @@ import dread as dr
 import cdefs as cdf
 import numpy as np
 import inversion as inv
+import pickle
 
 ffile='/Users/vsahakian/anza/data/Anzadata_Acc_Vel_May2016_40_50.mat'
 
@@ -46,4 +47,7 @@ m, resid, rank, svals=inv.invert(G,d)
 #Plot against data to check:
 abdb.plot_rpga_withmodel(bmin,bmax,step,m,rng,sdist)
 
-np.save(
+#Save G, d, and m.....and other things...
+#Put into an inversion object:
+testinv=cdf.invinfo(G,d,m,resid,rank,svals,rng,sdist,smth)
+fname='inv1.pckl'

@@ -187,6 +187,33 @@ class db:
         
         plt.show()
         
+        
+        
+class invinfo:
+    '''
+    Save paramters from an inversion.
+       G:       Left hand side matrix
+       d:       Data vector
+       m:       Resulting model vector
+       resid:   Residuals from inversion
+       rank:    rank from inversion
+       svals:   Singular values from inversion
+       rng:     Magnitude ranges used in inversion
+       sdist:   Distances used in smoothing for inversion
+       smth:    Smoothing value used in inversion 
+    '''
+    def __init__(self,G,d,m,resid,rank,svals,rng,sdist,smth):
+        self.G=G
+        self.d=d
+        self.m=m
+        self.resid=resid
+        self.rank=rank
+        self.svals=svals
+        self.rng=rng
+        self.sdist=sdist
+        self.smth=smth
+        
+    
 #class hdr:
 #    '''
 #    This class describes the header info for a db (like AB's for now)
