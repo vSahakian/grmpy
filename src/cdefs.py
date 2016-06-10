@@ -170,7 +170,8 @@ class db:
         #Label the plot - Mbold on the x, log10PGA on the y, 
         plt.xlabel(r"$\mathbf{M}$")
         plt.ylabel(r"$\log_{10} PGA$")
-        plt.title(r"PGA vs. $\mathbf{M}$, binned by distance; Residual="+np.str(resid))
+        plt.title(r"PGA vs. $\mathbf{M}$, binned by distance" + "\n" + \
+            "M Ranges: " + np.str(rng)+ ", Residual="+np.str(resid))
         
         colors_gmpe=plt.cm.rainbow(sdist.astype(float)/sdist.max())
         

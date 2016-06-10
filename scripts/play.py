@@ -5,8 +5,13 @@ import cdefs as cdf
 import numpy as np
 import inversion as inv
 import pickle
+import matplotlib.pyplot as plt
 
+#AB's flatfile:
 ffile='/Users/vsahakian/anza/data/Anzadata_Acc_Vel_May2016_40_50.mat'
+
+#Location to store figures:
+fig_dir='/Users/vsahakian/anza/models/figs/'
 
 #Read data from .mat file, store important values:
 ev,sta,N,ml,mw,DA,DV,r,vs30=dr.mread(ffile)
@@ -60,10 +65,16 @@ axlims=[[1,6],[-7,0]]
 #Plot against data to check:
 abdb.plot_rpga_withmodel(bmin,bmax,step,m,rng,sdist,axlims,resid,vref)
 
-##Save G, d, and m.....and other things...
-##Put into an inversion object:
-#testinv=cdf.invinfo(G,d,m,resid,rank,svals,rng,sdist,smth)
-#fname='inv1.pckl'
-#f=open(fname,'w')
-#pickle.dump(testinv,f)
-#f.close()
+#Save plots:
+basename=fig_dir+'regr_'+np.str(len(rng)-1)+'_resid_'+np.str(resid)
+figname=basename+'.png'
+plt.savefig(figname,transparent=True)
+
+#Save G, d, and m.....and other things...
+#Put into an inversion object:
+invdat=cdf.invinfo(G,d,m,resid,rank,svals,rng,sdist,smth)
+fname=basename+'.pckl'
+datobj=open(fname,'w')
+pickle.dump(invdat,datobj)
+datobj.close()
+
