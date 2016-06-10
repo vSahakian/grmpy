@@ -45,3 +45,5 @@ m, resid, rank, svals=inv.invert(G,d)
 
 #Plot against data to check:
 abdb.plot_rpga_withmodel(bmin,bmax,step,m,rng,sdist)
+
+np.save(
