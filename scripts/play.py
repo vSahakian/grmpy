@@ -12,6 +12,7 @@ ffile='/Users/vsahakian/anza/data/Anzadata_Acc_Vel_May2016_40_50.mat'
 
 #Location to store figures:
 fig_dir='/Users/vsahakian/anza/models/figs/'
+obj_dir='/Users/vsahakian/anza/models/pckl/'
 
 #Read data from .mat file, store important values:
 ev,sta,N,ml,mw,DA,DV,r,vs30=dr.mread(ffile)
@@ -40,7 +41,7 @@ ncoeff=5
 #[0:3.3], and [3.3:4.5], the solution will be smoothed so there is no jump at 
 #the range boundary
 #rng=np.array([0,3.3,4.5,6.5])
-rng=np.array([0,1.5,3,4,6.5])
+rng=np.array([0,1,1.5,2,2.5,3.3,6.5])
 
 
 #Number of distances to include in smoothing - there will be this many extra
@@ -48,7 +49,7 @@ rng=np.array([0,1.5,3,4,6.5])
 sdist=np.array([1,5,10,15,20])
 
 #Smoothing factor
-smth=100
+smth=500
 
 G,d=inv.iinit_pga(abdb,ncoeff,rng,sdist,smth)
 m, resid, rank, svals=inv.invert(G,d)
@@ -66,14 +67,14 @@ axlims=[[1,6],[-7,0]]
 abdb.plot_rpga_withmodel(bmin,bmax,step,m,rng,sdist,axlims,resid,vref)
 
 #Save plots:
-basename=fig_dir+'regr_'+np.str(len(rng)-1)+'_resid_'+np.str(resid)
-figname=basename+'.png'
+basename='regr_'+np.str(len(rng)-1)+'_resid_'+np.str(resid)
+figname=fig_dir+basename+'.png'
 plt.savefig(figname,transparent=True)
 
 #Save G, d, and m.....and other things...
 #Put into an inversion object:
 invdat=cdf.invinfo(G,d,m,resid,rank,svals,rng,sdist,smth)
-fname=basename+'.pckl'
+fname=obj_dir+basename+'.pckl'
 datobj=open(fname,'w')
 pickle.dump(invdat,datobj)
 datobj.close()
