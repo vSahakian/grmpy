@@ -7,12 +7,28 @@ import inversion as inv
 import pickle
 import matplotlib.pyplot as plt
 
+
+#Change this parameter depending on where you run:
+#0=desktop
+#1=mac
+
+what_home=0
+
+if what_home==0:
+    #Desktop:
+    HOME='/home/vsahakian'
+elif what_home==1:
+    #Mac:
+    HOME='/Users/vsahakian'
+
+
+
 #AB's flatfile:
-ffile='/Users/vsahakian/anza/data/Anzadata_Acc_Vel_May2016_40_50.mat'
+ffile=HOME+'/anza/data/Anzadata_Acc_Vel_May2016_40_50.mat'
 
 #Location to store figures:
-fig_dir='/Users/vsahakian/anza/models/figs/'
-obj_dir='/Users/vsahakian/anza/models/pckl/'
+fig_dir=HOME+'/anza/models/figs/'
+obj_dir=HOME+'/anza/models/pckl/'
 
 #Read data from .mat file, store important values:
 ev,sta,N,ml,mw,DA,DV,r,vs30=dr.mread(ffile)
