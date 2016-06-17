@@ -9,8 +9,6 @@ from scipy.optimize import minimize
 
 what_home=0
 
-
-
 if what_home==0:
     #Desktop:
     HOME='/home/vsahakian'
@@ -49,8 +47,6 @@ m0=ones(mL2.shape)
 optimization_result=minimize(objective,m0, method='SLSQP')
 #What are the coefficients?
 mmin=optimization_result.x
-
-
 
 
 
