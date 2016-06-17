@@ -41,7 +41,12 @@ ncoeff=5
 #[0:3.3], and [3.3:4.5], the solution will be smoothed so there is no jump at 
 #the range boundary
 #rng=np.array([0,3.3,4.5,6.5])
-rng=np.array([0,1,1.5,2,2.5,3.3,6.5])
+#rng=np.array([0,1,1.5,2,2.5,3.3,6.5])
+#rng=np.array([0,1,1.5,2,2.5,3.5,6.5])
+#rng=np.array([0,1.5,3,4,6.5])
+#rng=np.array([0,6.5])
+rng=np.array([0,1,2,3.3,4.5,6.5])
+
 
 
 #Number of distances to include in smoothing - there will be this many extra
@@ -67,7 +72,15 @@ axlims=[[1,6],[-7,0]]
 abdb.plot_rpga_withmodel(bmin,bmax,step,m,rng,sdist,axlims,resid,vref)
 
 #Save plots:
-basename='regr_'+np.str(len(rng)-1)+'_resid_'+np.str(resid)
+#Get the string for the filename, based on the ranges:
+
+for k in range(len(rng)):
+    if k==0:
+        strname=np.str(rng[k])
+    else:
+        strname=strname+'_'+np.str(rng[k])
+    
+basename='regr_'+strname+'_resid_'+np.str(resid)
 figname=fig_dir+basename+'.png'
 plt.savefig(figname,transparent=True)
 
