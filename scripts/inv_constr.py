@@ -3,8 +3,23 @@ from numpy import zeros,ones,array
 from numpy.linalg import lstsq,norm
 from scipy.optimize import minimize
 
+#Change this parameter depending on where you run:
+#0=desktop
+#1=mac
 
-f = open(u'/Users/vsahakian/anza/models/pckl/regr_0.0_3.3_4.5_6.5_resid_2663.62423294.pckl')
+what_home=0
+
+
+
+if what_home==0:
+    #Desktop:
+    HOME='/home/vsahakian'
+elif what_home==1:
+    #Mac:
+    HOME='/Users/vsahakian'
+
+
+f = open(HOME+'/anza/models/pckl/regr_0.0_3.3_4.5_6.5_resid_2663.62423294.pckl')
 p=pickle.load(f)
 f.close()
 
