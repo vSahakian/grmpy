@@ -111,7 +111,7 @@ class db:
         
         plt.show()
         
-    def plot_rpga_withmodel(self,bmin,bmax,step,m,rng,sdist,axlims,resid,vref=True):
+    def plot_rpga_withmodel(self,bmin,bmax,step,m,rng,sdist,axlims,VR,vref=True):
         '''
         Plots log10 PGA, for various distance ranges specified by bmin, bmax,
         and step.
@@ -123,7 +123,7 @@ class db:
             rng:        Magnitude ranges, same array used for inversion
             sdist:      Distances array used for inversion
             axlims:     Array with lims: [[xmin,xmax],[ymin,ymax]]
-            resid:      Residual from inversion
+            VR:         Variance Reduction from inversion
             vref:       Reference vs30 value (Default: 760 m/s)
         '''
         
@@ -171,7 +171,7 @@ class db:
         plt.xlabel(r"$\mathbf{M}$")
         plt.ylabel(r"$\log_{10} PGA$")
         plt.title(r"PGA vs. $\mathbf{M}$, binned by distance" + "\n" + \
-            "M Ranges: " + np.str(rng)+ ", Residual="+np.str(resid))
+            "M Ranges: " + np.str(rng)+ ", Var Red="+np.str(np.around(VR,decimals=1)))
         
         colors_gmpe=plt.cm.rainbow(sdist.astype(float)/sdist.max())
         
@@ -230,11 +230,13 @@ class invinfo:
        sdist:   Distances used in smoothing for inversion
        smth:    Smoothing value used in inversion 
     '''
-    def __init__(self,G,d,m,resid,rank,svals,rng,sdist,smth):
+    def __init__(self,G,d,m,resid,L2norm,VR,rank,svals,rng,sdist,smth):
         self.G=G
         self.d=d
         self.m=m
         self.resid=resid
+        self.norm=L2norm
+        self.VR=VR
         self.rank=rank
         self.svals=svals
         self.rng=rng

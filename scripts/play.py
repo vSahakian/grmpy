@@ -76,12 +76,9 @@ smth=500
 #Make matrices
 G,d=inv.iinit_pga(abdb,ncoeff,rng,sdist,smth)
 #Invert
-m, resid, rank, svals=inv.invert(G,d)
+m, resid, L2norm, VR, rank, svals=inv.invert(G,d)
 
-#resid is the square of the L2 norm, so it's the sum of the squared values of
-#residuals.  
-#Square it to get the L2 norm:
-res=resid**0.5
+
 
 #m=np.array([  2.39195267e+00,   1.33068285e+00,   2.20961871e-18,
 #        9.00000000e-01,  -1.06447647e-01,   1.37851521e+01,
@@ -93,7 +90,7 @@ res=resid**0.5
 vref=760
 axlims=[[1,6],[-7,0]]
 #Plot against data to check:
-abdb.plot_rpga_withmodel(bmin,bmax,step,m,rng,sdist,axlims,res,vref)
+abdb.plot_rpga_withmodel(bmin,bmax,step,m,rng,sdist,axlims,VR,vref)
 
 #Save plots:
 #Get the string for the filename, based on the ranges:
@@ -104,13 +101,13 @@ for k in range(len(rng)):
     else:
         strname=strname+'_'+np.str(rng[k])
     
-basename='regr_'+strname+'_res_'+np.str(resid)
+basename='regr_'+strname+'_VR_'+np.str(np.around(VR,decimals=1))
 figname=fig_dir+basename+'.png'
 plt.savefig(figname,transparent=True)
 
 #Save G, d, and m.....and other things...
 #Put into an inversion object:
-invdat=cdf.invinfo(G,d,m,resid,rank,svals,rng,sdist,smth)
+invdat=cdf.invinfo(G,d,m,resid,L2norm,VR,rank,svals,rng,sdist,smth)
 fname=obj_dir+basename+'.pckl'
 datobj=open(fname,'w')
 pickle.dump(invdat,datobj)

@@ -173,7 +173,7 @@ def invert(G,d):
         m:      Model vector
     '''
     
-    from scipy.linalg import lstsq
+    from numpy.linalg import lstsq,norm
     import numpy as np
     
     #Get shape of G and d, check:
@@ -190,10 +190,25 @@ def invert(G,d):
                 np.str(shape_d[1])
     
     
-    
+    #Invert
     m,residual,rank,singular_vals=lstsq(G,d)
     
+    #For some reason, lstsq isn't getting residuals for some cases with many 
+    #ranges.  #Compute your own:
     
-    return m, residual, rank, singular_vals
+    #L2norm
+    L2norm=norm(G.dot(m)-d)
+    
+    #Get the residual that's supposed to come out of lstsq:
+    residual=L2norm**2
+    
+    #Get the variance reduction:
+    VR=(1 - (np.sum(residual)/np.sum(d**2)))*100
+    
+    print 'L2 norm is %.2f, residual (square) is %.2f, Variance Reduction is \
+        %i percent' % (L2norm,residual,VR)
+    
+    
+    return m, residual, L2norm, VR, rank, singular_vals
     
         
