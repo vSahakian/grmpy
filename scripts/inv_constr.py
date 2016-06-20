@@ -62,7 +62,7 @@ bnds=((-100,100),(-100,100),(-100,100),(0.9,1.1),(-100,100),
       (-100,100),(-100,100),(-100,100),(0.9,1.1),(-100,100))
 
 
-#Run the sonbitch
+#Run it
 optimization_result=minimize(objective,m0, method='SLSQP',constraints=param_constraints,bounds=bnds)
 mmin_const=optimization_result.x
 
@@ -70,7 +70,7 @@ mmin_const=optimization_result.x
 
 
 
-#Spit out each different result
+#Print out each different result
 print '\n'
 print 'lstsq result is:'
 print mL2
