@@ -72,8 +72,16 @@ sdist=np.array([1,5,10,15,20])
 #Smoothing factor
 smth=500
 
+#Invert:
+#Make matrices
 G,d=inv.iinit_pga(abdb,ncoeff,rng,sdist,smth)
+#Invert
 m, resid, rank, svals=inv.invert(G,d)
+
+#resid is the square of the L2 norm, so it's the sum of the squared values of
+#residuals.  
+#Square it to get the L2 norm:
+res=resid**0.5
 
 #m=np.array([  2.39195267e+00,   1.33068285e+00,   2.20961871e-18,
 #        9.00000000e-01,  -1.06447647e-01,   1.37851521e+01,
@@ -85,7 +93,7 @@ m, resid, rank, svals=inv.invert(G,d)
 vref=760
 axlims=[[1,6],[-7,0]]
 #Plot against data to check:
-abdb.plot_rpga_withmodel(bmin,bmax,step,m,rng,sdist,axlims,resid,vref)
+abdb.plot_rpga_withmodel(bmin,bmax,step,m,rng,sdist,axlims,res,vref)
 
 #Save plots:
 #Get the string for the filename, based on the ranges:
@@ -96,7 +104,7 @@ for k in range(len(rng)):
     else:
         strname=strname+'_'+np.str(rng[k])
     
-basename='regr_'+strname+'_resid_'+np.str(resid)
+basename='regr_'+strname+'_res_'+np.str(resid)
 figname=fig_dir+basename+'.png'
 plt.savefig(figname,transparent=True)
 

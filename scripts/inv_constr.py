@@ -43,7 +43,7 @@ print 'lstsq residual is %.2f, objective residuals is %.2f' % (res**0.5,obj_res)
 
 #Inital guess of the solution
 m0=ones(mL2.shape)
-#Run the fucker
+#Run it
 optimization_result=minimize(objective,m0, method='SLSQP')
 #What are the coefficients?
 mmin=optimization_result.x
