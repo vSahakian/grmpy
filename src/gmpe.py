@@ -64,12 +64,12 @@ def ask2014_pga(db,coeff_file,M1,M2,mdep_ffdf):
     a42=ask2014[:,34]
     
     #Coefficients for hte standard deviation
-    s1e=
-    s2e=
-    s3=
-    s4=
-    s1m=
-    s2m=
-    s5=
-    s6=
+    s1e=ask2014[:,35]
+    s2e=ask2014[:,36]
+    s3=ask2014[:,37]
+    s4=ask2014[:,38]
+    s1m=ask2014[:,39]
+    s2m=ask2014[:,40]
+    s5=ask2014[:,41]
+    s6=ask2014[:,42]
     
