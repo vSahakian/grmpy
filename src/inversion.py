@@ -3,7 +3,7 @@
 
 #Make the d and G matrices.....
 
-def iinit_pga(db,ncoeff,rng,sdist,smth):
+def iinit_pga(db,ncoeff,rng,sdist,smth,mdep_ffdf):
     '''
     Make the d and G matrices for the inversion.  Can use ranges, where the 
     coefficients from teh inversion must be smooth at the edges of the ranges.
@@ -15,15 +15,17 @@ def iinit_pga(db,ncoeff,rng,sdist,smth):
     their contributions affect resulting coefficients.
     
     Input:
-        db:     Object of class database, from cdefs, with:
-                mw:     Moment magnitude array (n x 1)
-                r:      Distance array (n x 1)
-                pga:    log10pga array (n x 1)
-        ncoeff: Number of coefficients
-        rng:    Array with limits of M ranges, 
-                i.e.: [0, 2, 5] means two ranges: M0 - M2, M2 - M5.
-        sdist:  Array with distances to include for smoothing (i.e, [1,5,10]
-        smth:   Smoothing value
+        db:         Object of class database, from cdefs, with:
+                    mw:     Moment magnitude array (n x 1)
+                    r:      Distance array (n x 1)
+                    pga:    log10pga array (n x 1)
+        ncoeff:     Number of coefficients
+        rng:        Array with limits of M ranges, 
+                    i.e.: [0, 2, 5] means two ranges: M0 - M2, M2 - M5.
+        sdist:      Array with distances to include for smoothing (i.e, [1,5,10]
+        smth:       Smoothing value
+        mdep_ffdf:  Magnitude-dependent fictitious depth param: 0=off, 1=on
+        
             
     '''
     import numpy as np
@@ -33,12 +35,35 @@ def iinit_pga(db,ncoeff,rng,sdist,smth):
     ###                                                                       ###                  
     ###  a1 + a2*M + a3*M^2 + a4*ln(R) + a5*Rrup                              ###
     ###  where R = np.sqrt(R^2 + c^2),                                        ###
-    ###  where c=4.5 is "fictitious depth" or "finite fault dimension factor" ###
+    ###  where c is "fictitious depth" or "finite fault dimension factor"     ###
+    ###  and is magnitude dependent: =4.5 for M >5, 
     ######*****************************************************************######
     
     #Get the R for each smoothing distance:
-    c=4.5
-    Rsdist=np.sqrt(sdist**2 + c**2)
+    if mdep_ffdf==0:
+        c=4.5
+        Rsdist=np.sqrt(sdist**2 + c**2)
+        print 'Magnitude dependent fictitious depth is turned OFF'
+        
+    elif mdep_ffdf==1:
+        #Find the indices for each range:
+        cr1_ind=np.where(rng>5)[0]
+        cr2_ind=np.where((rng<=5) & (rng>4))[0]
+        cr3_ind=np.where(rng<=4)[0]
+        
+        #Zero out the c array, and Rdist array:
+        c=np.zeros(rng.shape)
+        Rsdist=np.zeros((len(rng),len(sdist)))
+        
+        #Find indices of where the magnitudes in rng match the ASK2014 boundaries
+        c[cr1_ind]=4.5
+        c[cr2_ind]=4.5-((4.5-1)*(5-rng[cr2_ind]))
+        c[cr3_ind]=np.ones(cr3_ind.shape)
+        
+        #Put into Rsdist:
+        for i in range(len(sdist)):
+            Rsdist[:,i]=np.sqrt(sdist[i]**2 + c**2)
+        print 'Magnitude dependent fictitious depth is turned ON'
     
     #Number of distances for smoothing:
     numsmooth=len(sdist)
@@ -89,7 +114,12 @@ def iinit_pga(db,ncoeff,rng,sdist,smth):
         #Get the magnitudes, distances, and pga's for these indices:
         imw=db.mw[bin_i]
         ir=db.r[bin_i]
-        iffdf=db.ffdf[bin_i]
+        if mdep_ffdf==0:
+            iffdf=db.ffdf[bin_i]
+        elif mdep_ffdf==1:
+            iffdf=db.md_ffdf[bin_i]
+        else:
+            print 'Magnitude dependent fictitious depth flag missing.  on = 1, off =0'
         ipga=db.pga_pg[bin_i]
         
         #How many recordings are in this loop/range?
@@ -130,7 +160,11 @@ def iinit_pga(db,ncoeff,rng,sdist,smth):
             a1=np.ones((numsmooth))
             a2=np.ones((numsmooth))*rng[j+1]
             a3=np.ones((numsmooth))*(8.5 - rng[j+1])**2
-            a4=np.log(Rsdist)
+            #Add magnitude-dependent fictitious depth:
+            if mdep_ffdf==0:
+                a4=np.log(Rsdist)
+            elif mdep_ffdf==1:
+                a4=np.log(Rsdist[j+1])
             a5=sdist
             
             #Define G, d smoothing:

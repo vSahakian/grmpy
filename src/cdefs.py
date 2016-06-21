@@ -11,11 +11,11 @@ class db:
     This class describes a set of events
     '''
     
-    def __init__(self,event,sta,N,ml,mw,DA,DV,dist,vs30):
+    def __init__(self,event,sta,N,ml,mw,DA,DV,r,vs30):
         '''
         Initiate the class by giving the event number (event), 
         station name (sta), station number (N), local mag (ml), moment mag (mw), 
-        PGA (DA), PGV (DV), and source to site distance (dist)
+        PGA (DA), PGV (DV), and source to site distance (r)
         '''
         import numpy as np
         
@@ -29,6 +29,21 @@ class db:
         #Get percent g:
         pga_pg=DAm/9.81
         
+        #Get magnitude-dependent ffdf:
+        #ASK2014 c4 coefficient:
+        c4=4.5
+        #Find the indices for each range:
+        cr1_ind=np.where(mw>5)
+        cr2_ind=np.where((mw<=5) & (mw>4))
+        cr3_ind=np.where(mw<=4)
+        
+        #Zero out the c array:
+        c=np.zeros(mw.shape)
+        c[cr1_ind]=c4
+        c[cr2_ind]=c4-((c4-1)*(5-mw[cr2_ind]))
+        c[cr3_ind]=1
+        md_ffdf=np.sqrt(r**2 + c**2)
+        
         #Give these values to the db:
         self.evnum=event
         self.sta=sta
@@ -38,9 +53,10 @@ class db:
         self.pga=DAm
         self.pgv=DVm
         self.pga_pg=pga_pg
-        self.r=dist
+        self.r=r
         self.vs30=vs30
-        self.ffdf=np.sqrt(self.r**2 + c**2)
+        self.ffdf=np.sqrt(self.r**2 + c4**2)
+        self.md_ffdf=md_ffdf
         
     def plot_apga(self):
         '''
