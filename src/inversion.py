@@ -36,7 +36,9 @@ def iinit_pga(db,ncoeff,rng,sdist,smth,mdep_ffdf):
     ###  a1 + a2*M + a3*M^2 + a4*ln(R) + a5*Rrup                              ###
     ###  where R = np.sqrt(R^2 + c^2),                                        ###
     ###  where c is "fictitious depth" or "finite fault dimension factor"     ###
-    ###  and is magnitude dependent: =4.5 for M >5, 
+    ###  and is magnitude dependent:                                          ###
+    ###        =4.5 for M >5, =4.5 - (4.5 - 1)*(5 - M) for 4<LM<=5,           ###
+    ###         =1 for M<=4)                                                  ###
     ######*****************************************************************######
     
     #Get the R for each smoothing distance:
@@ -89,6 +91,7 @@ def iinit_pga(db,ncoeff,rng,sdist,smth,mdep_ffdf):
     dig_i=np.digitize(db.mw,rng)
     
     
+    #####
     ##Start filling G and d:
     
     #How many data points in each bin? INitialize...
