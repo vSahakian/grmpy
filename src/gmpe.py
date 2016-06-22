@@ -3,14 +3,13 @@
 #VJS 6/2016
 
 
-def ask2014_pga(db,coeff_file,M1,M2,mdep_ffdf):
+def ask2014_pga(db,coeff_file,M2,mdep_ffdf):
     '''
     Compute the predicted ground motionsfor a given set of events using the
     Abrahamson, Silva, and Kamai 2014 model.
     Input:
         db:             Database object with data to plot
         coeff_file:     Path to the file with ASK2014 coefficients
-        M1:             M1 referred to in ASK 2014, magnitude scaling break 1
         M2:             M2 referred to in ASK 2014, magnitude scaling break 2
         mdep_ffdf:      Use magnitude dependent fictitous depth?  no=0, yes=1
     Output:
@@ -18,7 +17,7 @@ def ask2014_pga(db,coeff_file,M1,M2,mdep_ffdf):
         PGA:            Predicted PGA
     '''
     
-    from numpy import genfromtxt
+    from numpy import genfromtxt,where,zeros
     
     #Read in coefficients file:
     ask2014=genfromtxt(coeff_file,skip_header=1)
@@ -73,3 +72,66 @@ def ask2014_pga(db,coeff_file,M1,M2,mdep_ffdf):
     s5=ask2014[:,41]
     s6=ask2014[:,42]
     
+    
+    ### Model ###
+    #Full Model:
+    #f(M,Rrup) = (f1pga + Frv*f7pga + Fn*f8pga + Fas*f11pga + f5pga + Fhw*f4pga + f6pga + f10pga + regional_pga)
+    #Frv, Fn, Fas, Fhw are flags to turn on/off reverse faulting, normal faulting, and aftershocks, respectively.
+    
+    #Basic model:
+    def basic_pga(M,Rrup):
+        '''
+        Basic form in computing the predictive paramater (here, PGA) using 
+        Abrahamson, Silva, and Kamai 2014's model.
+        Input:
+            M:          Moment Magnitude
+            Rrup:       Closest distance to rupture
+        Output: 
+            f1pga (log10pga), to put into full functional form or use along
+        '''
+        
+        #First, get magnitude dependent fictitious depth, c:
+        #Where is it above M5:
+        c1_ind=where(M>5)[0]
+        c2_ind=where((M<=5) & (M>4))[0]
+        c3_ind=where(M<=4)[0]
+        
+        #Set size of c
+        c=zeros(M.size)
+        c[c1_ind]=c4[0] - ((c4[0]-1)*(5-M))
+        c[c3_ind]=1
+        
+        #Get geometric spreading distance, R, corrected by c:
+        R=(Rrup**2 + c**2)**0.5
+        
+        ##Compute pga##
+        #Depends on the magniutde range, first get the indices for each range:
+        m1_ind=where(M>M1[0])[0]
+        m2_ind=where((M<M1[0]) & (M>=M2)[0]
+        m3_ind=where(M<M2)[0]
+        
+        #Set the output to zeros, shape of input data (M):
+        f1pga=zeros(M.size)
+        #Fill in with correct coefficients
+        f1pga[m1_ind]=a1 + a5*(M[m1_ind]-M1[0])
+    
+    
+    #Full Functional Form:
+    def fmrrup_pga(f1pga,Frv,f7pga,Fn,f8pga,Fas,f11pga,f5pga,Fhw,f4pga,f6pga,f10pga,regional_pga):
+        '''
+        Compute the predictive parameter (in this case, PGA) using Abrahamson,
+        Silva, and Kamai 2014's model. 
+        Input: 
+        
+        Output: 
+            log10pga 
+        
+        '''
+        
+        
+        log10pga = (f1pga + Frv*f7pga + Fn*f8pga + Fas*f11pga + f5pga + \
+                        Fhw*f4pga + f6pga + f10pga + regional_pga)
+                        
+        
+        return log10pga
+            
