@@ -3,14 +3,13 @@
 #VJS 6/2016
 
 
-def ask2014_pga(db,coeff_file,M2,mdep_ffdf):
+def ask2014_pga(db,coeff_file,mdep_ffdf):
     '''
     Compute the predicted ground motionsfor a given set of events using the
     Abrahamson, Silva, and Kamai 2014 model.
     Input:
         db:             Database object with data to plot
         coeff_file:     Path to the file with ASK2014 coefficients
-        M2:             M2 referred to in ASK 2014, magnitude scaling break 2
         mdep_ffdf:      Use magnitude dependent fictitous depth?  no=0, yes=1
     Output:
         M:              Magnitude
@@ -21,6 +20,12 @@ def ask2014_pga(db,coeff_file,M2,mdep_ffdf):
     
     #Read in coefficients file:
     ask2014=genfromtxt(coeff_file,skip_header=1)
+    
+    #Define period-independent constants:
+    M2=5   #Magnitude scaling break #2 - #1 is period dependent
+    a7=0
+    n=1.5
+    
     
     #Get the PGA coefficients:
     #Coefficients for median ground motions
@@ -98,12 +103,15 @@ def ask2014_pga(db,coeff_file,M2,mdep_ffdf):
         a1t=a1[t_flag]
         a2t=a2[t_flag]
         a3t=a3[t_flag]
-        a4t=ar[t_flag]
+        a4t=a4[t_flag]
         a5t=a5[t_flag]
-        a6t=a6[t_flag]
-        a7t=at[t_flag]
+        a6t=a6[t_flag]   
         a8t=a8[t_flag]
         a17t=a17[t_flag]
+        
+        ##Period-independent:
+        #a7t=a7 
+        #M2t=M
         
         
         #First, get magnitude dependent fictitious depth, c:
@@ -140,7 +148,9 @@ def ask2014_pga(db,coeff_file,M2,mdep_ffdf):
                         a17t*Rrup[m2_ind]
                         
         f1[m3_ind] = a1t + a4t*(M2 - M1t) + a8t*(8.5 - M2)**2 + \
-                        a6t*(M[m2_ind] - M2)
+                        a6t*(M[m3_ind] - M2) + a7t*(M[m3_ind] -M2)**2 + \
+                        (a2t + a3t*(M2 - M1t))*log(R[m3_ind]) + \
+                        a17t*Rrup[m3_ind]
     
     
     #Full Functional Form:
