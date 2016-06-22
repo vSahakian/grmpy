@@ -3,7 +3,7 @@
 #VJS 6/2016
 
 
-def ask2014_pga(db,coeff_file,mdep_ffdf):
+def ask2014_pga(db,coeff_file,mdep_ffdf,dist_ranges):
     '''
     Compute the predicted ground motionsfor a given set of events using the
     Abrahamson, Silva, and Kamai 2014 model.
@@ -11,6 +11,7 @@ def ask2014_pga(db,coeff_file,mdep_ffdf):
         db:             Database object with data to plot
         coeff_file:     Path to the file with ASK2014 coefficients
         mdep_ffdf:      Use magnitude dependent fictitous depth?  no=0, yes=1
+        dist_ranges:    
     Output:
         M:              Magnitude
         PGA:            Predicted PGA
