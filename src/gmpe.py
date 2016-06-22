@@ -110,8 +110,8 @@ def ask2014_pga(db,coeff_file,mdep_ffdf):
         a17t=a17[t_flag]
         
         ##Period-independent:
-        #a7t=a7 
-        #M2t=M
+        a7t=a7 
+        M2t=M2
         
         
         #First, get magnitude dependent fictitious depth, c:
@@ -123,7 +123,7 @@ def ask2014_pga(db,coeff_file,mdep_ffdf):
         #Set size of c
         c=zeros(M.size)
         c[c1_ind]=c4t
-        c[c2_ind]=c4t - ((c4t-1)*(5-M))
+        c[c2_ind]=c4t - ((c4t-1)*(5-M[c2_ind]))
         c[c3_ind]=1
         
         #Get geometric spreading distance, R, corrected by c:
@@ -140,17 +140,25 @@ def ask2014_pga(db,coeff_file,mdep_ffdf):
         #Fill in with correct coefficients
         f1[m1_ind] = a1t + a5t*(M[m1_ind]-M1t) + \
                         a8t*(8.5 - M[m1_ind])**2 + \
-                        (a2t + a3t*(M[m1_ind] - M1))*log(R[m1_ind]) + \
+                        (a2t + a3t*(M[m1_ind] - M1t))*log(R[m1_ind]) + \
                         a17t*Rrup[m1_ind]
         
         f1[m2_ind] = a1t + a4t*(M[m2_ind] - M1t) + a8t*(8.5 - M[m2_ind])**2 + \
                         (a2t + a3t*(M[m2_ind] - M1t))*log(R[m2_ind]) + \
                         a17t*Rrup[m2_ind]
                         
-        f1[m3_ind] = a1t + a4t*(M2 - M1t) + a8t*(8.5 - M2)**2 + \
-                        a6t*(M[m3_ind] - M2) + a7t*(M[m3_ind] -M2)**2 + \
-                        (a2t + a3t*(M2 - M1t))*log(R[m3_ind]) + \
+        f1[m3_ind] = a1t + a4t*(M2t - M1t) + a8t*(8.5 - M2)**2 + \
+                        a6t*(M[m3_ind] - M2t) + a7t*(M[m3_ind] -M2t)**2 + \
+                        (a2t + a3t*(M2t - M1t))*log(R[m3_ind]) + \
                         a17t*Rrup[m3_ind]
+                        
+                        
+        #Sort them by magnitude also, for plotting:
+        sort_ind=np.argsort(M)
+        M_sort=M[sort_ind]
+        f1_sort=f1[sort_ind]
+        #Return the predictive parameter for the basic form, f1:
+        return f1,M_sort,f1_sort
     
     
     #Full Functional Form:
