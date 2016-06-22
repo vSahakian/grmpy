@@ -17,7 +17,7 @@ def ask2014_pga(db,coeff_file,M2,mdep_ffdf):
         PGA:            Predicted PGA
     '''
     
-    from numpy import genfromtxt,where,zeros
+    from numpy import genfromtxt,where,zeros,log,log10
     
     #Read in coefficients file:
     ask2014=genfromtxt(coeff_file,skip_header=1)
@@ -79,16 +79,32 @@ def ask2014_pga(db,coeff_file,M2,mdep_ffdf):
     #Frv, Fn, Fas, Fhw are flags to turn on/off reverse faulting, normal faulting, and aftershocks, respectively.
     
     #Basic model:
-    def basic_pga(M,Rrup):
+    def basic(M,Rrup,t_flag):
         '''
         Basic form in computing the predictive paramater (here, PGA) using 
         Abrahamson, Silva, and Kamai 2014's model.
         Input:
             M:          Moment Magnitude
             Rrup:       Closest distance to rupture
+            t_flag:     Flag for predictive parameter. 0=PGA.
         Output: 
-            f1pga (log10pga), to put into full functional form or use along
+            f1 (log10(predictive parameter)), 
+            to put into full functional form or use alone
         '''
+        
+        #Define coefficients for given predictive parameter:
+        M1t=M1[t_flag]
+        c4t=c4[t_flag]
+        a1t=a1[t_flag]
+        a2t=a2[t_flag]
+        a3t=a3[t_flag]
+        a4t=ar[t_flag]
+        a5t=a5[t_flag]
+        a6t=a6[t_flag]
+        a7t=at[t_flag]
+        a8t=a8[t_flag]
+        a17t=a17[t_flag]
+        
         
         #First, get magnitude dependent fictitious depth, c:
         #Where is it above M5:
@@ -98,7 +114,8 @@ def ask2014_pga(db,coeff_file,M2,mdep_ffdf):
         
         #Set size of c
         c=zeros(M.size)
-        c[c1_ind]=c4[0] - ((c4[0]-1)*(5-M))
+        c[c1_ind]=c4t
+        c[c2_ind]=c4t - ((c4t-1)*(5-M))
         c[c3_ind]=1
         
         #Get geometric spreading distance, R, corrected by c:
@@ -106,18 +123,28 @@ def ask2014_pga(db,coeff_file,M2,mdep_ffdf):
         
         ##Compute pga##
         #Depends on the magniutde range, first get the indices for each range:
-        m1_ind=where(M>M1[0])[0]
-        m2_ind=where((M<M1[0]) & (M>=M2)[0]
+        m1_ind=where(M>M1t)[0]
+        m2_ind=where((M<M1t) & (M>=M2))[0]
         m3_ind=where(M<M2)[0]
         
         #Set the output to zeros, shape of input data (M):
-        f1pga=zeros(M.size)
+        f1=zeros(M.size)
         #Fill in with correct coefficients
-        f1pga[m1_ind]=a1 + a5*(M[m1_ind]-M1[0])
+        f1[m1_ind] = a1t + a5t*(M[m1_ind]-M1t) + \
+                        a8t*(8.5 - M[m1_ind])**2 + \
+                        (a2t + a3t*(M[m1_ind] - M1))*log(R[m1_ind]) + \
+                        a17t*Rrup[m1_ind]
+        
+        f1[m2_ind] = a1t + a4t*(M[m2_ind] - M1t) + a8t*(8.5 - M[m2_ind])**2 + \
+                        (a2t + a3t*(M[m2_ind] - M1t))*log(R[m2_ind]) + \
+                        a17t*Rrup[m2_ind]
+                        
+        f1[m3_ind] = a1t + a4t*(M2 - M1t) + a8t*(8.5 - M2)**2 + \
+                        a6t*(M[m2_ind] - M2)
     
     
     #Full Functional Form:
-    def fmrrup_pga(f1pga,Frv,f7pga,Fn,f8pga,Fas,f11pga,f5pga,Fhw,f4pga,f6pga,f10pga,regional_pga):
+    def fmrrup(f1,Frv,f7,Fn,f8,Fas,f11,f5,Fhw,f4,f6,f10,regional,t_flag):
         '''
         Compute the predictive parameter (in this case, PGA) using Abrahamson,
         Silva, and Kamai 2014's model. 
@@ -129,9 +156,9 @@ def ask2014_pga(db,coeff_file,M2,mdep_ffdf):
         '''
         
         
-        log10pga = (f1pga + Frv*f7pga + Fn*f8pga + Fas*f11pga + f5pga + \
-                        Fhw*f4pga + f6pga + f10pga + regional_pga)
+        log10pga = (f1 + Frv*f7 + Fn*f8 + Fas*f11 + f5 + \
+                        Fhw*f4 + f6 + f10 + regional)
                         
         
-        return log10pga
+        return log10pp
             
