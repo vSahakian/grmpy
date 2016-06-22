@@ -180,3 +180,7 @@ def ask2014_pga(db,coeff_file,mdep_ffdf):
         
         return log10pp
             
+            
+    
+    ####TEMPORARY....JUST FOR GETTING THE BASIC FORM...###
+    return f1,M1_sort,f1_sort
