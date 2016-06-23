@@ -6,13 +6,14 @@ import numpy as np
 import inversion as inv
 import pickle
 import matplotlib.pyplot as plt
+import gmpe as gm
 
 
 #Change this parameter depending on where you run:
 #0=desktop
 #1=mac
 
-what_home=0
+what_home=1
 
 if what_home==0:
     #Desktop:
@@ -79,18 +80,23 @@ G,d=inv.iinit_pga(abdb,ncoeff,rng,sdist,smth,mdep_ffdf)
 m, resid, L2norm, VR, rank, svals=inv.invert(G,d)
 
 
+#Get the NGA predictions to plot on the same figure:
+#Coefficient file:
+coeff_file=coeff_file=HOME+'/anza/data/coeffs/ASK14_coeffs.m'
+#Do it just for one distance for now, say R=5km.  
+Rrup=5*np.ones(abdb.r.shape)
+#Get the NGA predictions...
+f1,M_sort,f1_sort=gm.ask2014_pga(abdb.mw,Rrup,coeff_file,1,[0,0])
 
-#m=np.array([  2.39195267e+00,   1.33068285e+00,   2.20961871e-18,
-#        9.00000000e-01,  -1.06447647e-01,   1.37851521e+01,
-#       -9.26696628e-01,  -1.45862809e-01,   9.00000000e-01,
-#       -1.06430279e-01,   6.38186568e+00,   5.41230552e-01,
-#       -9.60255039e-02,   9.00119541e-01,  -1.06435188e-01])
 
 #Plotting params...
 vref=760
 axlims=[[1,6],[-7,0]]
 #Plot against data to check:
 abdb.plot_rpga_withmodel(bmin,bmax,step,m,rng,sdist,axlims,VR,vref)
+#Plot NGA:
+plt.plot(M_sort,f1_sort,'--',label='ASK2014')
+
 
 #Save plots:
 #Get the string for the filename, based on the ranges:

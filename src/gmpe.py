@@ -3,12 +3,13 @@
 #VJS 6/2016
 
 
-def ask2014_pga(db,coeff_file,mdep_ffdf,dist_ranges):
+def ask2014_pga(M,Rrup,coeff_file,mdep_ffdf,dist_ranges):
     '''
     Compute the predicted ground motionsfor a given set of events using the
     Abrahamson, Silva, and Kamai 2014 model.
     Input:
-        db:             Database object with data to plot
+        M:              Array with moment magnitudes
+        Rrup:           Array with Rrup, same size as M
         coeff_file:     Path to the file with ASK2014 coefficients
         mdep_ffdf:      Use magnitude dependent fictitous depth?  no=0, yes=1
         dist_ranges:    
@@ -17,7 +18,7 @@ def ask2014_pga(db,coeff_file,mdep_ffdf,dist_ranges):
         PGA:            Predicted PGA
     '''
     
-    from numpy import genfromtxt,where,zeros,log,log10
+    from numpy import genfromtxt,where,zeros,log,argsort
     
     #Read in coefficients file:
     ask2014=genfromtxt(coeff_file,skip_header=1)
@@ -155,33 +156,35 @@ def ask2014_pga(db,coeff_file,mdep_ffdf,dist_ranges):
                         
                         
         #Sort them by magnitude also, for plotting:
-        sort_ind=np.argsort(M)
+        sort_ind=argsort(M)
         M_sort=M[sort_ind]
         f1_sort=f1[sort_ind]
         #Return the predictive parameter for the basic form, f1:
         return f1,M_sort,f1_sort
     
     
-    #Full Functional Form:
-    def fmrrup(f1,Frv,f7,Fn,f8,Fas,f11,f5,Fhw,f4,f6,f10,regional,t_flag):
-        '''
-        Compute the predictive parameter (in this case, PGA) using Abrahamson,
-        Silva, and Kamai 2014's model. 
-        Input: 
-        
-        Output: 
-            log10pga 
-        
-        '''
-        
-        
-        log10pga = (f1 + Frv*f7 + Fn*f8 + Fas*f11 + f5 + \
-                        Fhw*f4 + f6 + f10 + regional)
-                        
-        
-        return log10pp
-            
+    # #Full Functional Form:
+    #def fmrrup(f1,Frv,f7,Fn,f8,Fas,f11,f5,Fhw,f4,f6,f10,regional,t_flag):
+    #    '''
+    #    Compute the predictive parameter (in this case, PGA) using Abrahamson,
+    #    Silva, and Kamai 2014's model. 
+    #    Input: 
+    #    
+    #    Output: 
+    #        log10pga 
+    #    
+    #    '''
+    #    
+    #    
+    #    #log10pga = (f1 + Frv*f7 + Fn*f8 + Fas*f11 + f5 + \
+    #                    Fhw*f4 + f6 + f10 + regional)
+    #                    
+    #    
+    #    #return log10pp
+    #        
             
     
     ####TEMPORARY....JUST FOR GETTING THE BASIC FORM...###
-    return f1,M1_sort,f1_sort
+    f1,M_sort,f1_sort=basic(M,Rrup,0)
+    
+    return f1,M_sort,f1_sort
