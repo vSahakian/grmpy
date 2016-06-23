@@ -267,9 +267,21 @@ class event:
     
     from numpy import unique,where
     
-    def __init__(self,db):
-        #Find all unique events:
-        unique_events=unique(db.evnum)
+    def __init__(self,evnum,sta,stnum,ml,mw,pga,pgv,pga_pg,r,vs30,ffdf,md_ffdf):
+        self.evnum=evnum
+        self.sta=sta
+        self.stnum=stnum
+        self.ml=ml
+        self.mw=mw
+        self.pga=pga
+        self.pgv=pgv
+        self.pga_pg=pga_pg
+        self.r=r
+        self.vs30=vs30
+        self.ffdf=ffdf
+        self.md_ffdf=md_ffdf
+        
+
         
     
 #class hdr:
