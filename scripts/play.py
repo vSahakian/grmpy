@@ -13,7 +13,7 @@ import gmpe as gm
 #0=desktop
 #1=mac
 
-what_home=1
+what_home=0
 
 if what_home==0:
     #Desktop:

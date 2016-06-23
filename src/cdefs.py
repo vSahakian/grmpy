@@ -259,6 +259,18 @@ class invinfo:
         self.sdist=sdist
         self.smth=smth
         
+        
+class event:
+    '''
+    Save all data for one event, to use in residual computation
+    '''
+    
+    from numpy import unique,where
+    
+    def __init__(self,db):
+        #Find all unique events:
+        unique_events=unique(db.evnum)
+        
     
 #class hdr:
 #    '''
