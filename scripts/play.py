@@ -79,6 +79,8 @@ G,d=inv.iinit_pga(abdb,ncoeff,rng,sdist,smth,mdep_ffdf)
 #Invert
 m, resid, L2norm, VR, rank, svals=inv.invert(G,d)
 
+#Compute the magnitude/log10pga for each distance, to plot on top of data:
+mw_model,d_model=gm.compute_model_fixeddist(m,rng,sdist,mdep_ffdf)
 
 #Get the NGA predictions to plot on the same figure:
 #Coefficient file:
@@ -93,7 +95,7 @@ f1,M_sort,f1_sort=gm.ask2014_pga(abdb.mw,Rrup,coeff_file,1,[0,0])
 vref=760
 axlims=[[1,6],[-7,0]]
 #Plot against data to check:
-abdb.plot_rpga_withmodel(bmin,bmax,step,m,rng,sdist,axlims,VR,vref)
+abdb.plot_rpga_withmodel(bmin,bmax,step,mw_model,d_model,rng,sdist,axlims,VR,vref)
 #Plot NGA:
 plt.plot(M_sort,f1_sort,'--',label='ASK2014')
 

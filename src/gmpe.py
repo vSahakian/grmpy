@@ -5,8 +5,92 @@
 
 #def compute_model()
 
-def compute_model_fixeddist(m,rng,sdist,)
+def compute_model_fixeddist(m,rng,sdist,mdep_ffdf):
+    '''
+    Compute the model values given the coefficients resulting from an inversion;
+    Obtain values for given distances.
+    
+    Input:
+        m:          Model coefficients
+        rng:        Array with ranges used to get the model coefficients
+        sdist:      Array with distances at which to compute the model
+        mdep_ffdf:  Flag for fictitious depth mag-dependence; 0=no, 1=yes
+    Output:
+        
+    '''
+    
+    import numpy as np
+    
+    ####
+    #Magnitude dependence?
+    if mdep_ffdf==0:
+        print 'Magnitude dependent fictitious depth is OFF - check you provided the right ffdf'
+    elif mdep_ffdf==1:
+        print 'Magnitude dependent fictitious depth is ON - check you provided the right ffdf'
+    else:
+        print 'Magnitude dependent fictitous depth flag not provided correctly: OFF=0, ON=1'
+            
+            
+    #Loop over distances and ranges to get model output for each distance range, R.
+    
+    #Loop over distances, get the values for each distance first:
+    for j in range(len(sdist)):
+        #First, make empty arrays to append computed model/magnitude to:
+        mw_range=np.array([])
+        d_range=np.array([])
+        
+        #Then Loop over the ranges, get data for each range:
+        for i in range(len(rng)-1):                                   
+            #Get the magnitudes to plot against:
+            mw=np.linspace(rng[i],rng[i+1],100)
+            
+            #Get magnitude dependent fictitious depth??
+            #Fictitous depth coefficient:
+            c4=4.5
+            
+            if mdep_ffdf==0:
+                R=np.sqrt(sdist[j]**2 + c4**2)
+            elif mdep_ffdf==1:
+                #Find the indices for each range:
+                cr1_ind=np.where(mw>5)
+                cr2_ind=np.where((mw<=5) & (mw>4))
+                cr3_ind=np.where(mw<=4)
+                
+                #Zero out the c array:
+                c=np.zeros(mw.shape)
+                c[cr1_ind]=c4
+                c[cr2_ind]=c4-((c4-1)*(5-mw[cr2_ind]))
+                c[cr3_ind]=1
+                R=np.sqrt(sdist[j]**2 + c**2)
+            
+            #Get the coefficients for this range:
+            a1=m[i*5]
+            a2=m[(i*5)+1]
+            a3=m[(i*5)+2]
+            a4=m[(i*5)+3]
+            a5=m[(i*5)+4]
+            
+            #GMPE:
+            d=a1+a2*mw + a3*(8.5-mw)**2 + a4*np.log(R) + \
+                a5*sdist[j] 
+                # Don't add this yet...I think it should only go with the 
+                #data for residuals... 
+                #+ 0.6*np.log(self.vs30/vref)
+            
+            #Add these onto the bigger array, for this range:     
+            mw_range=np.r_[mw_range,mw]
+            d_range=np.r_[d_range,d]
+        
+        #Now add these onto the final arrayt, horizontally:
+        if j==0:
+            mw_out=mw_range
+            d_out=d_range
+        else:
+            mw_out=np.c_[mw_out,mw_range]
+            d_out=np.c_[d_out,d_range]
 
+    #Print them out...
+    return mw_out,d_out
 
 
 def ask2014_pga(M,Rrup,coeff_file,mdep_ffdf,dist_ranges):

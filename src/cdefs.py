@@ -58,7 +58,7 @@ class db:
         self.ffdf=np.sqrt(self.r**2 + c4**2)
         self.md_ffdf=md_ffdf
         
-    def plot_apga(self):
+    def plot_allpga(self):
         '''
         Plots log10 of all PGA, regardless of M/r
         '''
@@ -127,7 +127,7 @@ class db:
         
         plt.show()
         
-    def plot_rpga_withmodel(self,bmin,bmax,step,m,rng,sdist,axlims,VR,vref=True):
+    def plot_rpga_withmodel(self,bmin,bmax,step,mw,d,rng,sdist,axlims,VR,vref=True):
         '''
         Plots log10 PGA, for various distance ranges specified by bmin, bmax,
         and step.
@@ -135,7 +135,8 @@ class db:
             bmin:       Min value for bins for data
             bmax:       Max balue for bins for data
             step:       Step interval for bins for data
-            m:          Model vector from inversion
+            mw:         Mw array from gmpe.compute_model_fixeddist
+            d:          d array from compute_model_fixeddist
             rng:        Magnitude ranges, same array used for inversion
             sdist:      Distances array used for inversion
             axlims:     Array with lims: [[xmin,xmax],[ymin,ymax]]
@@ -150,9 +151,6 @@ class db:
         if vref==None:
             vref=760
             
-        #Fictitious depth:
-        c=4.5
-        
         #Get bins:
         bins=np.arange(bmin,bmax,step)
         #Get the bin index for each recording:
@@ -192,34 +190,15 @@ class db:
         colors_gmpe=plt.cm.rainbow(sdist.astype(float)/sdist.max())
         
         for j in range(len(sdist)):
-            ffdf=np.sqrt(sdist[j]**2 + c**2)
-            
             #Label for plot:
             lab="R="+np.str(sdist[j])+"km"
             
-            for i in range(len(rng)-1):
-                #Get the magnitudes to plot against:
-                mw=np.linspace(rng[i],rng[i+1],100)
-                
-                #Get the coefficients for this range:
-                a1=m[i*5]
-                a2=m[(i*5)+1]
-                a3=m[(i*5)+2]
-                a4=m[(i*5)+3]
-                a5=m[(i*5)+4]
-                
-                #GMPE:
-                d=a1+a2*mw + a3*(8.5-mw)**2 + a4*np.log(ffdf) + \
-                    a5*sdist[j] 
-                    # Don't add this yet...I think it should only go with the 
-                    #data for residuals... 
-                    #+ 0.6*np.log(self.vs30/vref)
-                
-                #Plot
-                if i==0:
-                    f=plt.plot(mw,d,color=colors_gmpe[j],label=lab)
-                else:
-                    f=plt.plot(mw,d,color=colors_gmpe[j],label=None)
+            mw_dist=mw[:,j]
+            d_dist=d[:,j]
+            
+            #Plot
+            f=plt.plot(mw_dist,d_dist,color=colors_gmpe[j],label=lab)
+
         #Add legend:
         plt.legend(loc=4)
             
