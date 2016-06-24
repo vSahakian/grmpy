@@ -52,14 +52,14 @@ ncoeff=5
 #Define the ranges for the inversion - at each range boundary (i.e., between
 #[0:3.3], and [3.3:4.5], the solution will be smoothed so there is no jump at 
 #the range boundary
-rng=np.array([0,3.3,4.5,6.5])
+#rng=np.array([0,3.3,4.5,6.5])
 #rng=np.array([0,1,1.5,2,2.5,3.3,6.5])
 #rng=np.array([0,1,1.5,2,2.5,3.5,6.5])
 #rng=np.array([0,1.5,3,4,6.5])
-#rng=np.array([0,6.5])
+rng=np.array([0,6.5])
 #rng=np.array([0,1,2,3.3,4.5,6.5])
 #rng=np.array([0,6.5])
-
+#rng=np.array([0,2,3,4,6.5])
 
 
 #Number of distances to include in smoothing - there will be this many extra
@@ -79,6 +79,8 @@ G,d=inv.iinit_pga(abdb,ncoeff,rng,sdist,smth,mdep_ffdf)
 #Invert
 m, resid, L2norm, VR, rank, svals=inv.invert(G,d)
 
+
+
 #Compute the magnitude/log10pga for each distance, to plot on top of data:
 mw_model,d_model=gm.compute_model_fixeddist(m,rng,sdist,mdep_ffdf)
 
@@ -89,6 +91,7 @@ coeff_file=coeff_file=HOME+'/anza/data/coeffs/ASK14_coeffs.m'
 Rrup=5*np.ones(abdb.r.shape)
 #Get the NGA predictions...
 f1,M_sort,f1_sort=gm.ask2014_pga(abdb.mw,Rrup,coeff_file,1,[0,0])
+
 
 
 #Plotting params...
