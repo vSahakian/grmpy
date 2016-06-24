@@ -3,6 +3,12 @@
 #VJS 6/2016
 
 
+#def compute_model()
+
+def compute_model_fixeddist(m,rng,sdist,)
+
+
+
 def ask2014_pga(M,Rrup,coeff_file,mdep_ffdf,dist_ranges):
     '''
     Compute the predicted ground motionsfor a given set of events using the

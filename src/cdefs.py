@@ -132,9 +132,9 @@ class db:
         Plots log10 PGA, for various distance ranges specified by bmin, bmax,
         and step.
         Input:
-            bmin:       Min value for bins
-            bmax:       Max balue for bins
-            step:       Step interval for bins
+            bmin:       Min value for bins for data
+            bmax:       Max balue for bins for data
+            step:       Step interval for bins for data
             m:          Model vector from inversion
             rng:        Magnitude ranges, same array used for inversion
             sdist:      Distances array used for inversion

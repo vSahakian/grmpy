@@ -39,7 +39,7 @@ abdb=cdf.db(ev,sta,N,ml,mw,DA,DV,r,vs30)
 ##Residual Computation####
 #Load in the model to use:
 fname=obj_dir+'regr_0.0_6.5_resid_2676.06963031.pckl'
-pickle.load(fname)
+model=pickle.load(open(fname,'r'))
 
 #Overall residual, 
 
