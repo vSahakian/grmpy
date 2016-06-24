@@ -71,7 +71,7 @@ smth=500
 
 #Use magnitude-dependent fictitious depth/finite fault dimension factor?
 #no == 0, yes == 1
-mdep_ffdf=1
+mdep_ffdf=0
 
 #Invert:
 #Make matrices

@@ -3,7 +3,19 @@
 #VJS 6/2016
 
 
-#def compute_model()
+def compute_model(m,rng,mw,r,mdep_ffdf):
+        '''
+        Compute the predicted value for a certain mw and Rrup 
+        Input:
+            m:          Model parameters/coefficients resulting from inversion
+            rng:        Magnitude ranges used in inversion
+            mw:         Array of moment magnitudes for which to compute
+            r:          Array of distances associated with the mw
+            mdep_ffdf:  Magnitude dependent fictitious depth flag
+        Output:
+            mw
+            d_model
+        '''
 
 def compute_model_fixeddist(m,rng,sdist,mdep_ffdf):
     '''

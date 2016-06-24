@@ -57,4 +57,5 @@ for i in range(len(unique_events)):
     event_list.append(eventi)
     
 #Then for each event, compute the total residual:
-
+for eventi in range(len(event_list)):
+    
