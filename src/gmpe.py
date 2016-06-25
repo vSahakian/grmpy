@@ -3,20 +3,60 @@
 #VJS 6/2016
 
 
-def compute_model(m,rng,mw,r,mdep_ffdf):
-        '''
-        Compute the predicted value for a certain mw and Rrup 
-        Input:
-            m:          Model parameters/coefficients resulting from inversion
-            rng:        Magnitude ranges used in inversion
-            mw:         Array of moment magnitudes for which to compute
-            r:          Array of distances associated with the mw
-            mdep_ffdf:  Magnitude dependent fictitious depth flag
-        Output:
-            mw
-            d_model
-        '''
+def compute_model(m,rng,mw,r,ffdf,vs30,vref,mdep_ffdf):
+    '''
+    Compute the predicted value for a certain mw and Rrup 
+    Input:
+        m:              Model parameters/coefficients resulting from inversion
+        rng:            Magnitude ranges used in inversion
+        mw:             Array of moment magnitudes for which to compute
+        r:              Array of distances associated with the mw
+        ffdf:           Array with the fictitious depth R - see flag
+        vs30:           Array with vs30 values
+        vref:           Vref value
+        mdep_ffdf:      Magnitude dependent fictitious depth flag
+    Output:
+        d_predicted:    Predicted value at that data point    
+    '''
+    import numpy as np
+    
+    #Find which range each mw belongs in, to know how to compute it:
+    dig_i=np.digitize(mw,rng)
+    
+    #Zero out the output d vector, and append to it later on:
+    d_predicted=np.array([])
+    
+    #For each range, get the coefficients:
+    for range_i in range(len(rng)-1):
+        #Get the coefficients of the model for this magnitude range:
+        a1=m[range_i*5]
+        a2=m[(range_i*5)+1]
+        a3=m[(range_i*5)+2]
+        a4=m[(range_i*5)+3]
+        a5=m[(range_i*5)+4]
+    
+        #Where is mw in this range?
+        bin_i=np.where(dig_i==range_i+1)
+        
+        #What input data is needed to compute?
+        #Mag, R (ffdf), and vs30...
+        mw_rangei=mw[bin_i]
+        r_rangei=r[bin_i]
+        ffdf_rangei=ffdf[bin_i]
+        vs30_rangei=vs30[bin_i]
+        
+        #Now compute the predicted value:
+        d_predicted_i=a1+a2*mw_rangei + a3*(8.5-mw_rangei)**2 + a4*np.log(ffdf_rangei) + \
+                a5*r_rangei + 0.6*np.log(vs30_rangei/vref) 
+        
+        #And append to the final output value:
+        d_predicted=np.r_[d_predicted,d_predicted_i]
+        
+    return d_predicted
 
+
+
+###############################################################################
 def compute_model_fixeddist(m,rng,sdist,mdep_ffdf):
     '''
     Compute the model values given the coefficients resulting from an inversion;
@@ -60,6 +100,8 @@ def compute_model_fixeddist(m,rng,sdist,mdep_ffdf):
             #Fictitous depth coefficient:
             c4=4.5
             
+            #If it's not agnitude dependent, use the scalar coefficient; if not,
+            #Use the rules in ASK 2014
             if mdep_ffdf==0:
                 R=np.sqrt(sdist[j]**2 + c4**2)
             elif mdep_ffdf==1:
@@ -105,6 +147,7 @@ def compute_model_fixeddist(m,rng,sdist,mdep_ffdf):
     return mw_out,d_out
 
 
+###############################################################################
 def ask2014_pga(M,Rrup,coeff_file,mdep_ffdf,dist_ranges):
     '''
     Compute the predicted ground motionsfor a given set of events using the

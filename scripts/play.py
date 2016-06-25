@@ -13,7 +13,7 @@ import gmpe as gm
 #0=desktop
 #1=mac
 
-what_home=0
+what_home=1
 
 if what_home==0:
     #Desktop:
@@ -52,7 +52,7 @@ ncoeff=5
 #Define the ranges for the inversion - at each range boundary (i.e., between
 #[0:3.3], and [3.3:4.5], the solution will be smoothed so there is no jump at 
 #the range boundary
-#rng=np.array([0,3.3,4.5,6.5])
+rng=np.array([0,3.3,4.5,6.5])
 #rng=np.array([0,1,1.5,2,2.5,3.3,6.5])
 #rng=np.array([0,1,1.5,2,2.5,3.5,6.5])
 #rng=np.array([0,1.5,3,4,6.5])
@@ -79,7 +79,14 @@ G,d=inv.iinit_pga(abdb,ncoeff,rng,sdist,smth,mdep_ffdf)
 #Invert
 m, resid, L2norm, VR, rank, svals=inv.invert(G,d)
 
-
+#Compute the predicted value (from the GMPE) at each data point
+vref=760
+#Magnitude dependent fictitous depth?
+if mdep_ffdf==0:
+    d_predicted=gm.compute_model(m,rng,abdb.mw,abdb.r,abdb.ffdf,abdb.vs30,vref,mdep_ffdf)
+elif mdep_ffdf==1:
+    d_predicted=gm.compute_model(m,rng,abdb.mw,abdb.r,abdb.md_ffdf,abdb.vs30,vref,mdep_ffdf)
+    
 
 #Compute the magnitude/log10pga for each distance, to plot on top of data:
 mw_model,d_model=gm.compute_model_fixeddist(m,rng,sdist,mdep_ffdf)
@@ -95,7 +102,6 @@ f1,M_sort,f1_sort=gm.ask2014_pga(abdb.mw,Rrup,coeff_file,1,[0,0])
 
 
 #Plotting params...
-vref=760
 axlims=[[1,6],[-7,0]]
 #Plot against data to check:
 abdb.plot_rpga_withmodel(bmin,bmax,step,mw_model,d_model,rng,sdist,axlims,VR,vref)

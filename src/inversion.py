@@ -53,7 +53,7 @@ def iinit_pga(db,ncoeff,rng,sdist,smth,mdep_ffdf):
         cr2_ind=np.where((rng<=5) & (rng>4))[0]
         cr3_ind=np.where(rng<=4)[0]
         
-        #Zero out the c array, and Rdist array:
+        #Zero out the c array, and Rsdist array:
         c=np.zeros(rng.shape)
         Rsdist=np.zeros((len(rng),len(sdist)))
         
