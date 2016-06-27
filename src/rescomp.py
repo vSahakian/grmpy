@@ -13,10 +13,11 @@ def total_residual(db,d_predicted):
         mean_resid:          Mean residual for dataset
         std_dev:             Standard deviation in dataset
     '''
-    from numpy import mean,std
+    from numpy import mean,std,log10
     
     #Subtract the two...
-    total_residuals=db.pga_pg-d_predicted
+    pga=log10(db.pga_pg)
+    total_residuals=pga-d_predicted
     
     #Mean total residual?
     mean_resid=mean(total_residuals)
@@ -26,7 +27,13 @@ def total_residual(db,d_predicted):
     
     return total_residuals,mean_resid,std_dev
     
-#def event_residual():
-#    '''
-#    Compute the event residual
-#    '''
+def event_residual(eventdb,d_predicted):
+    '''
+    Compute the event residual
+    '''
+    
+    from numpy import log10,mean,std
+    
+    #Subtract the predicted value from the event value of pga_pg (in log10 space):
+    pga=log10(eventdb.pga_pg)
+    event_residuals=

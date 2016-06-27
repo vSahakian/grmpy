@@ -244,8 +244,6 @@ class event:
     Save all data for one event, to use in residual computation
     '''
     
-    from numpy import unique,where
-    
     def __init__(self,evnum,sta,stnum,ml,mw,pga,pgv,pga_pg,r,vs30,ffdf,md_ffdf):
         self.evnum=evnum
         self.sta=sta
@@ -281,9 +279,3 @@ class event:
 #        self.
 
 
-#class event:
-#    '''
-#    This class describes one event
-#    '''
-#    
-#    def __init__(self,event,sta,N,ml,mw,DA,DV)
