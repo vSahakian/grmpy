@@ -70,7 +70,8 @@ d_predicted_list=[]
 #Loop through the unique events, make each into an object, append to event list
 for i in range(len(unique_events)):
     unique_ind=np.where(unique_events[i]==abdb.evnum)[0]
-    #Get the predicted data for this event only:
+    #Get the predicted data for this event only, for each recording
+    #d_predicted_i is an array, with len = # of recordings for event):
     d_predicted_i=d_predicted[unique_ind]
     
     #Get the database info for this event:
@@ -99,10 +100,20 @@ for i in range(len(unique_events)):
     
 #Then for each event, compute the total residual.
 #Zero out arrays...
+E_evnum=np.array([])
 E_residual=np.array([])
 E_std_dev=np.array([])
 
 #Loop over each event object:
 for eventi in range(len(event_list)):
+    #Event number?
+    evnum_i=event_list[eventi].evnum[0]
+    #Get the event residual for each event:
     E_residual_i,std_dev_i=rcomp.event_residual(event_list[eventi],d_predicted_list[eventi])
+    
+    #Append to the residual arrays:
+    E_evnum=np.c_[E_evnum,evnum_i]
+    E_residual=np.c_[E_residual,E_residual_i]
+    E_std_dev=np.c_[E_std_dev,std_dev_i]
+    
     
