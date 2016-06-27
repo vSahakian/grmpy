@@ -36,4 +36,12 @@ def event_residual(eventdb,d_predicted):
     
     #Subtract the predicted value from the event value of pga_pg (in log10 space):
     pga=log10(eventdb.pga_pg)
-    event_residuals=
+    #Get residual for each recording in the event:
+    event_residuals=pga-d_predicted
+    
+    #Get the "event residual" (mean of all recordings):
+    E_residual=mean(event_residuals)
+    E_std_dev=std(event_residuals)
+    
+    #Return these values:
+    return E_residual, E_std_dev

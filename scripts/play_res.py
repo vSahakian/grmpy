@@ -12,7 +12,7 @@ import rescomp as rcomp
 #0=desktop
 #1=mac
 
-what_home=1
+what_home=0
 
 if what_home==0:
     #Desktop:
@@ -97,6 +97,12 @@ for i in range(len(unique_events)):
     event_list.append(eventi)
     d_predicted_list.append(d_predicted_i)
     
-##Then for each event, compute the total residual:
-#for eventi in range(len(event_list)):
+#Then for each event, compute the total residual.
+#Zero out arrays...
+E_residual=np.array([])
+E_std_dev=np.array([])
+
+#Loop over each event object:
+for eventi in range(len(event_list)):
+    E_residual_i,std_dev_i=rcomp.event_residual(event_list[eventi],d_predicted_list[eventi])
     
