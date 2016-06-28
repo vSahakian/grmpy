@@ -2,22 +2,29 @@
 #VJS 6/2016
 
 
-def total_residual(db,d_predicted):
+def total_residual(db,d_predicted_log10):
     '''
     Compute the total residual and standard deviation for a dataset
     Input:
         db:                  Database object with data to compute
-        d_predicted:         Array with predicted value          
+        d_predicted_log10:         Array with predicted value          
     Output:
         total_residuals:     Array with residual for each data point
         mean_resid:          Mean residual for dataset
         std_dev:             Standard deviation in dataset
     '''
-    from numpy import mean,std,log10
+    from numpy import mean,std,log,log10
     
-    #Subtract the two...
-    pga=log10(db.pga_pg)
-    total_residuals=pga-d_predicted
+    #Subtract the two... do it in natural log space.
+    #The PGA from the event object is %g...not in log10 space.
+    pga=db.pga_pg
+    #However d_predicted is in log10 space...connvert it:
+    d_predicted=10**(d_predicted_log10)
+    
+    #Now do everything in ln space, since that's what engineers do...
+    #ln(pga) - ln(d_predicted).....NOT ln(pga - d_predicted), since
+    #in theory d_predicted should predict ln(pga).
+    total_residuals=log(pga)-log(d_predicted)
     
     #Mean total residual?
     mean_resid=mean(total_residuals)
@@ -27,28 +34,34 @@ def total_residual(db,d_predicted):
     
     return total_residuals,mean_resid,std_dev
     
-def event_residual(eventdb,d_predicted):
+def event_residual(eventdb,d_predicted_log10):
     '''
     Compute the event residual
     Input:
         eventdb:            Event object
-        d_predicted:        Array with model predictions for each recording in 
+        d_predicted_log10:        Array with model predictions for each recording in 
                             event object
     Output: 
         E_residual:         Event residual
         E_std_dev:          Standard deviation in the event residual
     '''
     
-    from numpy import log10,mean,std
+    from numpy import log,log10,mean,std
     
     #Event number and magnitude?
     evnum=eventdb.evnum[0]
     evmw=eventdb.mw[0]
     
+    #Do all in natural log (np.log) space...
+    
+    #The PGA from the event object is %g...not in log10 space.
     #Subtract the predicted value from the event value of pga_pg (in log10 space):
-    pga=log10(eventdb.pga_pg)
+    pga=eventdb.pga_pg
+    #Convert d_predicted from its log10 space:
+    d_predicted=10**(d_predicted_log10)
+    
     #Get residual for each recording in the event:
-    event_residuals=pga-d_predicted
+    event_residuals=log(pga)-log(d_predicted)
     
     #Get the "event residual" (mean of all recordings):
     E_residual=mean(event_residuals)

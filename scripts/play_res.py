@@ -97,6 +97,9 @@ for i in range(len(unique_events)):
     #Apped the event object, and the d_predicted to the list:
     event_list.append(eventi)
     d_predicted_list.append(d_predicted_i)
+ 
+    
+ ###Get Event Residuals###
     
 #Then for each event, compute the total residual.
 #Zero out arrays...
@@ -107,9 +110,7 @@ E_std_dev=[]
 
 #Loop over each event object:
 for eventi in range(len(event_list)):
-    ##Event number and magnitude?
-    #evnum_i=event_list[eventi].evnum[0]
-    #evmw_i=event_list[eventi].mw[0]
+
     #Get the event residual for each event:
     evnum_i,evmw_i,E_residual_i,std_dev_i=rcomp.event_residual(event_list[eventi],d_predicted_list[eventi])
     
@@ -125,4 +126,17 @@ E_residual=np.array(E_residual)
 E_std_dev=np.array(E_std_dev)
     
 
-    
+###Get Within-Event Residuals###
+
+#Zero out the arrays/lists:
+W_evnum=[]
+W_mw=[]
+W_residuals=np.array([])
+W_mean=[]
+
+
+##Loop over each event object, again - this time provide event residual as well:
+#for eventi in range(len(event_list)):
+#    
+#    #Get the Within-Event residual and other info for each event:
+#    evnum_i,
