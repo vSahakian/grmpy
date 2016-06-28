@@ -74,6 +74,7 @@ def within_event_residual(eventdb,d_predicted,E_residual):
     W_residuals=pga-event_predicted
     
     #Mean and std dev:
-    
+    W_mean=mean(W_residuals)
+    W_std_dev=std(W_residuals)
     
     
