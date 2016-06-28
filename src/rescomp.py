@@ -30,6 +30,13 @@ def total_residual(db,d_predicted):
 def event_residual(eventdb,d_predicted):
     '''
     Compute the event residual
+    Input:
+        eventdb:            Event object
+        d_predicted:        Array with model predictions for each recording in 
+                            event object
+    Output: 
+        E_residual:         Event residual
+        E_std_dev:          Standard deviation in the event residual
     '''
     
     from numpy import log10,mean,std
@@ -45,3 +52,28 @@ def event_residual(eventdb,d_predicted):
     
     #Return these values:
     return E_residual, E_std_dev
+    
+def within_event_residual(eventdb,d_predicted,E_residual):
+    '''
+    Compute the within-event residual
+    Input:
+        
+    '''
+    
+    from numpy import log10,mean,std
+    
+    #Get pga for each event recording:
+    pga=log10(eventdb.pga_pg)
+    
+    #Add the Event residual on to the predicted value, to get the mean 
+    #prediction for this event:
+    event_predicted=d_predicted+E_residual
+    
+    #Subtract the value of the prediction for this event from the pga from 
+    #each recording in this event
+    W_residuals=pga-event_predicted
+    
+    #Mean and std dev:
+    
+    
+    

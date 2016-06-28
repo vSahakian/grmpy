@@ -100,20 +100,28 @@ for i in range(len(unique_events)):
     
 #Then for each event, compute the total residual.
 #Zero out arrays...
-E_evnum=np.array([])
-E_residual=np.array([])
-E_std_dev=np.array([])
+E_evnum=[]
+E_mw=[]
+E_residual=[]
+E_std_dev=[]
 
 #Loop over each event object:
 for eventi in range(len(event_list)):
-    #Event number?
+    #Event number and magnitude?
     evnum_i=event_list[eventi].evnum[0]
+    evmw_i=event_list[eventi].mw[0]
     #Get the event residual for each event:
     E_residual_i,std_dev_i=rcomp.event_residual(event_list[eventi],d_predicted_list[eventi])
     
     #Append to the residual arrays:
-    E_evnum=np.c_[E_evnum,evnum_i]
-    E_residual=np.c_[E_residual,E_residual_i]
-    E_std_dev=np.c_[E_std_dev,std_dev_i]
+    E_evnum.append(evnum_i)
+    E_mw.append(evmw_i)
+    E_residual.append(E_residual_i)
+    E_std_dev.append(std_dev_i)
+    
+E_evnum=np.array(E_evnum)
+E_mw=np.array(E_mw)
+E_residual=np.array(E_residual)
+E_std_dev=np.array(E_std_dev)
     
     
