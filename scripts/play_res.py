@@ -107,11 +107,11 @@ E_std_dev=[]
 
 #Loop over each event object:
 for eventi in range(len(event_list)):
-    #Event number and magnitude?
-    evnum_i=event_list[eventi].evnum[0]
-    evmw_i=event_list[eventi].mw[0]
+    ##Event number and magnitude?
+    #evnum_i=event_list[eventi].evnum[0]
+    #evmw_i=event_list[eventi].mw[0]
     #Get the event residual for each event:
-    E_residual_i,std_dev_i=rcomp.event_residual(event_list[eventi],d_predicted_list[eventi])
+    evnum_i,evmw_i,E_residual_i,std_dev_i=rcomp.event_residual(event_list[eventi],d_predicted_list[eventi])
     
     #Append to the residual arrays:
     E_evnum.append(evnum_i)
@@ -124,4 +124,5 @@ E_mw=np.array(E_mw)
 E_residual=np.array(E_residual)
 E_std_dev=np.array(E_std_dev)
     
+
     

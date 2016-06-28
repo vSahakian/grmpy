@@ -41,6 +41,10 @@ def event_residual(eventdb,d_predicted):
     
     from numpy import log10,mean,std
     
+    #Event number and magnitude?
+    evnum=eventdb.evnum[0]
+    evmw=eventdb.mw[0]
+    
     #Subtract the predicted value from the event value of pga_pg (in log10 space):
     pga=log10(eventdb.pga_pg)
     #Get residual for each recording in the event:
@@ -51,7 +55,7 @@ def event_residual(eventdb,d_predicted):
     E_std_dev=std(event_residuals)
     
     #Return these values:
-    return E_residual, E_std_dev
+    return evnum,evmw,E_residual, E_std_dev
     
 def within_event_residual(eventdb,d_predicted,E_residual):
     '''
@@ -61,6 +65,16 @@ def within_event_residual(eventdb,d_predicted,E_residual):
     '''
     
     from numpy import log10,mean,std
+    
+    #Get event number, and magnitude:
+    evnum=eventdb.evnum[0]
+    evmw=eventdb.mw[0]
+    
+    #Get the station names and numbers:
+    #Name:
+    sta=eventdb.sta
+    #Number:
+    stnum=eventdb.stnum
     
     #Get pga for each event recording:
     pga=log10(eventdb.pga_pg)
@@ -77,4 +91,5 @@ def within_event_residual(eventdb,d_predicted,E_residual):
     W_mean=mean(W_residuals)
     W_std_dev=std(W_residuals)
     
+    return evnum,evmw,sta,stnum,W_residuals,W_mean,W_std_dev
     
