@@ -70,14 +70,14 @@ def event_residual(eventdb,d_predicted_log10):
     #Return these values:
     return evnum,evmw,E_residual, E_std_dev
     
-def within_event_residual(eventdb,d_predicted,E_residual):
+def within_event_residual(eventdb,d_predicted_log10,E_residual):
     '''
     Compute the within-event residual
     Input:
         
     '''
     
-    from numpy import log10,mean,std
+    from numpy import log,log10,mean,std
     
     #Get event number, and magnitude:
     evnum=eventdb.evnum[0]
@@ -89,16 +89,19 @@ def within_event_residual(eventdb,d_predicted,E_residual):
     #Number:
     stnum=eventdb.stnum
     
-    #Get pga for each event recording:
-    pga=log10(eventdb.pga_pg)
+    #Get pga for each event recording - eventdb has pga NOT in log10 space:
+    pga=eventdb.pga_pg
+    
+    #However d_predicted that is piped in IS In log10 space, convert it:
+    d_predicted=10**(d_predicted_log10)
     
     #Add the Event residual on to the predicted value, to get the mean 
     #prediction for this event:
-    event_predicted=d_predicted+E_residual
+    event_predicted=log(d_predicted)+E_residual
     
     #Subtract the value of the prediction for this event from the pga from 
     #each recording in this event
-    W_residuals=pga-event_predicted
+    W_residuals=log(pga)-event_predicted
     
     #Mean and std dev:
     W_mean=mean(W_residuals)

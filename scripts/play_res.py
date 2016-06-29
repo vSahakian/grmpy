@@ -135,8 +135,8 @@ W_residuals=np.array([])
 W_mean=[]
 
 
-##Loop over each event object, again - this time provide event residual as well:
-#for eventi in range(len(event_list)):
-#    
-#    #Get the Within-Event residual and other info for each event:
-#    evnum_i,
+#Loop over each event object, again - this time provide event residual as well:
+for eventi in range(len(event_list)):
+    
+    #Get the Within-Event residual and other info for each event:
+    evnum_i,evmw_i,sta_i,stnum_i,W_residuals_i,W_mean,W_std_dev=rcomp.within_event_residual(event_list[eventi],d_predicted[eventi],E_residual[eventi])
