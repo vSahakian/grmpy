@@ -12,7 +12,7 @@ import rescomp as rcomp
 #0=desktop
 #1=mac
 
-what_home=0
+what_home=1
 
 if what_home==0:
     #Desktop:
@@ -131,6 +131,7 @@ E_std_dev=np.array(E_std_dev)
 #Zero out the arrays/lists:
 W_evnum=[]
 W_mw=[]
+W_sta=[]
 W_residuals=np.array([])
 W_mean=[]
 
