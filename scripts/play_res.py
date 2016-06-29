@@ -12,7 +12,7 @@ import rescomp as rcomp
 #0=desktop
 #1=mac
 
-what_home=1
+what_home=0
 
 if what_home==0:
     #Desktop:
@@ -77,7 +77,7 @@ for i in range(len(unique_events)):
     #Get the database info for this event:
     evnum_i=abdb.evnum[unique_ind]
     sta_i=abdb.sta[unique_ind]
-    stnum_i=[unique_ind]
+    stnum_i=abdb.stnum[unique_ind]
     ml_i=abdb.ml[unique_ind]
     mw_i=abdb.mw[unique_ind]
     pga_i=abdb.pga[unique_ind]
@@ -132,12 +132,33 @@ E_std_dev=np.array(E_std_dev)
 W_evnum=[]
 W_mw=[]
 W_sta=[]
-W_residuals=np.array([])
+W_stnum=[]
+W_residuals=[]
 W_mean=[]
-
+W_std_dev=[]
 
 #Loop over each event object, again - this time provide event residual as well:
 for eventi in range(len(event_list)):
     
     #Get the Within-Event residual and other info for each event:
-    evnum_i,evmw_i,sta_i,stnum_i,W_residuals_i,W_mean,W_std_dev=rcomp.within_event_residual(event_list[eventi],d_predicted[eventi],E_residual[eventi])
+    evnum_i,evmw_i,sta_i,stnum_i,W_residuals_i,W_mean_i,W_std_dev_i=rcomp.within_event_residual(event_list[eventi],d_predicted[eventi],E_residual[eventi])
+    
+    #Append to the lists/arrays:
+    W_evnum.append(evnum_i)
+    W_mw.append(evmw_i)
+    W_sta.append(sta_i)
+    W_stnum.append(stnum_i)
+    W_residuals.append(W_residuals_i)
+    W_mean.append(W_mean_i)
+    W_std_dev.append(W_std_dev_i)
+    
+#Save to arrays:
+W_evnum=np.array(W_evnum)
+W_mw=np.array(W_mw)
+#Don't convert W_sta...it's a bunch of strings...
+W_stnum=np.array(W_stnum)
+W_residuals=np.array(W_residuals) 
+W_mean=np.array(W_mean)
+W_std_dev=np.array(W_std_dev)   
+    
+    
