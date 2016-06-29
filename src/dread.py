@@ -3,23 +3,32 @@
 
 #Module to read and digest data of different forms, and prepare it for grmpepy
 
-def mread(flatfile):
+def mread(flatfile,hashfile):
     '''
     Read data from Annemarie's flatfile
     VJS 6/2016
     
     Input 
         flatfile:   String with path to the anza flatfile from AB
+        hasfile:    String with path to the anza hash file from AB, with locations
     Output
     
     '''
     
     import scipy.io as sio
     import cdefs
+    from numpy import genfromtxt,where
     
     
     #Read in flatfile
     datr=sio.loadmat(flatfile)
+    hashr=genfromtxt(hashfile)
+    
+    #Info from the hashfile:
+    hevent=hashr[:,6]
+    hlat=hashr[:,7]
+    hlon=hashr[:,8]
+    hdepth=hashr[:,9]
     
     #Extract components:
     devent=datr['event']            #event number
@@ -37,6 +46,11 @@ def mread(flatfile):
     dnewlogPGA=datr['newlogPGA']    #log10 of PGA adjusted to 10km
     dnewlogPGV=datr['newlogPGV']    #log10 of PGV adjusted to 10km
     dVs30=datr['Vs30']              #Vs30 for each station, reference in paper.
+    
+    #Find the lat/lon that corresponds to this event:
+    
+    for i in range(len(devent)):
+        event_ind=where(hevent==devent[0,i])[0]
     
     #Put into arrays (instead of array of arrays):
     event=devent[0]
