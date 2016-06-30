@@ -13,7 +13,7 @@ import gmpe as gm
 #0=desktop
 #1=mac
 
-what_home=1
+what_home=0
 
 if what_home==0:
     #Desktop:
@@ -22,21 +22,36 @@ elif what_home==1:
     #Mac:
     HOME='/Users/vsahakian'
 
-
-
-#AB's flatfile:
-ffile=HOME+'/anza/data/Anzadata_Acc_Vel_May2016_40_50.mat'
-hfile=HOME+'/anza/data/YSH_2010.hash'
-
 #Location to store figures:
 fig_dir=HOME+'/anza/models/figs/'
 obj_dir=HOME+'/anza/models/pckl/'
 
-#Read data from .mat file, store important values:
-ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth=dr.mread(ffile,hfile)
+######Making the database object - once made and saved, do not run this again######
+#
+##AB's flatfile:
+#ffile=HOME+'/anza/data/Anzadata_Acc_Vel_May2016_40_50.mat'
+#hfile=HOME+'/anza/data/YSH_2010.hash'
+#
+##Read data from .mat file, store important values:
+#ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth=dr.mread(ffile,hfile)
+#
+##Load into database object
+#abdb=cdf.db(ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth)
+#
+##Save the database object:
+#fname=HOME+'/anza/data/abdb.pckl'
+#datobj=open(fname,'w')
+#pickle.dump(abdb,datobj)
+#datobj.close()
+########################End making database object############################
 
-#Load into database object
-abdb=cdf.db(ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth)
+
+##########Open the database object:###################
+#Filename:
+fname=HOME+'/anza/data/abdb.pckl'
+datobj=open(fname,'r')
+abdb=pickle.load(datobj)
+datobj.close()
 
 #Plot pga's:
 #abdb.plot_apga()
@@ -57,7 +72,27 @@ rng=np.array([0,3.3,4.5,6.5])
 #rng=np.array([0,1,1.5,2,2.5,3.3,6.5])
 #rng=np.array([0,1,1.5,2,2.5,3.5,6.5])
 #rng=np.array([0,1.5,3,4,6.5])
-rng=np.array([0,6.5])
+rng=np.array([0,6.5])#####Making the database object - once made and saved, do not run this again######
+
+#AB's flatfile:
+ffile=HOME+'/anza/data/Anzadata_Acc_Vel_May2016_40_50.mat'
+hfile=HOME+'/anza/data/YSH_2010.hash'
+
+#Location to store figures:
+fig_dir=HOME+'/anza/models/figs/'
+obj_dir=HOME+'/anza/models/pckl/'
+
+#Read data from .mat file, store important values:
+ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth=dr.mread(ffile,hfile)
+
+#Load into database object
+abdb=cdf.db(ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth)
+
+#Save the database object:
+fname=HOME+'/anza/data/abdb.pckl'
+datobj=open(fname,'w')
+pickle.dump(abdb,datobj)
+datobj.close
 #rng=np.array([0,1,2,3.3,4.5,6.5])
 #rng=np.array([0,6.5])
 #rng=np.array([0,2,3,4,6.5])
@@ -70,7 +105,7 @@ sdist=np.array([1,5,10,15,20])
 #Smoothing factor
 smth=500
 
-#Use magnitude-dependent fictitious depth/finite fault dimension factor?
+#Use magnitude-dependent fictitious depth/finite fault dimension factor?####
 #no == 0, yes == 1
 mdep_ffdf=0
 
