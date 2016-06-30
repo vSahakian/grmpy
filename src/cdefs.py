@@ -272,6 +272,29 @@ class event:
         self.W_residuals=W_residuals
         self.W_mean=W_mean
         self.W_std=W_std
+        
+class station:
+    '''
+    Save all data for one station
+    '''
+    
+    def __init__(self,sta,stnum,vs30,evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,lat,lon,depth,E_residual,W_residual):
+        self.sta=sta
+        self.stnum=stnum
+        self.vs30=vs30
+        self.evnum=evnum
+        self.ml=ml
+        self.mw=mw
+        self.pga_pg=pga_pg
+        self.pga=pga
+        self.pgv=pgv
+        self.ffdf=ffdf
+        self.md_ffdf=md_ffdf
+        self.lat=lat
+        self.lon=lon
+        self.depth=depth
+        self.E_residual=E_residual
+        self.W_residual=W_residual
 
 #####
 #class withinevent:

@@ -68,6 +68,9 @@ vs30=abdb.vs30
 #Set 0 entries to vref:
 vs30[vs30_0ind]=vref
 
+
+#####Get Total Residuals######
+
 #Now compute the predicted value of PGA...
 d_predicted=gm.compute_model(model.m,model.rng,abdb.mw,abdb.r,abdb.ffdf,vs30,vref,mdep_ffdf)
 
@@ -75,21 +78,25 @@ d_predicted=gm.compute_model(model.m,model.rng,abdb.mw,abdb.r,abdb.ffdf,vs30,vre
 total_residuals,mean_residual,std_dev=rcomp.total_residual(abdb,d_predicted)
 
 
-#Get unique events:
+###Get Event and Within-Event Residuals##
+
+##Get unique events:
 unique_events=np.unique(abdb.evnum)
 
-#Make a class for each event; append them to a list, made empty here:
+##Make a class for each event; append them to a list, made empty here:
 event_list=[]
 d_predicted_list=[]
 
-#Zero out arrays...
+##Zero out arrays for info used for plotting, for all events...
 E_evnum=[]
 E_mw=[]
 E_residual=[]
 E_std_dev=[]
 
-
-###Get Event and Within-Event Residuals##
+##Zero out lists to use for indexing - use this resulting index, the station index,
+# to sort out the events for the station object later on...
+unique_stnums=np.unique(abdb.stnum)
+unique_stas=np.unique(abdb.sta)
 
 #Loop through the unique events, make each into an object, append to event list
 for i in range(len(unique_events)):
@@ -113,6 +120,9 @@ for i in range(len(unique_events)):
     lat_i=abdb.lat[unique_ind]
     lon_i=abdb.lon[unique_ind]
     depth_i=abdb.depth[unique_ind]
+    
+    #for sta_ind in len(unique_stnums):
+    #    
     
     #The only one that is not directly from teh database is vs30; this is because
     #there were some 0's in it, so above that is compensated for by changing 
@@ -138,11 +148,102 @@ for i in range(len(unique_events)):
     #Append the event object, and the d_predicted to the list:
     event_list.append(eventi)
     d_predicted_list.append(d_predicted_i)
+    
+    #Append to the residual arrays, to use later for plotting:
+    E_evnum.append(evnum_i)
+    E_mw.append(evmw_i)
+    E_residual.append(E_residual_i)
+    
+#Turn those into arrays:
+E_evnum=np.array(E_evnum)
+E_mw=np.array(E_mw)
+E_residual=np.array(E_residual)
+E_std_dev=np.array(E_std_dev)
  
-    
+ 
+ 
+###Make Station Objects, for other residuals####
 
-    
+#Start an empty list, store all station objects here in the end:    
+station_list=[]
 
+#First loop over the list of unique stations    
+for sta_ind in range(len(unique_stnums)):
+    #Station number?
+    station_num_i=unique_stnums[sta_ind]
+    
+    #Station name:
+    station_name_i=unique_stas[sta_ind]
+    
+    #Zero out the lists/arrays that will be used to add to the station object for htis statioN:
+    evnum=[]
+    ml=[]
+    mw=[]
+    pga_pg=[]
+    pga=[]
+    pgv=[]
+    r=[]
+    ffdf=[]
+    md_ffdf=[]
+    lat=[]
+    lon=[]
+    depth=[]
+    #Event residuals:
+    E_residual=[]
+    #Within-event residuals:
+    W_residual=[]
+    
+    #Does this e
+    for event_ind in range(len(unique_events)):
+        #What event is this?
+        eventi=event_list[event_ind]
+        #What stations record thsi event?
+        event_sta_i=eventi.stnum
+        #Is the station being referenced int eh outer loop contained here?
+        sta_ev_ind=np.where(event_sta_i==station_num_i)[0]
+        
+        #If this station records thsi event, grab the information:
+        if sta_ev_ind.size!=0:
+            vs30=eventi.vs30[sta_ev_ind]
+            evnum.append(eventi.evnum[sta_ev_ind])
+            ml.append(eventi.ml[sta_ev_ind])
+            mw.append(eventi.mw[sta_ev_ind])
+            pga_pg.append(eventi.pga_pg[sta_ev_ind])
+            pgv.append(eventi.pgv[sta_ev_ind])    
+            r.append(eventi.r[sta_ev_ind])    
+            ffdf.append(eventi.ffdf[sta_ev_ind])
+            md_ffdf.append(eventi.md_ffdf[sta_ev_ind])
+            lat.append(eventi.lat[sta_ev_ind])
+            lon.append(eventi.lon[sta_ev_ind])
+            depth.append(eventi.depth[sta_ev_ind])
+            E_residual.append(eventi.E_residual)
+            W_residual.append(eventi.W_residuals[sta_ev_ind])
+        elif sta_ev_ind.size==0:
+            continue
+            
+        
+    #AFter looping over all events, convert these lists into arrays, to put
+    #into a station object:
+    #Vs30 stays as just one number
+    evnum=np.array(evnum)
+    ml=np.array(ml)
+    mw=np.array(mw)
+    pga_pg=np.array(pga_pg)
+    pgv=np.array(pgv)
+    r=np.array(r)
+    ffdf=np.array(ffdf)
+    md_ffdf=np.array(md_ffdf)
+    lat=np.array(lat)
+    lon=np.array(lon)
+    depth=np.array(depth)
+    E_residual=np.array(E_residual)
+    W_residual=np.array(W_residual)
+    
+    #Put into a station object...
+    station_i=cdf.station(station_name_i[0],station_num_i,vs30[0],evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,lat,lon,depth,E_residual,W_residual)
+    
+    #Append to the station list...
+    station_list.append(station_i)
 
 ##Loop over each event object:
 #for event_ind in range(len(event_list)):
