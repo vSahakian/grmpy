@@ -11,7 +11,7 @@ class db:
     This class describes a set of events
     '''
     
-    def __init__(self,event,sta,N,ml,mw,DA,DV,r,vs30):
+    def __init__(self,event,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth):
         '''
         Initiate the class by giving the event number (event), 
         station name (sta), station number (N), local mag (ml), moment mag (mw), 
@@ -57,6 +57,9 @@ class db:
         self.vs30=vs30
         self.ffdf=np.sqrt(self.r**2 + c4**2)
         self.md_ffdf=md_ffdf
+        self.lat=lat
+        self.lon=lon
+        self.depth=depth
         
     def plot_allpga(self):
         '''
@@ -244,7 +247,7 @@ class event:
     Save all data for one event, to use in residual computation
     '''
     
-    def __init__(self,evnum,sta,stnum,ml,mw,pga,pgv,pga_pg,r,vs30,ffdf,md_ffdf):
+    def __init__(self,evnum,sta,stnum,ml,mw,pga,pgv,pga_pg,r,vs30,ffdf,md_ffdf,lat,lon,depth):
         self.evnum=evnum
         self.sta=sta
         self.stnum=stnum
@@ -257,6 +260,9 @@ class event:
         self.vs30=vs30
         self.ffdf=ffdf
         self.md_ffdf=md_ffdf
+        self.lat=lat
+        self.lon=lon
+        self.depth=depth
         
 
         

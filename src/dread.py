@@ -17,7 +17,7 @@ def mread(flatfile,hashfile):
     
     import scipy.io as sio
     import cdefs
-    from numpy import genfromtxt,where
+    from numpy import genfromtxt,where,zeros
     
     
     #Read in flatfile
@@ -48,9 +48,18 @@ def mread(flatfile,hashfile):
     dVs30=datr['Vs30']              #Vs30 for each station, reference in paper.
     
     #Find the lat/lon that corresponds to this event:
+    #Zero out lat/lon arrays:
+    ev_lat=zeros((len(devent[0]),1))
+    ev_lon=zeros((len(devent[0]),1))
+    ev_dep=zeros((len(devent[0]),1))
     
-    for i in range(len(devent)):
-        event_ind=where(hevent==devent[0,i])[0]
+    #Find which row (called event_ind) in the hashfile corresponds to this event:
+    for i in range(len(devent[0])):
+        event_ind=where(hevent==devent[0,i])[0][0]
+        #Set that row in lat/lon to this value:
+        ev_lat[i]=hlat[event_ind]
+        ev_lon[i]=hlon[event_ind]
+        ev_dep[i]=hdepth[event_ind]
     
     #Put into arrays (instead of array of arrays):
     event=devent[0]
@@ -67,6 +76,9 @@ def mread(flatfile,hashfile):
     newlogPGA=dnewlogPGA[:,0]
     newlogPGV=dnewlogPGV[:,0]
     vs30=dVs30[0]
+    lat=ev_lat[:,0]
+    lon=ev_lon[:,0]
+    depth=ev_dep[:,0]
     
     ##
     #Split apart the header (dhdrs)
@@ -103,4 +115,4 @@ def mread(flatfile,hashfile):
     
     #Return the event numeber, station name, station number, ml,mw, PGA,pgv, 
     #epcentral distance (Dist), vs30
-    return event,sta,N,ml,mw,DA,DV,dist[:,0],vs30
+    return event,sta,N,ml,mw,DA,DV,dist[:,0],vs30,lat,lon,depth

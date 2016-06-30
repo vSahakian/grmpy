@@ -26,16 +26,17 @@ elif what_home==1:
 
 #AB's flatfile:
 ffile=HOME+'/anza/data/Anzadata_Acc_Vel_May2016_40_50.mat'
+hfile=HOME+'/anza/data/YSH_2010.hash'
 
 #Location to store figures:
 fig_dir=HOME+'/anza/models/figs/'
 obj_dir=HOME+'/anza/models/pckl/'
 
 #Read data from .mat file, store important values:
-ev,sta,N,ml,mw,DA,DV,r,vs30=dr.mread(ffile)
+ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth=dr.mread(ffile,hfile)
 
 #Load into database object
-abdb=cdf.db(ev,sta,N,ml,mw,DA,DV,r,vs30)
+abdb=cdf.db(ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth)
 
 #Plot pga's:
 #abdb.plot_apga()
