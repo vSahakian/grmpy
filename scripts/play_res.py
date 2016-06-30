@@ -82,6 +82,15 @@ unique_events=np.unique(abdb.evnum)
 event_list=[]
 d_predicted_list=[]
 
+#Zero out arrays...
+E_evnum=[]
+E_mw=[]
+E_residual=[]
+E_std_dev=[]
+
+
+###Get Event and Within-Event Residuals##
+
 #Loop through the unique events, make each into an object, append to event list
 for i in range(len(unique_events)):
     unique_ind=np.where(unique_events[i]==abdb.evnum)[0]
@@ -110,73 +119,84 @@ for i in range(len(unique_events)):
     #them to vref.
     vs30_i=vs30[unique_ind]
     
+    
+    #Make the event object:
     eventi=cdf.event(evnum_i,sta_i,stnum_i,ml_i,mw_i,pga_i,pgv_i,pga_pg_i,r_i,vs30_i,ffdf_i,md_ffdf_i,lat_i,lon_i,depth_i)
     
-    #Apped the event object, and the d_predicted to the list:
+    #Compute the event terms:
+    evnum_i,evmw_i,E_residual_i,std_dev_i=rcomp.event_residual(eventi,d_predicted_i)
+    
+    #Add the residual information to the event object:
+    eventi.add_E_resid(E_residual_i,std_dev_i)
+    
+    #Get the Within-Event Residuals:
+    evnum_i,evmw_i,sta_i,stnum_i,W_residuals_i,W_mean_i,W_std_dev_i=rcomp.within_event_residual(eventi,d_predicted_i,eventi.E_residual)    
+    
+    #Add the within-event residuals to the event object:
+    eventi.add_W_resids(W_residuals_i,W_mean_i,W_std_dev_i)
+    
+    #Append the event object, and the d_predicted to the list:
     event_list.append(eventi)
     d_predicted_list.append(d_predicted_i)
  
     
- ###Get Event Residuals###
-    
-#Then for each event, compute the total residual.
-#Zero out arrays...
-E_evnum=[]
-E_mw=[]
-E_residual=[]
-E_std_dev=[]
 
-#Loop over each event object:
-for eventi in range(len(event_list)):
+    
 
-    #Get the event residual for each event:
-    evnum_i,evmw_i,E_residual_i,std_dev_i=rcomp.event_residual(event_list[eventi],d_predicted_list[eventi])
+
+##Loop over each event object:
+#for event_ind in range(len(event_list)):
+
+
     
-    #Append to the residual arrays:
-    E_evnum.append(evnum_i)
-    E_mw.append(evmw_i)
-    E_residual.append(E_residual_i)
-    E_std_dev.append(std_dev_i)
+  
+    ##Append to the residual arrays, to use later for plotting:
+    #E_evnum.append(evnum_i)
+    #E_mw.append(evmw_i)
+    #E_residual.append(E_residual_i)
+    #E_std_dev.append(std_dev_i)
     
-E_evnum=np.array(E_evnum)
-E_mw=np.array(E_mw)
-E_residual=np.array(E_residual)
-E_std_dev=np.array(E_std_dev)
+#Turn those into arrays:
+#E_evnum=np.array(E_evnum)
+#E_mw=np.array(E_mw)
+#E_residual=np.array(E_residual)
+#E_std_dev=np.array(E_std_dev)
     
 
 ###Get Within-Event Residuals###
 
-#Zero out the arrays/lists:
-W_evnum=[]
-W_mw=[]
-W_sta=[]
-W_stnum=[]
-W_residuals=[]
-W_mean=[]
-W_std_dev=[]
-
-#Loop over each event object, again - this time provide event residual as well:
-for eventi in range(len(event_list)):
-    
-    #Get the Within-Event residual and other info for each event:
-    evnum_i,evmw_i,sta_i,stnum_i,W_residuals_i,W_mean_i,W_std_dev_i=rcomp.within_event_residual(event_list[eventi],d_predicted[eventi],E_residual[eventi])
-    
-    #Append to the lists/arrays:
-    W_evnum.append(evnum_i)
-    W_mw.append(evmw_i)
-    W_sta.append(sta_i)
-    W_stnum.append(stnum_i)
-    W_residuals.append(W_residuals_i)
-    W_mean.append(W_mean_i)
-    W_std_dev.append(W_std_dev_i)
-    
-#Save to arrays:
-W_evnum=np.array(W_evnum)
-W_mw=np.array(W_mw)
-#Don't convert W_sta...it's a bunch of strings...
-W_stnum=np.array(W_stnum)
-W_residuals=np.array(W_residuals) 
-W_mean=np.array(W_mean)
-W_std_dev=np.array(W_std_dev)   
-    
+##Zero out the arrays/lists:
+#W_evnum=[]
+#W_mw=[]
+#W_sta=[]
+#W_stnum=[]
+#W_residuals=[]
+#W_mean=[]
+#W_std_dev=[]
+#
+##Loop over each event object, again - this time provide event residual as well:
+#for eventi in range(len(event_list)):
+#    
+#    #Get the Within-Event residual and other info for each event:
+#    evnum_i,evmw_i,sta_i,stnum_i,W_residuals_i,W_mean_i,W_std_dev_i=rcomp.within_event_residual(event_list[eventi],d_predicted[eventi],E_residual[eventi])
+#    
+#    
+#    #Append to the lists/arrays:
+#    W_evnum.append(evnum_i)
+#    W_mw.append(evmw_i)
+#    W_sta.append(sta_i)
+#    W_stnum.append(stnum_i)
+#    W_residuals.append(W_residuals_i)
+#    W_mean.append(W_mean_i)
+#    W_std_dev.append(W_std_dev_i)
+#    
+##Save to arrays:
+#W_evnum=np.array(W_evnum)
+#W_mw=np.array(W_mw)
+##Don't convert W_sta...it's a bunch of strings...
+#W_stnum=np.array(W_stnum)
+#W_residuals=np.array(W_residuals) 
+#W_mean=np.array(W_mean)
+#W_std_dev=np.array(W_std_dev)   
+#    
     

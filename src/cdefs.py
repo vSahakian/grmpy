@@ -264,24 +264,28 @@ class event:
         self.lon=lon
         self.depth=depth
         
-    def add_E_resid(self,E_residual,E_mean,E_std):
+    def add_E_resid(self,E_residual,E_std):
         self.E_residual=E_residual
-        self.E_mean=E_mean
         self.E_std=E_std
+        
+    def add_W_resids(self,W_residuals,W_mean,W_std):
+        self.W_residuals=W_residuals
+        self.W_mean=W_mean
+        self.W_std=W_std
 
-####
-class withinevent:
-    def __init__(self,evnum,mw,lat,lon,depth,sta,stnum,residuals,mean,std):
-        self.evnum=evnum
-        self.mw=mw
-        self.lat=lat
-        self.lon=lon
-        self.depth=depth
-        self.sta=sta
-        self.stnum=stnum
-        self.residuals=residuals
-        self.mean=mean
-        self.std=std
+#####
+#class withinevent:
+#    def __init__(self,evnum,mw,lat,lon,depth,sta,stnum,residuals,mean,std):
+#        self.evnum=evnum
+#        self.mw=mw
+#        self.lat=lat
+#        self.lon=lon
+#        self.depth=depth
+#        self.sta=sta
+#        self.stnum=stnum
+#        self.residuals=residuals
+#        self.mean=mean
+#        self.std=std
     
 #class hdr:
 #    '''
