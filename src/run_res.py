@@ -65,11 +65,12 @@ def get_total_res(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     '''
     
     import pickle
-    import gm
-    import res_comp as rcomp
+    import gmpe as gm
+    import rescomp as rcomp
     from numpy import where
     from os import path
     import cdefs as cdf
+    from matplotlib.pyplot import savefig
     
     run_dir=path.expanduser(home+run_name+'/')
     
@@ -112,5 +113,16 @@ def get_total_res(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     allresid=cdf.total_residuals(db.mw,total_residuals,mean_residual,std_dev)
     f1,f2=allresid.plt_resids(run_name,resaxlim)
     
+    #Figure names:
+    f1name=run_dir+'figs/'+run_name+'_total.png'
+    f2name=run_dir+'figs/'+run_name+'_total_hist.png'
+    #Save:
+    f1.savefig(f1name)
+    f2.savefig(f2name)
     
-    return db.mw,total_residuals,mean_residual,std_dev
+    return allresid
+    
+    
+def get_E_W_residuals():
+    '''
+    '''

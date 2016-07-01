@@ -78,6 +78,8 @@ d_predicted=gm.compute_model(model.m,model.rng,abdb.mw,abdb.r,abdb.ffdf,vs30,vre
 total_residuals,mean_residual,std_dev=rcomp.total_residual(abdb,d_predicted)
 
 
+###########
+
 ###Get Event and Within-Event Residuals##
 
 ##Get unique events:

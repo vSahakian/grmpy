@@ -281,10 +281,8 @@ class total_residuals:
         plt.xlabel('Moment Magnitude')
         plt.ylabel('ln Residuals')
         plt.title('Residuals for run '+run_name)
-        
         #Show
         f1.show()        
-        
         
         #Initialize historgram:
         f2=plt.figure()
