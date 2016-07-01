@@ -245,6 +245,55 @@ for sta_ind in range(len(unique_stnums)):
     #Append to the station list...
     station_list.append(station_i)
 
+
+###Plotting####
+#Plot the event residuals for each station in a different color...
+
+#Get the range for the colorbar:
+crangemax=len(station_list)
+crange=np.array(range(len(station_list))).astype(float)/crangemax
+
+#Get the colorbar:
+colors=plt.cm.rainbow(crange)
+
+plt.figure()
+for station_ind in range(len(station_list)):
+    #Get the station 
+    station_i=station_list[station_ind]
+    
+    #Get what you're plotting...
+    mw=station_i.mw
+    W_residuals=station_i.W_residual
+    
+    #Get the color info and label info:
+    color_i=colors[station_ind]
+    sta_lab=station_i.sta
+    
+    print color_i
+    
+    #Plot
+    plt.scatter(mw,W_residuals,edgecolors=color_i,facecolors='none',lw=0.5,label=sta_lab)
+    
+#Add legend:
+plt.legend(loc=4)
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ##Loop over each event object:
 #for event_ind in range(len(event_list)):
 

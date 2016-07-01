@@ -180,6 +180,8 @@ class db:
             #be plotted in scatter as x,y,z (mw, pga, color).  In this bin, all
             #the colors should be the same, so tile the color for this bin i and 
             #multiply it by an array of ones. (maybe I don't even need to do this?)
+            ###
+            #Valerie, a few weeks later that descriptoin above is incomprehensible...wtf were you thinking...
             clrs=np.ones((len(bind),4))*np.tile(colors[i,:],(len(bind),1))
             #plot
             f=plt.scatter(self.mw[bind],np.log10(self.pga_pg[bind]),edgecolors=clrs,facecolors='none',lw=0.5)
