@@ -242,7 +242,65 @@ class invinfo:
         self.rng=rng
         self.sdist=sdist
         self.smth=smth
+   
+class total_residuals:
+    '''
+    Save all total residual data
+    '''
+    def __init__(self,mw,total_residuals,mean_residual,std_dev_residuals):
+        self.mw=mw
+        self.total_residuals=total_residuals
+        self.mean_residual=mean_residual
+        self.std_dev=std_dev_residuals
         
+    def plt_resids(self,run_name,axlims):
+        '''
+        Plot all residuals
+        Input:
+            run_name:     Name of the run
+            axlims:     Array with axislimits: [[xmin,xmax],[ymin,ymax]]
+        Output: 
+            f1:         Plot with residuals
+            f2:         Plot with histogram
+        '''
+            
+        import matplotlib.pyplot as plt
+        from numpy import str
+        
+        #Initialize scatter plot:
+        f1=plt.figure()
+        
+        #Plot:
+        plt.scatter(self.mw,self.total_residuals,edgecolors='blue',facecolors='none',lw=0.9)
+        
+        #LImits:
+        plt.xlim(axlims[0])
+        plt.ylim(axlims[1])
+        
+        #Labels
+        plt.xlabel('Moment Magnitude')
+        plt.ylabel('ln Residuals')
+        plt.title('Residuals for run '+run_name)
+        
+        #Show
+        f1.show()        
+        
+        
+        #Initialize historgram:
+        f2=plt.figure()
+        
+        #Plot:
+        plt.hist(self.total_residuals)
+        
+        #Titles
+        plt.xlabel('ln Residuals')
+        plt.ylabel('# of occurences')
+        plt.title('Mean: '+str(self.mean_residual)+' Std Dev: '+str(self.std_dev))
+                                
+        f2.show()
+        
+        return f1,f2
+             
         
 class event:
     '''
