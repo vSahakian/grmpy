@@ -12,7 +12,7 @@ import rescomp as rcomp
 #0=desktop
 #1=mac
 
-what_home=0
+what_home=1
 
 if what_home==0:
     #Desktop:
@@ -204,6 +204,7 @@ for sta_ind in range(len(unique_stnums)):
         
         #If this station records thsi event, grab the information:
         if sta_ev_ind.size!=0:
+            print sta_ev_ind.size
             vs30=eventi.vs30[sta_ev_ind]
             evnum.append(eventi.evnum[sta_ev_ind])
             ml.append(eventi.ml[sta_ev_ind])
@@ -249,6 +250,10 @@ for sta_ind in range(len(unique_stnums)):
 ###Plotting####
 #Plot the event residuals for each station in a different color...
 
+#Axes:
+axxlim=[1,4]
+axylim=[-4,4]
+
 #Get the range for the colorbar:
 crangemax=len(station_list)
 crange=np.array(range(len(station_list))).astype(float)/crangemax
@@ -272,10 +277,19 @@ for station_ind in range(len(station_list)):
     print color_i
     
     #Plot
-    plt.scatter(mw,W_residuals,edgecolors=color_i,facecolors='none',lw=0.5,label=sta_lab)
+    plt.scatter(mw,W_residuals,edgecolors=color_i,facecolors='none',lw=0.8,label=sta_lab)
     
 #Add legend:
 plt.legend(loc=4)
+
+#Add titles, limits...
+plt.xlim(axxlim)
+plt.ylim(axylim)
+plt.xlabel('Moment Magnitude')
+plt.ylabel('ln Residual')
+plt.title('Within-Event Residuals by station')
+
+#Show...
 plt.show()
 
 
