@@ -285,7 +285,6 @@ def sta_list(home,run_name,dbfile):
     #Get directory for output:
     run_dir=path.expanduser(home+run_name+'/')
     so_dir=run_dir+'sta_objs/'
-    fig_dir=run_dir+'figs/'
     
     #Get event list directory for this run:
     eobjfile=run_dir+'event_objs/'+run_name+'.pckl'
@@ -398,3 +397,77 @@ def sta_list(home,run_name,dbfile):
             pickle.dump(station_list[i],flist)
         #close the file
         flist.close()
+        
+#####
+def plot_Wresid(home,run_name,resaxlim):
+    '''
+    '''
+    
+    from os import path
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import dread
+    
+    #Get paths to things, like the object list:
+    #Get directory for output:
+    run_dir=path.expanduser(home+run_name+'/')
+    so_dir=run_dir+'sta_objs/'
+    fig_dir=run_dir+'figs/'
+    
+    #Get the file path of the output figure:
+    figname=fig_dir+run_name+'_W_resids.png'
+    
+    #Get event list directory for this run:
+    sobjfile=so_dir+run_name+'.pckl'
+    
+    #Read in the station list:
+    station_list=dread.read_obj_list(sobjfile)
+    
+    ###Plotting####
+    #Plot the event residuals for each station in a different color...
+    
+    #Axes:
+    axxlim=resaxlim[0]
+    axylim=resaxlim[1]
+    
+    #Get the range for the colorbar:
+    crangemax=len(station_list)
+    crange=np.array(range(len(station_list))).astype(float)/crangemax
+    
+    #Get the colorbar:
+    colors=plt.cm.rainbow(crange)
+    
+    plt.figure()
+    for station_ind in range(len(station_list)):
+        #Get the station 
+        station_i=station_list[station_ind]
+        
+        #Get what you're plotting...
+        mw=station_i.mw
+        W_residuals=station_i.W_residual
+        
+        #Get the color info and label info:
+        color_i=colors[station_ind]
+        sta_lab=station_i.sta
+        
+        print color_i
+        
+        #Plot
+        plt.scatter(mw,W_residuals,edgecolors=color_i,facecolors='none',lw=0.8,label=sta_lab)
+        
+    #Add legend:
+    plt.legend(loc=4)
+    
+    #Add titles, limits...
+    plt.xlim(axxlim)
+    plt.ylim(axylim)
+    plt.xlabel('Moment Magnitude')
+    plt.ylabel('ln Residual')
+    plt.title('Within-Event Residuals by station')
+    
+    #Show...
+    plt.show()
+    
+    #Save:
+    plt.savefig(figname)
+    

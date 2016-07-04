@@ -21,3 +21,6 @@ E_evnum,E_mw,E_residual,E_mean,E_std_dev=run_res.getEW_makeEvents(home,run_name,
 
 #Make station objects:
 run_res.sta_list(home,run_name,dbpath)
+
+#Plot within-event residuals by station, and save to file:
+run_res.plot_Wresid(home,run_name,resaxlim)
