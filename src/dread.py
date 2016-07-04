@@ -116,3 +116,35 @@ def mread(flatfile,hashfile):
     #Return the event numeber, station name, station number, ml,mw, PGA,pgv, 
     #epcentral distance (Dist), vs30
     return event,sta,N,ml,mw,DA,DV,dist[:,0],vs30,lat,lon,depth
+
+
+def read_obj_list(obj):
+    '''
+    Read a pickle file with a list of event of station objects
+    Input:
+        obj:        String with path to the pickle file containing the list of objects
+    Output:
+        obj_list:   List with event or station objects in it
+    '''
+    
+    import cPickle as pickle
+    
+    #Open the file
+    obj=open(obj,'r')
+    
+    #Zero out a list to add the event objects to:
+    obj_list=[]
+    
+    #REad the data...
+    readfile=True
+    while readfile==True:
+        try:
+            obji=pickle.load(obj)
+            obj_list.append(obji)
+        except EOFError:
+            print ('File read complete')
+            readfile=False
+            obj.close()
+        
+    return obj_list
+    

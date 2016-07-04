@@ -278,7 +278,7 @@ class total_residuals:
         plt.ylim(axlims[1])
         
         #Labels
-        plt.xlabel('Moment Magnitude')
+        plt.xlabel(r"$\mathbf{M}$")
         plt.ylabel('ln Residuals')
         plt.title('Residuals for run '+run_name)
         #Show
