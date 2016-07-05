@@ -3,7 +3,7 @@
 import run_res
 
 home='/Users/vsahakian/anza/models/residuals/'
-run_name='test'
+run_name='abdb_0-6.5'
 dbpath='/Users/vsahakian/anza/data/abdb.pckl'
 modelpath='/Users/vsahakian/anza/models/pckl/regr_0.0_6.5_resid_2676.06963031.pckl'
 
