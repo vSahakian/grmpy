@@ -120,12 +120,12 @@ def get_total_res(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     f1.savefig(f1name)
     f2.savefig(f2name)
     
-    return db.mw,allresid
+    return db.mw,allresid,mean_residual,std_dev
     
     
     
     
-def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag):
+def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     '''
     Get the Event and Within-Event Residuals, and store in Event objects
     Input:
@@ -143,6 +143,8 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag):
     from os import path
     import gmpe as gm
     import cPickle as pickle
+    import matplotlib.pyplot as plt
+
     
     #Get directory for output:
     run_dir=path.expanduser(home+run_name+'/')
@@ -269,6 +271,57 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag):
     #close the file
     flist.close()
     
+    
+    ####Plotting####
+    
+    #Get the file path of the output figure:
+    f1figname=fig_dir+run_name+'_E_resids.png'
+    f2figname=fig_dir+run_name+'_E_resids_hist.png'
+
+    
+    ###Plotting###
+    #For titles:
+    E_std_dev_short=np.around(E_std_dev,decimals=2)
+    
+    #Axes:
+    axxlim=resaxlim[0]
+    axylim=resaxlim[1]
+
+    #Color:
+    rgb=np.array([70,158,133])/255.0
+    rgb.astype(float)
+    color=rgb*np.ones((len(E_mw),3))
+
+    #Plot...    
+    f1=plt.figure()
+    plt.scatter(E_mw,E_residual,edgecolors=color,facecolors='none',lw=0.8)
+    
+    #Add titles, limits...
+    plt.xlim(axxlim)
+    plt.ylim(axylim)
+    plt.xlabel(r"$\mathbf{M}$")
+    plt.ylabel('ln Residual')
+    ptitle=r"Event Residuals"+"\n"+"Run: "+run_name+", Std Dev: "+np.str(E_std_dev_short)
+    plt.title(ptitle)
+    
+    #Show...
+    f1.show()
+    
+    #Save:
+    f1.savefig(f1figname)
+    
+    #Histogram...
+    f2=plt.figure()
+    plt.hist(E_residual,color=rgb)
+    plt.xlabel('ln Residuals')
+    plt.ylabel('Number of occurences')
+            
+    ptitle='Mean: '+str(np.around(E_mean),decimals=2)+' Std Dev: '+str(np.around(E_std_dev),decimals=2)
+    plt.title(ptitle)
+    
+    f2.show()
+    f2.savefig(f2figname)
+    
     return E_evnum,E_mw,E_residual,E_mean,E_std_dev
     
     
@@ -305,7 +358,7 @@ def sta_list(home,run_name,dbfile):
     
     #REad event list:
     event_list=dread.read_obj_list(eobjfile)
-    
+
     ###Make Station Objects, for other residuals####
 
     #Start an empty list, store all station objects here in the end:    
@@ -398,6 +451,9 @@ def sta_list(home,run_name,dbfile):
         #close the file
         flist.close()
         
+
+
+
 #####
 def plot_Wresid(home,run_name,resaxlim):
     '''
@@ -437,6 +493,10 @@ def plot_Wresid(home,run_name,resaxlim):
     #Get the colorbar:
     colors=plt.cm.rainbow(crange)
     
+    #Make W_residuals array by appending to use to get std deviation:
+    W_res_array=np.array([])
+    
+    #Plot
     plt.figure()
     for station_ind in range(len(station_list)):
         #Get the station 
@@ -445,6 +505,11 @@ def plot_Wresid(home,run_name,resaxlim):
         #Get what you're plotting...
         mw=station_i.mw
         W_residuals=station_i.W_residual
+        
+        if station_ind==0:
+            W_res_array=W_residuals
+        else:
+            W_res_array=np.r_[W_res_array,W_residuals]
         
         #Get the color info and label info:
         color_i=colors[station_ind]
@@ -455,15 +520,23 @@ def plot_Wresid(home,run_name,resaxlim):
         #Plot
         plt.scatter(mw,W_residuals,edgecolors=color_i,facecolors='none',lw=0.8,label=sta_lab)
         
+        
+    #Get stats:
+    W_mean=np.mean(W_res_array)
+    
+    W_std_dev=np.std(W_res_array)
+    W_std_dev_short=np.around(np.std(W_std_dev),decimals=2)
+    
     #Add legend:
     plt.legend(loc=4)
     
     #Add titles, limits...
     plt.xlim(axxlim)
     plt.ylim(axylim)
-    plt.xlabel('Moment Magnitude')
+    plt.xlabel(r"$\mathbf{M}$")
     plt.ylabel('ln Residual')
-    plt.title('Within-Event Residuals by station')
+    ptitle=r"Within-Event Residuals by station"+"\n"+"Run: "+run_name+", Std Dev: "+np.str(W_std_dev_short)
+    plt.title(ptitle)
     
     #Show...
     plt.show()
@@ -471,3 +544,4 @@ def plot_Wresid(home,run_name,resaxlim):
     #Save:
     plt.savefig(figname)
     
+    return W_mean,W_std_dev

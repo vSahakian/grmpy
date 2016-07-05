@@ -265,13 +265,18 @@ class total_residuals:
         '''
             
         import matplotlib.pyplot as plt
-        from numpy import str
+        from numpy import str,array,ones,around
         
         #Initialize scatter plot:
         f1=plt.figure()
         
+        #Color:
+        rgb=array([70,158,133])/255.0
+        rgb.astype(float)
+        color=rgb*ones((len(self.mw),3))
+        
         #Plot:
-        plt.scatter(self.mw,self.total_residuals,edgecolors='blue',facecolors='none',lw=0.9)
+        plt.scatter(self.mw,self.total_residuals,edgecolors=color,facecolors='none',lw=0.9)
         
         #LImits:
         plt.xlim(axlims[0])
@@ -280,7 +285,7 @@ class total_residuals:
         #Labels
         plt.xlabel(r"$\mathbf{M}$")
         plt.ylabel('ln Residuals')
-        plt.title('Residuals for run '+run_name)
+        plt.title('Total Residuals for run '+run_name)
         #Show
         f1.show()        
         
@@ -288,12 +293,14 @@ class total_residuals:
         f2=plt.figure()
         
         #Plot:
-        plt.hist(self.total_residuals)
+        plt.hist(self.total_residuals,color=rgb)
         
         #Titles
         plt.xlabel('ln Residuals')
         plt.ylabel('# of occurences')
-        plt.title('Mean: '+str(self.mean_residual)+' Std Dev: '+str(self.std_dev))
+        
+        ptitle='Mean: '+str(around(self.mean_residual,decimals=2))+' Std Dev: '+str(around(self.std_dev,decimals=2))
+        plt.title(ptitle)
                                 
         f2.show()
         
