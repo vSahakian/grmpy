@@ -1,6 +1,7 @@
 ######Residual Computatoin######
 
 import run_res
+from os import path
 
 #Change this parameter depending on where you run:
 #0=desktop
@@ -16,10 +17,22 @@ elif what_home==1:
     HOME='/Users/vsahakian'
     
 
+#home=HOME+'/anza/models/residuals/'
+#run_name='abdb_0-6.5'
+#dbpath=HOME+'/anza/data/abdb.pckl'
+#modelpath=HOME+'/anza/models/pckl/regr_0.0_6.5_resid_2676.06963031.pckl'
+#
+#home=HOME+'/anza/models/residuals/'
+#run_name='abdb_0-2-3-4-6.5'
+#dbpath=HOME+'/anza/data/abdb.pckl'
+#modelpath=HOME+'/anza/models/pckl/regr_0.0_2.0_3.0_4.0_6.5_VR_98.9.pckl'
+
 home=HOME+'/anza/models/residuals/'
-run_name='abdb_0-6.5'
+run_name='abdb_0-3-6.5'
 dbpath=HOME+'/anza/data/abdb.pckl'
-modelpath=HOME+'/anza/models/pckl/regr_0.0_6.5_resid_2676.06963031.pckl'
+modelpath=HOME+'/anza/models/pckl/regr_0.0_3.0_6.5_VR_98.9.pckl'
+
+########
 
 ffdf_flag=0
 resaxlim=[[1,4],[-4,4]]
@@ -38,3 +51,6 @@ run_res.sta_list(home,run_name,dbpath)
 
 #Plot within-event residuals by station, and save to file:
 W_mean,W_std_dev=run_res.plot_Wresid(home,run_name,resaxlim)
+
+#Write to file:
+run_res.write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev)

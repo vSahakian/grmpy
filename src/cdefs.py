@@ -299,7 +299,7 @@ class total_residuals:
         plt.xlabel('ln Residuals')
         plt.ylabel('# of occurences')
         
-        ptitle='Mean: '+str(around(self.mean_residual,decimals=2))+' Std Dev: '+str(around(self.std_dev,decimals=2))
+        ptitle='Total Residuals'+'\n'+'Mean: '+str(around(self.mean_residual,decimals=2))+' Std Dev: '+str(around(self.std_dev,decimals=2))
         plt.title(ptitle)
                                 
         f2.show()

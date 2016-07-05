@@ -68,11 +68,14 @@ ncoeff=5
 #Define the ranges for the inversion - at each range boundary (i.e., between
 #[0:3.3], and [3.3:4.5], the solution will be smoothed so there is no jump at 
 #the range boundary
-rng=np.array([0,3.3,4.5,6.5])
+#rng=np.array([0,3.3,4.5,6.5])
 #rng=np.array([0,1,1.5,2,2.5,3.3,6.5])
 #rng=np.array([0,1,1.5,2,2.5,3.5,6.5])
 #rng=np.array([0,1.5,3,4,6.5])
-rng=np.array([0,6.5])#####Making the database object - once made and saved, do not run this again######
+#rng=np.array([0,6.5])
+#rng=np.array([0,3.3,6.5])
+rng=np.array([0,3,6.5])
+
 
 #AB's flatfile:
 ffile=HOME+'/anza/data/Anzadata_Acc_Vel_May2016_40_50.mat'
@@ -156,7 +159,7 @@ for k in range(len(rng)):
     
 basename='regr_'+strname+'_VR_'+np.str(np.around(VR,decimals=1))
 figname=fig_dir+basename+'.png'
-plt.savefig(figname,transparent=True)
+plt.savefig(figname)
 
 #Save G, d, and m.....and other things...
 #Put into an inversion object:

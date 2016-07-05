@@ -316,7 +316,7 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     plt.xlabel('ln Residuals')
     plt.ylabel('Number of occurences')
             
-    ptitle='Mean: '+str(np.around(E_mean),decimals=2)+' Std Dev: '+str(np.around(E_std_dev),decimals=2)
+    ptitle=r"Event Residuals"+"\n"+"Mean: "+str(np.around(E_mean,decimals=2))+" Std Dev: "+str(np.around(E_std_dev,decimals=2))
     plt.title(ptitle)
     
     f2.show()
@@ -545,3 +545,42 @@ def plot_Wresid(home,run_name,resaxlim):
     plt.savefig(figname)
     
     return W_mean,W_std_dev
+    
+    
+    
+######
+def write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev):
+    '''
+    Write out statistics to a file
+    Input:
+        home:           String to path where the home dir is
+        run_name:       String with the name of this run
+        mean_tot:       Mean Total residual
+        std_dev_tot:    Std Dev Total residual
+        E_mean:         Mean Event Residual
+        E_std_dev:      Std Dev Event Residual
+        W_mean:         Mean Within-Event Residual
+        W_std_dev:      Std Dev Within-Event Residual
+    Output:
+        STatistics file to home/run_name/run_name_stats.txt 
+    '''
+    from os import path
+    from numpy import str
+    
+    #Make stats file:   
+    statsdir=path.expanduser(home+run_name+'/')
+    statsfile=statsdir+run_name+'_stats.txt'
+    
+    #Write out stats to a file:
+    sfile=open(statsfile,'w')
+    sfile.write('Statistics for Run                  '+run_name+'\n')
+    sfile.write('\n')
+    sfile.write('Total Residual Mean:                '+str(mean_tot)+'\n')
+    sfile.write('Total Residual Std Dev:             '+str(std_dev_tot)+'\n')
+    sfile.write('\n')
+    sfile.write('Event Residual Mean:                '+str(E_mean)+'\n')
+    sfile.write('Event Residual Std Dev:             '+str(E_std_dev)+'\n')
+    sfile.write('\n')
+    sfile.write('Within-Event Residual Mean:         '+str(W_mean)+'\n')
+    sfile.write('Within-Event Residual Std Dev:      '+str(W_std_dev)+'\n')
+    sfile.close()
