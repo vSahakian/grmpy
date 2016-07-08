@@ -13,7 +13,7 @@ import gmpe as gm
 #0=desktop
 #1=mac
 
-what_home=0
+what_home=1
 
 if what_home==0:
     #Desktop:
@@ -74,7 +74,8 @@ ncoeff=5
 #rng=np.array([0,1.5,3,4,6.5])
 #rng=np.array([0,6.5])
 #rng=np.array([0,3.3,6.5])
-rng=np.array([0,3,6.5])
+#rng=np.array([0,3,6.5])
+rng=np.array([0,1,2,6.5])
 
 
 #AB's flatfile:
