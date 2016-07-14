@@ -45,6 +45,17 @@ def init(home,run_name):
         makedirs(run_dir+'site_resids/')
         makedirs(run_dir+'figs/')
         
+        #If it's ok to go ahead and clobber, set the run variable to 1:
+        runall=1
+        
+    if clob is 'n' or clob is 'N':
+        #Do not run!!!!
+        #Set the run variable to 0:
+        runall=0
+        
+        
+    return runall
+        
         
 def get_total_res(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     '''
