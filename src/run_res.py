@@ -439,6 +439,9 @@ def sta_list(home,run_name,dbfile):
         #Put into a station object...
         station_i=cdf.station(station_name_i[0],station_num_i,vs30[0],evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,lat,lon,depth,E_residual,W_residual)
         
+        #Get the site residual:
+        station_i.get_site_resid()
+        
         #Append to the station list...
         station_list.append(station_i)
             
@@ -547,7 +550,13 @@ def plot_Wresid(home,run_name,resaxlim):
     return W_mean,W_std_dev
     
     
+
+
+#######
+#def get_path_resid(home,run_name,mean_tot,std
+
     
+ 
 ######
 def write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev):
     '''

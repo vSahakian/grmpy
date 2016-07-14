@@ -360,6 +360,14 @@ class station:
         self.depth=depth
         self.E_residual=E_residual
         self.W_residual=W_residual
+        
+    def get_site_resid(self):
+        from numpy import mean
+        
+        W_residual=self.W_residual
+        site_resid=mean(W_residual)
+        
+        self.site_resid=site_resid
 
 #####
 #class withinevent:

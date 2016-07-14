@@ -244,6 +244,8 @@ def ask2014_pga(M,Rrup,coeff_file,mdep_ffdf,dist_ranges):
             to put into full functional form or use alone
         '''
         
+        from numpy import log10,exp
+        
         #Define coefficients for given predictive parameter:
         M1t=M1[t_flag]
         c4t=c4[t_flag]
@@ -304,8 +306,12 @@ def ask2014_pga(M,Rrup,coeff_file,mdep_ffdf,dist_ranges):
         sort_ind=argsort(M)
         M_sort=M[sort_ind]
         f1_sort=f1[sort_ind]
+        
+        #Convert them to log10 space....right now they're in ln space...
+        f1_sort_log10=log10(exp(f1_sort))
+        
         #Return the predictive parameter for the basic form, f1:
-        return f1,M_sort,f1_sort
+        return f1,M_sort,f1_sort_log10
     
     
     # #Full Functional Form:
