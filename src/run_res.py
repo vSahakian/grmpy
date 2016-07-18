@@ -346,6 +346,7 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     
 def sta_list(home,run_name,dbfile):
     '''
+    Read in a database and an event list object, sort out by station, and 
     '''
     
     import cdefs as cdf
@@ -464,14 +465,14 @@ def sta_list(home,run_name,dbfile):
         #Append to the station list...
         station_list.append(station_i)
             
-        #Write out the station list to an object:
-        fname=so_dir+run_name+'.pckl'
-        flist=open(fname,'w')
-        #Loop over each event in event_list, and dump it into the pickle file:
-        for i in range(len(station_list)):
-            pickle.dump(station_list[i],flist)
-        #close the file
-        flist.close()
+    #Write out the station list to an object:
+    fname=so_dir+run_name+'.pckl'
+    flist=open(fname,'w')
+    #Loop over each event in event_list, and dump it into the pickle file:
+    for i in range(len(station_list)):
+        pickle.dump(station_list[i],flist)
+    #close the file
+    flist.close()
         
 
 
