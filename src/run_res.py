@@ -146,6 +146,14 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
         modelpath:       String with path to a gmpe model pickle object
         ffdf_flag:       Flag for mag dependent ffdf.  0=off, 1=on
         resaxlim:        Array with axis limits for the resid plot: [[xmin,xmax],[ymin,ymax]]
+    Output:
+        E_evnum:                Array of event numbers
+        E_mw:                   Array of event magnitudes
+        E_residual:             Array of event residuals for db
+        E_mean:                 Mean event residual for db
+        E_std_dev:              Standard deviation for all event residuals in db
+        Event_list_object:      An object, saved to run_dir/event_objs/run_name.pckl, 
+                                with a list of all event objects for the databases
     '''
     
     import numpy as np
