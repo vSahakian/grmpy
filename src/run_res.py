@@ -419,7 +419,7 @@ def sta_list(home,run_name,dbfile):
         #Within-event residuals:
         W_residual=[]
         
-        #Does this e
+        #Loop over the unique events:  
         for event_ind in range(len(unique_events)):
             #What event is this?
             eventi=event_list[event_ind]
@@ -479,8 +479,8 @@ def sta_list(home,run_name,dbfile):
         
         #Append to the station list...
         station_list.append(station_i)
-        
-                
+
+
     #Write out the station list to an object:
     fname=so_dir+run_name+'.pckl'
     flist=open(fname,'w')
@@ -490,6 +490,7 @@ def sta_list(home,run_name,dbfile):
     #close the file
     flist.close()
         
+    return station_list
 
 
 
