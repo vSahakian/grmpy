@@ -391,6 +391,7 @@ def sta_list(home,run_name,dbfile):
 
     #Start an empty list, store all station objects here in the end:    
     station_list=[]
+    site_terms=[]
     
     #First loop over the list of unique stations    
     for sta_ind in range(len(unique_stnums)):
@@ -469,6 +470,12 @@ def sta_list(home,run_name,dbfile):
         
         #Get the site residual:
         station_i.get_site_resid()
+        
+        #Append this site term and station info to the site_terms list:
+        station_i_site_term=station_i.site_resid
+        
+        
+        site_terms.append(station_i_site_term)
         
         #Append to the station list...
         station_list.append(station_i)
