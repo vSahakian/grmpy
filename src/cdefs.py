@@ -468,6 +468,18 @@ class residuals:
                        #current event?
                         station_evnum_ind=where(station.evnum==evnum_i)[0]
                         
+                        #Take this index, and save the info from it:
+                        record_W_i=station.W_residual[station_evnum_ind]
+                        
+                        #Also get the site term:
+                        record_site_term_i=station.site_resid
+                        
+                        
+                        
+                    #If it doesn't match, then carry on...    
+                    elif:
+                        continue
+                        
                     
             
             
