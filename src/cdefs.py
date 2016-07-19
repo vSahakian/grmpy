@@ -369,35 +369,107 @@ class station:
         
         self.site_resid=site_resid
 
-#####
-#class withinevent:
-#    def __init__(self,evnum,mw,lat,lon,depth,sta,stnum,residuals,mean,std):
-#        self.evnum=evnum
-#        self.mw=mw
-#        self.lat=lat
-#        self.lon=lon
-#        self.depth=depth
-#        self.sta=sta
-#        self.stnum=stnum
-#        self.residuals=residuals
-#        self.mean=mean
-#        self.std=std
-    
-#class hdr:
-#    '''
-#    This class describes the header info for a db (like AB's for now)
-#    '''
-#    
-#    def __init__(self,dmin,dmax,mag,dist,az,year,day,hour,minu,sec,msec,nevid,idep):
-#        '''
-#        Has header information for events...
-#        '''
-#        
-#        #Give header values:
-#        self.dmin=dmin
-#        self.dmax=dmax
-#        self.mag=mag
-#        self.r=dist
-#        self.
 
+#####
+class residuals:
+    '''
+    Save database info plus residuals into one object for analysis
+    '''
+    
+    def __init__(self,dbpath,event_list_path,station_list_path):
+        '''
+        Initialize database - pull necessary information and save to the object
+        Input:
+            dbpath:             Path to the database
+            event_list_path:    Path to hte object holding the list of event objects
+            station_list_path:  Path to the object holding the list of station objects
+        Output:
+            residual:           Object holding all data and residuals for a database
+        '''
+        
+        import cPickle as pickle
+        import dread
+        from numpy import where
+        
+        #Load in database object:
+        dname=open(dbpath,'r')
+        db=pickle.load(dname)
+        dname.close()
+        
+        #First, save the database info per recording:
+        self.evnum=db.evnum
+        self.elat=db.lat
+        self.elon=db.lon
+        self.edepth=db.depth
+        self.sta=db.sta
+        self.stnum=db.stnum
+        self.ml=db.ml
+        self.mw=db.mw
+        self.pga=db.pga
+        self.pgv=db.pgv
+        self.pga_pg=db.pga_pg
+        self.r=db.r
+        self.vs30=db.vs30
+        self.ffdf=db.ffdf
+        self.md_ffdf=db.md_ffdf
+        
+        ###
+        #Load in list of event objects:
+        eobjs=dread.read_obj_list(event_list_path)
+        
+        #Load in list of station objects:
+        sobjs=dread.read_obj_list(station_list_path)
+        
+        
+        #Loop through recordings to extract residuals...
+        for record_i in range(len(db.evnum)):
+            #Get the recorded pga, event, and station info:
+            record_gmparam=self.pga_pg[record_i]
+            record_evnum_i=self.evnum[record_i]
+            record_stnum_i=self.stnum[record_i]
+            record_sta_i=self.sta[record_i]
+            
+            #Find the event object and station object that corresponds to this 
+            #recording, and save the corresponding residuals...
+            for event_i in range(len(eobjs)):
+                #Get the event object for this event_i index: 
+                event=eobjs[event_i]
+                
+                #Get the information from this event: evnumber, station list,mw,
+                #event residuals, etc.
+                evnum_i=event.evnum
+                evnum_sta_i=event.sta
+                event_stnum_i=event.stnum
+                event_E_i=event.E_residual
+                event_Estd_i=event.E_std
+                event_W_i=event.W_residuals
+                event_Wmean_i=event.W_mean
+                event_Wstd_i=event.W_std
+                
+                #Save the values that correspond to this recording, which will
+                #be stored in the residuals object:
+                record_E_i=event_E_i
+                record_Estd_i=event_Estd_i
+                
+            
+                #Get the station information from this event: within-event 
+                #residuals, site term, etc.:
+                for station_i in range(len(sobjs)):
+                    #Get the station object for this station_i index:
+                    station=sobjs[station_i]
+                    
+                    #Get the site number for this station:
+                    station_stnum_i=station.stnum
+                    
+                    #Does this station correspond to the current recording?
+                    #If so, store the information:
+                    if station_stnum_i==event_stnum_i:
+                       #Which event recorded in this station corresponds to the 
+                       #current event?
+                        station_evnum_ind=where(station.evnum==evnum_i)[0]
+                        
+                    
+            
+            
+        
 
