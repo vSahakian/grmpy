@@ -369,35 +369,31 @@ class station:
         
         self.site_resid=site_resid
 
-#####
-#class withinevent:
-#    def __init__(self,evnum,mw,lat,lon,depth,sta,stnum,residuals,mean,std):
-#        self.evnum=evnum
-#        self.mw=mw
-#        self.lat=lat
-#        self.lon=lon
-#        self.depth=depth
-#        self.sta=sta
-#        self.stnum=stnum
-#        self.residuals=residuals
-#        self.mean=mean
-#        self.std=std
-    
-#class hdr:
-#    '''
-#    This class describes the header info for a db (like AB's for now)
-#    '''
-#    
-#    def __init__(self,dmin,dmax,mag,dist,az,year,day,hour,minu,sec,msec,nevid,idep):
-#        '''
-#        Has header information for events...
-#        '''
-#        
-#        #Give header values:
-#        self.dmin=dmin
-#        self.dmax=dmax
-#        self.mag=mag
-#        self.r=dist
-#        self.
 
+#####
+class residuals:
+    '''
+    Save database info plus residuals into one object for analysis
+    '''
+    
+    def __init__(self,dbpath,event_list_path,station_list_path):
+        '''
+        Initialize database - pull necessary information and save to the object
+        Input:
+            dbpath:             Path to the database
+            event_list_path:    Path to hte object holding the list of event objects
+            station_list_path:  Path to the object holding the list of station objects
+        Output:
+            residual:           Object holding all data and residuals for a database
+        '''
+        
+        import cPickle as pickle
+        
+        #Load in database object:
+        dname=open(dbpath,'r')
+        db=pickle.load(dname)
+        dname.close()
+        
+        #Load in list of event objects:
+        
 

@@ -472,7 +472,8 @@ def sta_list(home,run_name,dbfile):
         
         #Append to the station list...
         station_list.append(station_i)
-            
+        
+                
     #Write out the station list to an object:
     fname=so_dir+run_name+'.pckl'
     flist=open(fname,'w')
