@@ -347,6 +347,14 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
 def sta_list(home,run_name,dbfile):
     '''
     Read in a database and an event list object, sort out by station, and 
+    computes site residuals, creates station objects, to append to a list.
+    Input:
+        home:            String with home path
+        run_name:        String with name of the run
+        dbfile:          String with path to a pickle database object 
+    Output: 
+        station_list_object:    Writes a list of station objects into an object,
+                                into directory /home/run_name/sta_objs/
     '''
     
     import cdefs as cdf
