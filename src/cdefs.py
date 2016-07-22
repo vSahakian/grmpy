@@ -420,6 +420,14 @@ class residuals:
         #Load in list of station objects:
         sobjs=dread.read_obj_list(station_list_path)
         
+        #Initialize the W residual, site term, and path term arrays: 
+        E_residual=[]
+        E_std=[]
+        W_residual=[]
+        W_mean=[]
+        W_std=[]
+        site_terms=[]
+        path_terms=[]
         
         #Loop through recordings to extract residuals...
         for record_i in range(len(db.evnum)):
@@ -437,7 +445,7 @@ class residuals:
                 
                 #Get the information from this event: evnumber, station list,mw,
                 #event residuals, etc.
-                evnum_i=event.evnum
+                evnum_i=event.evnum[0]
                 evnum_sta_i=event.sta
                 event_stnum_i=event.stnum
                 event_E_i=event.E_residual
@@ -450,8 +458,16 @@ class residuals:
                 #be stored in the residuals object:
                 record_E_i=event_E_i
                 record_Estd_i=event_Estd_i
+                record_Wmean_i=event_Wmean_i
+                record_Wstd_i=event_Wstd_i
                 
+                #Append to the event term and std lists for the object:
+                E_residual.append(record_E_i)
+                E_std.append(record_Estd_i)
+                W_mean.append(record_Wmean_i)
+                W_std.append(record_Wstd_i)
             
+                ########
                 #Get the station information from this event: within-event 
                 #residuals, site term, etc.:
                 for station_i in range(len(sobjs)):
@@ -463,21 +479,29 @@ class residuals:
                     
                     #Does this station correspond to the current recording?
                     #If so, store the information:
-                    if station_stnum_i==event_stnum_i:
+                    if station_stnum_i==record_stnum_i:
                        #Which event recorded in this station corresponds to the 
                        #current event?
-                        station_evnum_ind=where(station.evnum==evnum_i)[0]
+                        station_evnum_ind=where(station.evnum==evnum_i)[0][0]
                         
                         #Take this index, and save the info from it:
-                        record_W_i=station.W_residual[station_evnum_ind]
+                        record_W_i=station.W_residual[station_evnum_ind][0]
                         
                         #Also get the site term:
                         record_site_term_i=station.site_resid
                         
+                        #Get the path term - it's the remainder of the within-event
+                        #residual after removing the site term:
+                        record_path_term_i=record_W_i-record_site_term_i
+                        
+                        #Save these to the recording...
+                        W_residual.append(record_W_i)
+                        site_terms.append(record_site_term_i)
+                        path_terms.append(record_path_term_i)
                         
                         
                     #If it doesn't match, then carry on...    
-                    elif:
+                    else:
                         continue
                         
                     
