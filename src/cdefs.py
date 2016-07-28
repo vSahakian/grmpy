@@ -432,10 +432,8 @@ class residuals:
         #Loop through recordings to extract residuals...
         for record_i in range(len(self.evnum)):
             #Get the recorded pga, event, and station info:
-            record_gmparam=self.pga_pg[record_i]
             record_evnum_i=self.evnum[record_i]
             record_stnum_i=self.stnum[record_i]
-            record_sta_i=self.sta[record_i]
             
             #Find the event object and station object that corresponds to this 
             #recording, and save the corresponding residuals...
@@ -449,11 +447,8 @@ class residuals:
                 
                 #If this event is the same as the recording in question, continue:
                 if evnum_i==record_evnum_i:
-                    evnum_sta_i=event.sta
-                    event_stnum_i=event.stnum
                     event_E_i=event.E_residual
                     event_Estd_i=event.E_std
-                    event_W_i=event.W_residuals
                     event_Wmean_i=event.W_mean
                     event_Wstd_i=event.W_std
                     
@@ -488,7 +483,7 @@ class residuals:
                             station_evnum_ind=where(station.evnum==evnum_i)[0]
                             
                             #Take this index, and save the info from it:
-                            record_W_i=station.W_residual[station_evnum_ind][0]
+                            record_W_i=station.W_residual[station_evnum_ind][0][0]
                             
                             #Also get the site term:
                             record_site_term_i=station.site_resid
@@ -512,6 +507,14 @@ class residuals:
                     continue        
                     
             
-            
+        #Save new 
+        self.E_residual=E_residual
+        self.E_std=E_std    
+        self.W_residual=W_residual
+        self.W_mean=W_mean
+        self.W_std=W_std
+        self.site_terms=site_terms
+        self.path_terms=path_terms
+        
         
 
