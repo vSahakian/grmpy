@@ -517,4 +517,10 @@ class residuals:
         self.path_terms=path_terms
         
         
-
+    def plot_path():
+        '''
+        Plot the path terms
+        '''
+        
+        
+        
