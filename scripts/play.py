@@ -73,10 +73,10 @@ ncoeff=5
 #rng=np.array([0,1,1.5,2,2.5,3.3,6.5])
 #rng=np.array([0,1,1.5,2,2.5,3.5,6.5])
 #rng=np.array([0,1.5,3,4,6.5])
-#rng=np.array([0,6.5])
+rng=np.array([0,6.5])
 #rng=np.array([0,3.3,6.5])
 #rng=np.array([0,3,6.5])
-rng=np.array([0,1,2,6.5])
+#rng=np.array([0,1,2,6.5])
 
 
 #AB's flatfile:

@@ -20,7 +20,8 @@ def compute_model(m,rng,mw,r,ffdf,vs30,vref,mdep_ffdf):
     '''
     import numpy as np
     
-    #Find which range each mw belongs in, to know how to compute it:
+    #Find which magnitude range each mw belongs in, to know which set of 
+    #coefficients to use to compute it:
     dig_i=np.digitize(mw,rng)
     
     #Zero out the output d vector, and append to it later on:

@@ -7,18 +7,18 @@ from os import path
 #0=desktop
 #1=mac
 
-what_home=1
+what_home=0
 
 if what_home==0:
     #Desktop:
-    HOME='/home/vsahakian'
+    HOME='/media/vsahakian/katmai'
 elif what_home==1:
     #Mac:
     HOME='/Users/vsahakian'
     
 
 #home=HOME+'/anza/models/residuals/'
-#run_name='abdb_0-6.5'
+#run_name='abdb_0-6.5_addindex'
 #dbpath=HOME+'/anza/data/abdb.pckl'
 #modelpath=HOME+'/anza/models/pckl/regr_0.0_6.5_resid_2676.06963031.pckl'
 #
@@ -32,15 +32,15 @@ elif what_home==1:
 #dbpath=HOME+'/anza/data/abdb.pckl'
 #modelpath=HOME+'/anza/models/pckl/regr_0.0_3.0_6.5_VR_98.9.pckl'
 
-#home=HOME+'/anza/models/residuals/'
-#run_name='abdb_0-6.5_VR'
-#dbpath=HOME+'/anza/data/abdb.pckl'
-#modelpath=HOME+'/anza/models/pckl/regr_0.0_6.5_VR_98.9.pckl'
-
 home=HOME+'/anza/models/residuals/'
-run_name='abdb_0-1-2-6.5'
+run_name='abdb_0-6.5_VR'
 dbpath=HOME+'/anza/data/abdb.pckl'
-modelpath=HOME+'/anza/models/pckl/regr_0.0_1.0_2.0_6.5_VR_98.9.pckl'
+modelpath=HOME+'/anza/models/pckl/regr_0.0_6.5_VR_98.9.pckl'
+
+#home=HOME+'/anza/models/residuals/'
+#run_name='abdb_0-1-2-6.5'
+#dbpath=HOME+'/anza/data/abdb.pckl'
+#modelpath=HOME+'/anza/models/pckl/regr_0.0_1.0_2.0_6.5_VR_98.9.pckl'
 
 
 
@@ -73,6 +73,9 @@ elif runall==1:
     
     #Plot within-event residuals by station, and save to file:
     W_mean,W_std_dev=run_res.plot_Wresid(home,run_name,resaxlim)
+    
+    #Write to an overall residuals plus more object, get path residual...
+    ###DO IT HERE###
     
     #Write to file:
     run_res.write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev)

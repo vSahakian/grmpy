@@ -237,9 +237,13 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
         r_i=db.r[unique_ind]
         ffdf_i=db.ffdf[unique_ind]
         md_ffdf_i=db.md_ffdf[unique_ind]
-        lat_i=db.lat[unique_ind]
-        lon_i=db.lon[unique_ind]
-        depth_i=db.depth[unique_ind]
+        lat_i=db.elat[unique_ind]
+        lon_i=db.elon[unique_ind]
+        depth_i=db.edepth[unique_ind]
+        stlat_i=db.stlat[unique_ind]
+        stlon_i=db.stlon[unique_ind]
+        source_i=db.source_i[unique_ind]
+        receiver_i=db.receiver_i[unique_ind]
         
 
         #The only one that is not directly from teh database is vs30; this is because
@@ -249,7 +253,7 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     
     
         #Make the event object:
-        eventi=cdf.event(evnum_i,sta_i,stnum_i,ml_i,mw_i,pga_i,pgv_i,pga_pg_i,r_i,vs30_i,ffdf_i,md_ffdf_i,lat_i,lon_i,depth_i)
+        eventi=cdf.event(evnum_i,sta_i,stnum_i,ml_i,mw_i,pga_i,pgv_i,pga_pg_i,r_i,vs30_i,ffdf_i,md_ffdf_i,lat_i,lon_i,depth_i,stlat_i,stlon_i,source_i,receiver_i)
         
         #Compute the event terms:
         evnum_i,evmw_i,E_residual_i,std_dev_i=rcomp.event_residual(eventi,d_predicted_i)
@@ -411,9 +415,13 @@ def sta_list(home,run_name,dbfile):
         r=[]
         ffdf=[]
         md_ffdf=[]
-        lat=[]
-        lon=[]
-        depth=[]
+        elat=[]
+        elon=[]
+        edepth=[]
+        stlat=[]
+        stlon=[]
+        source_i=[]
+        receiver_i=[]
         #Event residuals:
         E_residual=[]
         #Within-event residuals:
@@ -439,11 +447,16 @@ def sta_list(home,run_name,dbfile):
                 r.append(eventi.r[sta_ev_ind])    
                 ffdf.append(eventi.ffdf[sta_ev_ind])
                 md_ffdf.append(eventi.md_ffdf[sta_ev_ind])
-                lat.append(eventi.lat[sta_ev_ind])
-                lon.append(eventi.lon[sta_ev_ind])
-                depth.append(eventi.depth[sta_ev_ind])
+                elat.append(eventi.elat[sta_ev_ind])
+                elon.append(eventi.elon[sta_ev_ind])
+                edepth.append(eventi.edepth[sta_ev_ind])
+                stlat.append(eventi.stlat[sta_ev_ind])
+                stlon.append(eventi.stlon[sta_ev_ind])
+                source_i.append(eventi.source_i[sta_ev_ind])
+                receiver_i.append(eventi.receiver_i[sta_ev_ind])
                 E_residual.append(eventi.E_residual)
                 W_residual.append(eventi.W_residuals[sta_ev_ind])
+                
             elif sta_ev_ind.size==0:
                 continue
                 
@@ -459,14 +472,18 @@ def sta_list(home,run_name,dbfile):
         r=np.array(r)
         ffdf=np.array(ffdf)
         md_ffdf=np.array(md_ffdf)
-        lat=np.array(lat)
-        lon=np.array(lon)
-        depth=np.array(depth)
+        elat=np.array(elat)
+        elon=np.array(elon)
+        edepth=np.array(edepth)
+        stlat=np.array(stlat)
+        stlon=np.array(stlon)
+        source_i=np.array(source_i)
+        receiver_i=np.array(receiver_i)
         E_residual=np.array(E_residual)
         W_residual=np.array(W_residual)
         
         #Put into a station object...
-        station_i=cdf.station(station_name_i[0],station_num_i,vs30[0],evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,lat,lon,depth,E_residual,W_residual)
+        station_i=cdf.station(station_name_i[0],station_num_i,vs30[0],evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,source_i,receiver_i,E_residual,W_residual)
         
         #Get the site residual:
         station_i.get_site_resid()

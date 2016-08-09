@@ -57,9 +57,9 @@ class db:
         self.vs30=vs30
         self.ffdf=np.sqrt(self.r**2 + c4**2)
         self.md_ffdf=md_ffdf
-        self.lat=lat
-        self.lon=lon
-        self.depth=depth
+        self.elat=lat
+        self.elon=lon
+        self.edepth=depth
         self.stlat=stlat
         self.stlon=stlon
         self.source_i=source_i
@@ -316,7 +316,7 @@ class event:
     Save all data for one event, to use in residual computation
     '''
     
-    def __init__(self,evnum,sta,stnum,ml,mw,pga,pgv,pga_pg,r,vs30,ffdf,md_ffdf,lat,lon,depth):
+    def __init__(self,evnum,sta,stnum,ml,mw,pga,pgv,pga_pg,r,vs30,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,source_i,receiver_i):
         self.evnum=evnum
         self.sta=sta
         self.stnum=stnum
@@ -329,9 +329,13 @@ class event:
         self.vs30=vs30
         self.ffdf=ffdf
         self.md_ffdf=md_ffdf
-        self.lat=lat
-        self.lon=lon
-        self.depth=depth
+        self.elat=elat
+        self.elon=elon
+        self.edepth=edepth
+        self.stlat=stlat
+        self.stlon=stlon
+        self.source_i=source_i
+        self.receiver_i=receiver_i
         
     def add_E_resid(self,E_residual,E_std):
         self.E_residual=E_residual
@@ -347,7 +351,7 @@ class station:
     Save all data for one station
     '''
     
-    def __init__(self,sta,stnum,vs30,evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,lat,lon,depth,E_residual,W_residual):
+    def __init__(self,sta,stnum,vs30,evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,source_i,receiver_i,E_residual,W_residual):
         self.sta=sta
         self.stnum=stnum
         self.vs30=vs30
@@ -359,9 +363,13 @@ class station:
         self.pgv=pgv
         self.ffdf=ffdf
         self.md_ffdf=md_ffdf
-        self.lat=lat
-        self.lon=lon
-        self.depth=depth
+        self.elat=elat
+        self.elon=elon
+        self.edepth=edepth
+        self.stlat=stlat
+        self.stlon=stlon
+        self.source_i=source_i
+        self.receiver_i=receiver_i
         self.E_residual=E_residual
         self.W_residual=W_residual
         
@@ -402,9 +410,9 @@ class residuals:
         
         #First, save the database info per recording:
         self.evnum=db.evnum
-        self.elat=db.lat
-        self.elon=db.lon
-        self.edepth=db.depth
+        self.elat=db.elat
+        self.elon=db.elon
+        self.edepth=db.edepth
         self.sta=db.sta
         self.stnum=db.stnum
         self.ml=db.ml
@@ -416,6 +424,10 @@ class residuals:
         self.vs30=db.vs30
         self.ffdf=db.ffdf
         self.md_ffdf=db.md_ffdf
+        self.stlat=db.stlat
+        self.stlon=db.stlon
+        self.source_i=db.source_i
+        self.receiver_i=db.receiver_i
         
         ###
         #Load in list of event objects:
