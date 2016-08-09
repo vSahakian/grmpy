@@ -179,7 +179,7 @@ def mread(flatfile,hashfile,stationfile):
     
     #Return the event numeber, station name, station number, ml,mw, PGA,pgv, 
     #epcentral distance (Dist), vs30
-    return event,sta,N,ml,mw,DA,DV,dist[:,0],vs30,lat,lon,depth
+    return event,sta,N,ml,mw,DA,DV,dist[:,0],vs30,lat,lon,depth,stlat,stlon,source_i,receiver_i
 
 
 def read_obj_list(obj):

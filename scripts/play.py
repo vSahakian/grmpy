@@ -31,18 +31,19 @@ obj_dir=HOME+'/anza/models/pckl/'
 ##AB's flatfile:
 #ffile=HOME+'/anza/data/Anzadata_Acc_Vel_May2016_40_50.mat'
 #hfile=HOME+'/anza/data/YSH_2010.hash'
+#sfile=HOME+'/anza/data/stations/AZ.ll'
 #
-##Read data from .mat file, store important values:
-#ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth=dr.mread(ffile,hfile)
-#
-##Load into database object
-#abdb=cdf.db(ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth)
-#
-##Save the database object:
-#fname=HOME+'/anza/data/abdb.pckl'
-#datobj=open(fname,'w')
-#pickle.dump(abdb,datobj)
-#datobj.close()
+#Read data from .mat file, store important values:
+ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth,stlat,stlon,source_i,receiver_i=dr.mread(ffile,hfile,sfile)
+
+#Load into database object
+abdb=cdf.db(ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth,stlat,stlon,source_i,receiver_i)
+
+#Save the database object:
+fname=HOME+'/anza/data/abdb.pckl'
+datobj=open(fname,'w')
+pickle.dump(abdb,datobj)
+datobj.close()
 ########################End making database object############################
 
 

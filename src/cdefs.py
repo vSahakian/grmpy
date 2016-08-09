@@ -11,7 +11,7 @@ class db:
     This class describes a set of events
     '''
     
-    def __init__(self,event,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth):
+    def __init__(self,event,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth,stlat,stlon,source_i,receiver_i,):
         '''
         Initiate the class by giving the event number (event), 
         station name (sta), station number (N), local mag (ml), moment mag (mw), 
@@ -60,6 +60,10 @@ class db:
         self.lat=lat
         self.lon=lon
         self.depth=depth
+        self.stlat=stlat
+        self.stlon=stlon
+        self.source_i=source_i
+        self.receiver_i=receiver_i
         
     def plot_allpga(self):
         '''
