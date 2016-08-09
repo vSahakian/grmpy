@@ -72,4 +72,16 @@ def parse_rayfile(rayfile):
     return path_list,receiver_id,source_id
         
         
-        
+#########
+def write_source_in(home,run_name,dbpath):
+    '''
+    Write the source.in file for raytracing
+    Input:
+        home:         String with the path to the home directory
+        run_name:     String with the run name, i.e.db/inversion combo
+        dbpath:       String with the path to the database
+    Output:
+        source.in:     Writes out the source.in file for raytracing
+    '''
+    
+            

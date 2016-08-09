@@ -3,26 +3,31 @@
 
 #Module to read and digest data of different forms, and prepare it for grmpepy
 
-def mread(flatfile,hashfile):
+def mread(flatfile,hashfile,stationfile):
     '''
     Read data from Annemarie's flatfile
     VJS 6/2016
     
     Input 
-        flatfile:   String with path to the anza flatfile from AB
-        hasfile:    String with path to the anza hash file from AB, with locations
+        flatfile:        String with path to the anza flatfile from AB
+        hashfile:        String with path to the anza hash file from AB, with locations
+        stationfile:     STring with path to the station file, for anza stations 
     Output
     
     '''
     
     import scipy.io as sio
     import cdefs
-    from numpy import genfromtxt,where,zeros
+    from numpy import genfromtxt,where,zeros,unique
     
     
     #Read in flatfile
     datr=sio.loadmat(flatfile)
     hashr=genfromtxt(hashfile)
+    #Read in station info from columns of station file:
+    #Station name:
+    stat_sta_r=genfromtxt(stationfile,skip_header=3,usecols=1,dtype='S5')
+    stat_coord_r=genfromtxt(stationfile,skip_header=3,usecols=[2,3])
     
     #Info from the hashfile:
     hevent=hashr[:,6]
@@ -61,6 +66,61 @@ def mread(flatfile,hashfile):
         ev_lon[i]=hlon[event_ind]
         ev_dep[i]=hdepth[event_ind]
     
+    #Find row from station data that corresponds to the station:
+    #First zero out arrays:
+    sta_lat=zeros((len(dsta[0]),1))
+    sta_lon=zeros((len(dsta[0]),1))
+    
+    for j in range(len(dsta[0])):
+        stationi=dsta[0][j][0].astype('S5')
+        #Find which index of the station file this corresponds to for this station:
+        station_ind=where(stationi==stat_sta_r)[0]
+        
+        #Now get the information for this station, lat and lon:
+        sta_lat[j]=stat_coord_r[station_ind,0]
+        sta_lon[j]=stat_coord_r[station_ind,1]
+        
+    
+    ###Get indices for event and station for the sources.in and receivers.in files####
+    ##Events first:
+    
+    #Get the unique station and event indices:
+    unique_events=unique(devent)
+    
+    #Zero out source ind array:
+    source_ind=zeros((len(devent[0])))
+    #For each event in the record, devent, give it the source index to be used:
+    for event_ind in range(len(unique_events)):
+        eventi=unique_events[event_ind]
+        
+        #Find where in the recordings list the event number is the same as this one:
+        recording_event_ind=where(devent[0]==eventi)
+        
+        #Set the source ind to be one plus this event, so it indexes with the raytracing program:
+        source_ind[recording_event_ind]=event_ind+1
+    
+    #Now set these to integers...
+    source_ind=source_ind.astype('int64')
+    
+    ##Next stations:
+    unique_stations=unique(dsta)
+    
+    #Zero out array:
+    receiver_ind=zeros((len(dsta[0])))
+    #Loop through the unique stations:
+    for station_ind in range(len(unique_stations)):
+        stationi=unique_stations[station_ind]
+        
+        #Find where in the recordings list the station is the same as this one:
+        recording_station_ind=where(dsta[0]==stationi)[0]
+    
+        #Set the receiver ind to be one plus this station, so it indexes with the raytracin gprogram:
+        receiver_ind[recording_station_ind]=station_ind+1    
+        
+    #Set these to integers:
+    receiver_ind=receiver_ind.astype('int64')
+  
+        
     #Put into arrays (instead of array of arrays):
     event=devent[0]
     sta=dsta[0]
@@ -79,6 +139,10 @@ def mread(flatfile,hashfile):
     lat=ev_lat[:,0]
     lon=ev_lon[:,0]
     depth=ev_dep[:,0]
+    stlat=sta_lat[:,0]
+    stlon=sta_lon[:,0]
+    source_i=source_ind
+    receiver_i=receiver_ind
     
     ##
     #Split apart the header (dhdrs)

@@ -17,7 +17,7 @@ what_home=1
 
 if what_home==0:
     #Desktop:
-    HOME='/home/vsahakian'
+    HOME='/media/vsahakian/katmai'
 elif what_home==1:
     #Mac:
     HOME='/Users/vsahakian'

@@ -6,12 +6,13 @@
 import run_res
 from os import path
 import dread
+import cPickle as pickle
 
 #Change this parameter depending on where you run:
 #0=desktop
 #1=mac
 
-what_home=1
+what_home=0
 
 if what_home==0:
     #Desktop:
@@ -33,6 +34,11 @@ so_dir=run_dir+'sta_objs/'
 
 event_list_path=eo_dir+run_name+'.pckl'
 station_list_path=so_dir+run_name+'.pckl'
+
+#Load in db:
+dobj=open(dbpath,'r')
+db=pickle.load(dobj)
+dobj.close()
 
 #Load in list of event and station objects:
 eobjs=dread.read_obj_list(event_list_path)
