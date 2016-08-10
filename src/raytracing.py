@@ -4,16 +4,31 @@
 ##Module to deal with raytracing stuff...
 #Make the input files, plot results, etc.
 
-def write_sourcein(home,run_name):
+def write_sourcein(home,run_name,veltype):
     '''
     Write a source.in file for fm3d raytracing
     VJS 8/2016
     Input:
+        home:           String to home path for the main working directory
+        run_name:       String to the name of the run
+        veltype:        0=Vp, 1=Vs
+    Output:
+        source_veltype.in:     Writes out the source.in file for raytracing
     '''
     
     from os import path
     import cPickle as pickle
     import dread
+    from numpy import str
+    
+    #Get the velocity type:
+    if veltype==0:
+        vm='Vp'
+    elif veltype==1:
+        vm='Vs'
+    
+    #Source is always local, for now:
+    telesource=0
     
     #Get the path to the run directory:
     run_dir=path.expanduser(home+run_name+'/')
@@ -22,21 +37,91 @@ def write_sourcein(home,run_name):
     #Get the path to the list of event objects:
     event_list_path=eodir+run_name+'.pckl'
     
+    #Also get the path for the output sources.in file:
+    raydir=run_dir+'raytracing/'
+    sourcefile=raydir+'sources_'+vm+'.in'
+    
+    ##
     #Read in the list of event objects:
     eobjs=dread.read_obj_list(event_list_path)
 
+    f=open(sourcefile,'w')
+    
+    #Get the number of sources:
+    numsources=len(eobjs)
+    #Get line to write:
+    sline=str(numsources)+'\t\t\t\t number of sources\n'
+    #Write to file:
+    f.write(sline)
+    
     #Loop over the event objects, and write each source (each event):
-    for eventi in range(len(eobjs)):
-        #Get the source info:
+    for event_ind in range(len(eobjs)):
+        #Get the event:
+        eventi=eobjs[event_ind]
         
+        #Get the source info:
+        #position
+        sdepth=eventi.edepth[0]
+        slat=eventi.elat[0]
+        slon=eventi.elon[0]
+        #number of paths
+        npaths=len(eventi.sta)
+        
+        #Number of sections on the path:  Always 1 here, since one layer
+        nsections=1
+        #Define path sections:
+        psections=[0,2]
+        #Velocity type:  #Specified as input (veltype)
+        
+        #Get lines to write:
+        teleline=str(telesource)+'\t\t\t\t source is local/teleseismic (0/1)\n'
+        posline=str(sdepth)+' '+str(slat)+' '+str(slon)+'\t\t\t position depth(km),lat(deg),lon(deg)\n'
+        npathsline=str(npaths)+'\t\t\t\t number of paths from this source\n'
+        nsectionsline=str(nsections)+'\t\t\t\t number of sections on the path\n'
+        psectionsline=str(psections[0])+' '+str(psections[1])+'\t\t\t\t\t define the path sections\n'
+        vtypeline=str(veltype)+'\t\t\t\t define the velocity type along the path\n'
+        
+        #Write them:
+        f.write(teleline)
+        f.write(posline)
+        f.write(npathsline)
+        f.write(nsectionsline)
+        f.write(psectionsline)
+        f.write(vtypeline)
+        
+    f.close()
+        
+    #Print statement
+    print 'Wrote file '+sourcefile+' for velocity type '+vm
 
 
 def write_receiverin():
     '''
-    Write a test receiver in file
+    Write a receiver.in in file for fm3d raytracing
+    Input:
+        home:           String to the home path for the working directory
+        run_name:       String for the run name (db/model combo)
+    Output:
+        receivers.in:   Receivers.in file for fm3d raytracing
     '''
     
-    #
+    from os import path
+    import cPickle as pickle
+    import dread
+    from numpy import str
+    
+    #Get the path to the run directory:
+    run_dir=path.expanduser(home+run_name+'/')
+    #Get the event object directory:
+    sodir=run_dir+'event_objs/'
+    #Get the path to the list of event objects:
+    station_list_path=sodir+run_name+'.pckl'
+    
+    #Also get the path for the output sources.in file:
+    raydir=run_dir+'raytracing/'
+    sourcefile=raydir+'receivers.in'
+    
+    
     
 ###################################
 #Function to read in a rayfile:
@@ -101,16 +186,5 @@ def parse_rayfile(rayfile):
     return path_list,receiver_id,source_id
         
         
-#########
-def write_source_in(home,run_name,dbpath):
-    '''
-    Write the source.in file for raytracing
-    Input:
-        home:         String with the path to the home directory
-        run_name:     String with the run name, i.e.db/inversion combo
-        dbpath:       String with the path to the database
-    Output:
-        source.in:     Writes out the source.in file for raytracing
-    '''
-    
+
             
