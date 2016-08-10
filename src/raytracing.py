@@ -4,10 +4,24 @@
 ##Module to deal with raytracing stuff...
 #Make the input files, plot results, etc.
 
+def write_sourcein():
+    '''
+    Write a source.in file for fm3d raytracing
+    VJS 8/2016
+    Input:
+    '''
+    
+    
+    #Loop over the event objects, and write each source (each event):
+    
+
+
 def write_receiverin():
     '''
     Write a test receiver in file
     '''
+    
+    #
     
 ###################################
 #Function to read in a rayfile:
