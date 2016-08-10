@@ -4,16 +4,31 @@
 ##Module to deal with raytracing stuff...
 #Make the input files, plot results, etc.
 
-def write_sourcein():
+def write_sourcein(home,run_name):
     '''
     Write a source.in file for fm3d raytracing
     VJS 8/2016
     Input:
     '''
     
+    from os import path
+    import cPickle as pickle
+    import dread
     
+    #Get the path to the run directory:
+    run_dir=path.expanduser(home+run_name+'/')
+    #Get the event object directory:
+    eodir=run_dir+'event_objs/'
+    #Get the path to the list of event objects:
+    event_list_path=eodir+run_name+'.pckl'
+    
+    #Read in the list of event objects:
+    eobjs=dread.read_obj_list(event_list_path)
+
     #Loop over the event objects, and write each source (each event):
-    
+    for eventi in range(len(eobjs)):
+        #Get the source info:
+        
 
 
 def write_receiverin():
