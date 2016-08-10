@@ -621,6 +621,7 @@ def get_path_resid_make_object(home,run_name,dbpath):
     
     from os import path
     import cdefs as cdf
+    import cPickle as pickle
     
     #Get the run directory:
     run_dir=path.expanduser(home+run_name+'/')
@@ -635,6 +636,12 @@ def get_path_resid_make_object(home,run_name,dbpath):
     
     #Get residuals object:
     allresiduals=cdf.residuals(dbpath,event_list_path,station_list_path)
+    
+    #Save the residuals object:
+    rfilename=run_dir+run_name+'_robj.pckl'
+    rfile=open(rfilename,'w')
+    pickle.dump(allresiduals,rfile)
+    rfile.close()
     
     #REturn the allr esiduals object:
     return allresiduals
