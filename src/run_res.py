@@ -607,9 +607,37 @@ def plot_Wresid(home,run_name,resaxlim):
 
 
 #######
-#def get_path_resid(home,run_name,mean_tot,std
-
+def get_path_resid_make_object(home,run_name,dbpath):
+    '''
+    Get the path term, meanwhile make an all residuals object
+    VJS 8/2016
+    Input: 
+        home:       Path to the home directory
+        run_name:   STring with the run name
+        dbpath:     Path to the database being used
+    Output:
+        allresiduals:   An object containing all db info, all residuals, and raytracing indices
+    '''
     
+    from os import path
+    import cdefs as cdf
+    
+    #Get the run directory:
+    run_dir=path.expanduser(home+run_name+'/')
+    
+    #Neet the directories to the event list, and station list (eo, so):
+    eo_dir=run_dir+'event_objs/'
+    so_dir=run_dir+'sta_objs/'
+
+    #Now get the path for these lists of objects:
+    event_list_path=eo_dir+run_name+'.pckl'
+    station_list_path=so_dir+run_name+'.pckl'
+    
+    #Get residuals object:
+    allresiduals=cdf.residuals(dbpath,event_list_path,station_list_path)
+    
+    #REturn the allr esiduals object:
+    return allresiduals
  
 ######
 def write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev):

@@ -75,7 +75,7 @@ elif runall==1:
     W_mean,W_std_dev=run_res.plot_Wresid(home,run_name,resaxlim)
     
     #Write to an overall residuals plus more object, get path residual...
-    ###DO IT HERE###
+    allresiduals=run_res.get_path_resid_make_object(home,run_name,dbpath)
     
     #Write to file:
     run_res.write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev)
