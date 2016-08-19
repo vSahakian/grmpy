@@ -255,9 +255,74 @@ def parse_rayfile(rayfile):
         path_list.append(path_coordinates)
 
     f.close()
+    
+    print 'read rayfile'
 
     return path_list,receiver_id,source_id
         
         
 
-            
+#######
+#Function to extract rayfile info, sort, convert to depth/lat/lon, and store
+#in a residuals object
+def store_rayinfo(home,run_name,rayfile):
+    '''
+    Extract rayfile info, sort, convert to depth/lat/lon, and store into
+    the residuals object
+    Input:
+        home:           String with the home location (i.e., anza dir)
+        run_name:       String with database and model combo
+        rayfile:        String with the path to the rayfile
+    Output:
+        residuals object
+    '''
+    
+    from os import path
+    import cPickle as pickle
+    from numpy import where,append
+    
+    #Get the run directory:
+    run_dir=path.expanduser(home+run_name+'/')
+    
+    #Get the residuals object:
+    residfile=run_dir+run_name+'_robj.pckl'
+    
+    #Load the residuals object:
+    rfile=open(residfile,'r')
+    robj=pickle.load(rfile)
+    rfile.close()
+    
+    #Get the raytracing info:
+    path_list,rec_id,src_id=parse_rayfile(rayfile)
+    
+    #Zero out the sorted path list:
+    ray_depth=[]
+    ray_lat=[]
+    ray_lon=[]
+    
+    #Find which raypath corresponds to each recording in the database/residuals object:
+    for recording_i in range(len(robj.source_i)):
+        source_i=robj.source_i[recording_i]
+        receiver_i=robj.receiver_i[recording_i]
+        
+        #Find which raypath entry corresponds to this recording:
+        ray_ind=where((source_i==src_id) & (receiver_i==rec_id))[0]
+        
+        #Get the lat and lon of the source:
+        source_lat=robj.elat[ray_ind]
+        source_lon=robj.elon[ray_ind]
+        
+        #Convert the ray info to depth/lat degrees/lon degrees:
+        ray_depth_i=path_list[ray_ind][:,0]-6371   #minus the radius of the earth
+        ray_lat_i=path_list[ray_ind][:,1]+source_lat
+        ray_lon_i=path_list[ray_ind][:,2]+source_lon
+        
+        #Add this info to the sorted path list:
+        ray_depth.append(ray_depth_i)
+        ray_lat.append(ray_lat_i)
+        ray_lon.append(ray_lon_i)
+
+    
+
+        
+        
