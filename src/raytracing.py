@@ -93,7 +93,7 @@ def write_sourcein(home,run_name,veltype):
     f.close()
         
     #Print statement
-    print 'Wrote file '+sourcefile+' for velocity type '+vm
+    print 'Wrote file '+sourcefile+' for velocity type '+vm+' to '+sourcefile
 
 
 def write_receiverin(home,run_name):
@@ -178,8 +178,6 @@ def write_receiverin(home,run_name):
                 npsourceline=npsourceline+' '+str(npsource[path])
         #end it:
         npsourceline=npsourceline+'\t\t\t number of the path in the source list\n'
-        
-        print sourceiline
         
         #Write them:
         f.write(rposline)

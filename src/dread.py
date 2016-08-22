@@ -182,6 +182,32 @@ def mread(flatfile,hashfile,stationfile):
     return event,sta,N,ml,mw,DA,DV,dist[:,0],vs30,lat,lon,depth,stlat,stlon,source_i,receiver_i
 
 
+def jb_ascii_read(flatfile):
+    '''
+    Read in data from Janine's test events format
+    Input:
+        flatfile:           String with path to the flatfile
+    '''
+    
+    from numpy import genfromtxt,unique
+    
+    #First read in the stations from the flatfile:
+    #Will be in two columns:   sta    chan
+    star=genfromtxt(flatfile,dtype='S5',skip_header=1,usecols=[0,1])
+    #Read in the data from the flatfile:
+    datr=genfromtxt(flatfile,skip_header=1,usecols=range(2,12))
+    
+    #Find the data per station:
+    #What stations are in this file?
+    unique_stations=unique(star[:,0])
+    
+    #Loop through them, and get the horizontal components:
+    
+
+
+
+
+
 def read_obj_list(obj):
     '''
     Read a pickle file with a list of event of station objects

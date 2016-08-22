@@ -7,6 +7,7 @@ import run_res
 from os import path
 import dread
 import cPickle as pickle
+import raytracing as rt
 
 #Change this parameter depending on where you run:
 #0=desktop
@@ -83,4 +84,22 @@ if station2event3==event3num:
 #       Station 2 will reference event 1 and 3. 
 
 #
+
+#################################
+#Ignore the above....
+#Set up the sources.in and receivers.in files for Vs.  So far, Vp has been run:
+#in /media/vsahakian/katmai/anza/data/vm/fulltest_Vp
+
+#Run these with raytracing write_sourcein and write_receiverin
+#Use the directories defined in lines 15 - 33
+#Import raytracing above
+#Set velocity type:
+veltype=2
+
+#Write source.in file:
+rt.write_sourcein(home,run_name,veltype)
+
+#Write recievers.in file:
+rt.write_receiverin(home,run_name)
+
 
