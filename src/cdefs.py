@@ -381,7 +381,46 @@ class station:
         
         self.site_resid=site_resid
 
-
+    def plot_site_WE(self,sta_axis,colors,axis_lims):
+        '''
+        Plot all WE residuals for this site
+        Input:
+            sta_axis:       Axes to plot on. Can use this to plot iteratively
+            colors:         RGB values to plot arr([r,g,b])
+            axlims:         Array with axis limits: [[xmin, xmax],[ymin,ymax]]
+        '''
+        
+        import matplotlib.pyplot as plt
+        from numpy import array,str,round
+        
+        #Station name?
+        sta_name=self.sta
+        #Station stats? (Site term)
+        site_term=round(self.site_resid,2)
+        
+        #Get the plotting title:
+        plttitle='Within-Event Residuals for '+str(sta_name)+'. \n Site term: '+str(site_term)
+        
+        #Plot WE residuals:
+        sta_axis.scatter(self.mw,self.W_residual,edgecolors=colors,facecolors='none')
+        
+        #Get and plot the site term as a dashed line:
+        site_line_x=array([axis_lims[0][0],axis_lims[0][1]])
+        site_line_y=array([site_term,site_term])
+        #plot, with dashed line and mid gray color:
+        sta_axis.hold(True)
+        sta_axis.plot(site_line_x,site_line_y,linestyle='--',color='0.75')
+        
+        #Set axis limits:
+        sta_axis.set_xlim((axis_lims[0][0],axis_lims[0][1]))
+        sta_axis.set_ylim((axis_lims[1][0],axis_lims[1][1]))
+        
+        #Set title:
+        sta_axis.set_xlabel('Moment Magnitude')
+        sta_axis.set_ylabel('ln residuals')
+        sta_axis.set_title(plttitle)
+        
+        
 #####
 class residuals:
     '''

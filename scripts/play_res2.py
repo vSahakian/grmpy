@@ -71,8 +71,11 @@ elif runall==1:
     #Make station objects:
     run_res.sta_list(home,run_name,dbpath)
     
-    #Plot within-event residuals by station, and save to file:
+    #Plot within-event residuals by station on one plot, and save to file:
     W_mean,W_std_dev=run_res.plot_Wresid(home,run_name,resaxlim)
+    
+    #Plot within-event residuals by station in subplots:
+    run_res.plot_site_WE(home,run_name,resaxlim)
     
     #Write to an overall residuals plus more object, get path residual...
     allresiduals=run_res.get_path_resid_make_object(home,run_name,dbpath)

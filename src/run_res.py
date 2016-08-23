@@ -577,6 +577,7 @@ def plot_Wresid(home,run_name,resaxlim):
         
         #Plot
         plt.scatter(mw,W_residuals,edgecolors=color_i,facecolors='none',lw=0.8,label=sta_lab)
+        plt.hold(True)
         
         
     #Get stats:
@@ -606,6 +607,84 @@ def plot_Wresid(home,run_name,resaxlim):
     
     
 
+
+#######
+def plot_site_WE(home,run_name,resaxlim):
+    '''
+    Plot the within-event residuals by station
+    Input:
+        home:               String with path to project home
+        run_name:           String with db/model combo
+        resaxlim:           Axis limits: [[xmin,xmax],[ymin,ymax]]
+    Output:
+        
+    '''
+    
+    import cdefs as cdf
+    import matplotlib.pyplot as plt
+    from os import path
+    import dread
+    from numpy import ceil,array,floor,remainder
+    
+    #Get directories:
+    run_dir=path.expanduser(home+run_name+'/')
+    so_dir=run_dir+'sta_objs/'
+    fig_dir=run_dir+'figs/'
+    
+    #Get the file path of the output figure:
+    figname=fig_dir+run_name+'_site_W_resids.png'
+    
+    #Get event list directory for this run:
+    sobjfile=so_dir+run_name+'.pckl'
+    
+    #Read in the station list:
+    station_list=dread.read_obj_list(sobjfile)
+
+    #Get info for the plot configuration:
+    nsta=len(station_list)
+    #Want 3 subplots:
+    ncols=3
+    #How many rows?
+    nrows=ceil(nsta/ncols).astype('int64')
+    #Get colors:
+    colors=plt.cm.rainbow(array(range(nsta)).astype(float)/nsta)
+    
+    #Initiate plot:
+    fig,axarr=plt.subplots(nrows,ncols)    
+    
+    
+    #Now plot...
+    for station_ind in range(len(station_list)):
+        #What subplot are we on?
+        ax_row=floor(station_ind/ncols)
+        ax_col=remainder(station_ind,ncols)
+        axis_i=axarr[ax_row,ax_col]
+        
+        #color for plotting:
+        color_i=colors[station_ind]
+        #station:
+        station_i=station_list[station_ind]
+        
+        #Now plot:
+        station_i.plot_site_WE(axis_i,color_i,resaxlim)
+        
+        last_row=ax_row
+        last_col=ax_col
+    #
+    ##Disappera the remaining axes unused:
+    #if 
+    ##total columnns in last row:
+    #num_cols=len(axarr[-1])
+    ##How many columns leftover?
+    #remaining_cols=num_cols-last_col
+    #
+    #for col in range(remaining_cols):
+    #    axarr[last_row,(num_cols-col)].axis('off')
+
+    fig.show()
+    
+    #Save the figure:
+    fig.savefig(figname)
 
 #######
 def get_path_resid_make_object(home,run_name,dbpath):
