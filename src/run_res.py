@@ -650,7 +650,7 @@ def plot_site_WE(home,run_name,resaxlim):
     colors=plt.cm.rainbow(array(range(nsta)).astype(float)/nsta)
     
     #Initiate plot:
-    fsize=(ncols*2.1,nrows*2.1)
+    fsize=(ncols*4,nrows*2.1)
     fig,axarr=plt.subplots(nrows,ncols,figsize=fsize)    
     
     
