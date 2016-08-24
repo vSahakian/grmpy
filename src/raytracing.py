@@ -181,7 +181,7 @@ def write_receiverin(home,run_name):
         
         #Write them:
         f.write(rposline)
-        f.write(nposline)
+        f.writimpore(nposline)
         f.write(sourceiline)
         f.write(npsourceline)
         
@@ -263,7 +263,7 @@ def parse_rayfile(rayfile):
 #######
 #Function to extract rayfile info, sort, convert to depth/lat/lon, and store
 #in a residuals object
-def store_rayinfo(home,run_name,rayfile):
+def store_rayinfo(home,run_name,rayfile,veltype):
     '''
     Extract rayfile info, sort, convert to depth/lat/lon, and store into
     the residuals object
@@ -271,6 +271,7 @@ def store_rayinfo(home,run_name,rayfile):
         home:           String with the home location (i.e., anza dir)
         run_name:       String with database and model combo
         rayfile:        String with the path to the rayfile
+        veltype:        Velocity type Vp=1, Vs=2
     Output:
         residuals object
     '''
@@ -278,6 +279,7 @@ def store_rayinfo(home,run_name,rayfile):
     from os import path
     import cPickle as pickle
     from numpy import where,append
+    from math import degrees
     
     #Get the run directory:
     run_dir=path.expanduser(home+run_name+'/')
@@ -306,20 +308,18 @@ def store_rayinfo(home,run_name,rayfile):
         #Find which raypath entry corresponds to this recording:
         ray_ind=where((source_i==src_id) & (receiver_i==rec_id))[0]
         
-        #Get the lat and lon of the source:
-        source_lat=robj.elat[ray_ind]
-        source_lon=robj.elon[ray_ind]
-        
         #Convert the ray info to depth/lat degrees/lon degrees:
         ray_depth_i=path_list[ray_ind][:,0]-6371   #minus the radius of the earth
-        ray_lat_i=path_list[ray_ind][:,1]+source_lat
-        ray_lon_i=path_list[ray_ind][:,2]+source_lon
+        ray_lat_i=degrees(path_list[ray_ind][:,1])
+        ray_lon_i=degrees(path_list[ray_ind][:,2])
         
         #Add this info to the sorted path list:
         ray_depth.append(ray_depth_i)
         ray_lat.append(ray_lat_i)
         ray_lon.append(ray_lon_i)
 
+    
+    #Store back into a residuals object
     
 
         

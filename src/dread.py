@@ -238,3 +238,93 @@ def read_obj_list(obj):
         
     return obj_list
     
+    
+    
+######
+def db_station_sample(dbpath_in,numstas,dbpath_out):
+    '''
+    Sample a database to only include events recorded on a minimum number
+    of stations
+    VJS 8/2016
+    
+    Input:
+        dbpath_in:          String with path to the input database
+        numstas:            Minimum number of stations for events to be recorded on
+        dbpath_out:         STring with path to output database
+    Output:
+        Writes out the sampled database to dbpath_out
+    '''
+    import cPickle as pickle
+    from numpy import unique,where,array,r_
+    import cdefs as cdf
+    
+    #Read in the original database
+    dbfile=open(dbpath_in,'r')
+    db_orig=pickle.load(dbfile)
+    dbfile.close()
+    
+    #Find how many unique events there are:
+    unique_events=unique(db_orig.evnum)
+    nevents=len(unique_events)
+    
+    #Initiate the "keep" event index array:
+    keep_event_ind=array([]).astype('int')
+    
+    #Loop over the unique events and determine if they are recorded on the 
+    #minimum number of stations:
+    
+    for event_ind in range(nevents):
+        #Call the event:
+        eventi=unique_events[event_ind]
+        #Find where in the database there are recordings of this event:
+        db_event_ind=where(db_orig.evnum==eventi)[0].astype('int')
+        
+        #Get the stations for this event:
+        eventi_stas=db_orig.sta[db_event_ind]
+        #Get the unique stations recording this event:
+        num_unique_stas_i=len(eventi_stas)
+        
+        #If it's at least the number of minimum stations, keep this stuff, save 
+        #it to the keep index variable:
+        if num_unique_stas_i>=numstas:
+            keep_event_ind=r_[keep_event_ind,db_event_ind]
+    
+    
+    #Save the keep event variable as integers:
+    keep_event_ind.astype('int')
+    
+    #Now save just these indices in the database:
+    edepth=db_orig.edepth[keep_event_ind]
+    elat=db_orig.elat[keep_event_ind]
+    elon=db_orig.elon[keep_event_ind]
+    evnum=db_orig.evnum[keep_event_ind]
+    ffdf=db_orig.ffdf[keep_event_ind]
+    md_ffdf=db_orig.md_ffdf[keep_event_ind]
+    ml=db_orig.ml[keep_event_ind]
+    mw=db_orig.mw[keep_event_ind]
+    pga=db_orig.pga[keep_event_ind]
+    pga_pg=db_orig.pga_pg[keep_event_ind]
+    pgv=db_orig.pgv[keep_event_ind]
+    r=db_orig.r[keep_event_ind]
+    receiver_i=db_orig.receiver_i[keep_event_ind]
+    source_i=db_orig.source_i[keep_event_ind]
+    sta=db_orig.sta[keep_event_ind]
+    stlat=db_orig.stlat[keep_event_ind]
+    stlon=db_orig.stlon[keep_event_ind]
+    stnum=db_orig.stnum[keep_event_ind]
+    vs30=db_orig.vs30[keep_event_ind]
+    
+    #BEFORE SAVING:
+    #cdefs only takes DA and DV in nm/s/s and nm/s...convert to these (currently
+    #in m/s/s and m/s)
+    DA=pga/1e-9
+    DV=pga/1e-9
+    
+    #Make sampled database:
+    db_samp=cdf.db(evnum,sta,stnum,ml,mw,DA,DV,r,vs30,elat,elon,edepth,stlat,stlon,source_i,receiver_i)
+    
+    #Save to file...
+    doutfile=open(dbpath_out,'w')
+    pickle.dump(db_samp,doutfile)
+    doutfile.close()
+    

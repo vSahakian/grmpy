@@ -32,17 +32,20 @@ elif what_home==1:
 #dbpath=HOME+'/anza/data/abdb.pckl'
 #modelpath=HOME+'/anza/models/pckl/regr_0.0_3.0_6.5_VR_98.9.pckl'
 
-home=HOME+'/anza/models/residuals/'
-run_name='abdb_0-6.5_VR'
-dbpath=HOME+'/anza/data/abdb.pckl'
-modelpath=HOME+'/anza/models/pckl/regr_0.0_6.5_VR_98.9.pckl'
-
 #home=HOME+'/anza/models/residuals/'
 #run_name='abdb_0-1-2-6.5'
 #dbpath=HOME+'/anza/data/abdb.pckl'
 #modelpath=HOME+'/anza/models/pckl/regr_0.0_1.0_2.0_6.5_VR_98.9.pckl'
 
+#home=HOME+'/anza/models/residuals/'
+#run_name='abdb_0-6.5_VR'
+#dbpath=HOME+'/anza/data/abdb.pckl'
+#modelpath=HOME+'/anza/models/pckl/regr_0.0_6.5_VR_98.9.pckl'
 
+home=HOME+'/anza/models/residuals/'
+run_name='abdb_5sta_0-6.5_VR'
+dbpath=HOME+'/anza/data/abdb_5sta.pckl'
+modelpath=HOME+'/anza/models/pckl/regr_0.0_6.5_VR_98.9.pckl'
 
 
 ########

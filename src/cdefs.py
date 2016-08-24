@@ -11,7 +11,7 @@ class db:
     This class describes a set of events
     '''
     
-    def __init__(self,event,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth,stlat,stlon,source_i,receiver_i,):
+    def __init__(self,event,sta,N,ml,mw,DA,DV,r,vs30,elat,elon,edepth,stlat,stlon,source_i,receiver_i,):
         '''
         Initiate the class by giving the event number (event), 
         station name (sta), station number (N), local mag (ml), moment mag (mw), 
@@ -57,9 +57,9 @@ class db:
         self.vs30=vs30
         self.ffdf=np.sqrt(self.r**2 + c4**2)
         self.md_ffdf=md_ffdf
-        self.elat=lat
-        self.elon=lon
-        self.edepth=depth
+        self.elat=elat
+        self.elon=elon
+        self.edepth=edepth
         self.stlat=stlat
         self.stlon=stlon
         self.source_i=source_i

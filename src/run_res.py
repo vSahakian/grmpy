@@ -645,7 +645,7 @@ def plot_site_WE(home,run_name,resaxlim):
     #Want 3 subplots:
     ncols=3
     #How many rows?
-    nrows=ceil(nsta/ncols).astype('int64')
+    nrows=ceil(float(nsta)/ncols).astype('int64')
     #Get colors:
     colors=plt.cm.rainbow(array(range(nsta)).astype(float)/nsta)
     
@@ -653,11 +653,10 @@ def plot_site_WE(home,run_name,resaxlim):
     fsize=(ncols*4,nrows*2.1)
     fig,axarr=plt.subplots(nrows,ncols,figsize=fsize)    
     
-    
     #Now plot...
     for station_ind in range(len(station_list)):
         #What subplot are we on?
-        ax_row=floor(station_ind/ncols)
+        ax_row=floor(float(station_ind)/ncols).astype('int')
         ax_col=remainder(station_ind,ncols)
         axis_i=axarr[ax_row,ax_col]
         
@@ -684,14 +683,13 @@ def plot_site_WE(home,run_name,resaxlim):
         last_col=ax_col
     #
     ##Disappera the remaining axes unused:
-    #if 
-    ##total columnns in last row:
-    #num_cols=len(axarr[-1])
-    ##How many columns leftover?
-    #remaining_cols=num_cols-last_col
-    #
-    #for col in range(remaining_cols):
-    #    axarr[last_row,(num_cols-col)].axis('off')
+    if last_col<ncols-1:
+        #total columnns in last row should be the total number of columns, ncol.
+        #How many columns leftover?
+        remaining_cols=(ncols-1)-last_col
+    
+        for col in range(remaining_cols):
+            axarr[last_row,((ncols-1)-col)].axis('off')
     
     fig.show()
     
