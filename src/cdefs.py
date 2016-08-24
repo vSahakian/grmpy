@@ -381,13 +381,15 @@ class station:
         
         self.site_resid=site_resid
 
-    def plot_site_WE(self,sta_axis,colors,axis_lims):
+    def plot_site_WE(self,sta_axis,colors,axis_lims,xlabel_toggle,ylabel_toggle):
         '''
         Plot all WE residuals for this site
         Input:
             sta_axis:       Axes to plot on. Can use this to plot iteratively
             colors:         RGB values to plot arr([r,g,b])
             axlims:         Array with axis limits: [[xmin, xmax],[ymin,ymax]]
+            xlabel_toggle:  String with instructions to add x label: 'on'/'off'
+            ylabel_toggle:  String with instructions to add y label: 'on'/'off'
         '''
         
         import matplotlib.pyplot as plt
@@ -399,7 +401,8 @@ class station:
         site_term=round(self.site_resid,2)
         
         #Get the plotting title:
-        plttitle='Within-Event Residuals for '+str(sta_name)+'. \n Site term: '+str(site_term)
+        plttitle1=str(sta_name)
+        plttitle2=str(site_term)
         
         #Plot WE residuals:
         sta_axis.scatter(self.mw,self.W_residual,edgecolors=colors,facecolors='none')
@@ -415,10 +418,19 @@ class station:
         sta_axis.set_xlim((axis_lims[0][0],axis_lims[0][1]))
         sta_axis.set_ylim((axis_lims[1][0],axis_lims[1][1]))
         
-        #Set title:
-        sta_axis.set_xlabel('Moment Magnitude')
-        sta_axis.set_ylabel('ln residuals')
-        sta_axis.set_title(plttitle)
+        #Set labels:
+        #Set site name, etc.
+        sta_axis.text((axis_lims[0][1]-0.8),(axis_lims[1][1]-1.3),plttitle1)
+        sta_axis.text((axis_lims[0][1]-0.8),(axis_lims[1][1]-2.5),plttitle2)
+       
+        if xlabel_toggle=='on':
+            sta_axis.set_xlabel('Moment Magnitude')
+        
+        if ylabel_toggle=='on':
+            sta_axis.set_ylabel('ln residual')
+        
+        
+        
         
         
 #####

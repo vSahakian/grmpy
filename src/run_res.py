@@ -650,7 +650,8 @@ def plot_site_WE(home,run_name,resaxlim):
     colors=plt.cm.rainbow(array(range(nsta)).astype(float)/nsta)
     
     #Initiate plot:
-    fig,axarr=plt.subplots(nrows,ncols)    
+    fsize=(ncols*2.1,nrows*2.1)
+    fig,axarr=plt.subplots(nrows,ncols,figsize=fsize)    
     
     
     #Now plot...
@@ -662,11 +663,22 @@ def plot_site_WE(home,run_name,resaxlim):
         
         #color for plotting:
         color_i=colors[station_ind]
+        #axis labeling info:
+        if ax_col==0.0:
+            ytoggle='on'
+        else:
+            ytoggle='off'
+        
+        if ax_row==len(axarr)-1:
+            xtoggle='on'
+        else:
+            xtoggle='off'
+        
         #station:
         station_i=station_list[station_ind]
         
         #Now plot:
-        station_i.plot_site_WE(axis_i,color_i,resaxlim)
+        station_i.plot_site_WE(axis_i,color_i,resaxlim,xtoggle,ytoggle)
         
         last_row=ax_row
         last_col=ax_col
@@ -680,7 +692,7 @@ def plot_site_WE(home,run_name,resaxlim):
     #
     #for col in range(remaining_cols):
     #    axarr[last_row,(num_cols-col)].axis('off')
-
+    
     fig.show()
     
     #Save the figure:
