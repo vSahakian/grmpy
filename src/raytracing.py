@@ -320,7 +320,9 @@ def store_rayinfo(home,run_name,rayfile,veltype):
 
     
     #Store back into a residuals object
-    
+    if veltype==1:
+        #Then it's vp.  Write to the Vp part of the db.
+        robj.add_vp_paths(ray_depth,ray_lat,ray_lon)
 
         
         
