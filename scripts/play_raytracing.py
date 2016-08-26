@@ -50,7 +50,7 @@ veltype=1
 #Read in:
 rt.store_rayinfo(home,run_name,rayfile,veltype)
 
-####
+####s
 
 #For vs:
 rayfile='/media/vsahakian/katmai/anza/data/vm/fulltest_Vs/rays.dat'
@@ -61,4 +61,8 @@ rt.store_rayinfo(home,run_name,rayfile,veltype)
 
 ###
 #Plot rays:
-def plot_rays(home,run_name,veltype,view,axlims,stations,events)
+view=0
+axlims=[[-116.9,-116.35],[33.3,33.75]]
+
+def plot_rays(home,run_name,veltype,view,axlims,stations,events,by_path):
+    

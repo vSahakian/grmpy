@@ -612,7 +612,7 @@ class residuals:
         self.vs_lon=ray_lon
                 
     #######
-    def plot_raypaths(self,veltype,view,axlims,stations,events):
+    def plot_raypaths(self,veltype,view,axlims,stations,events,by_path):
         '''
         Plot the path terms
         Input:
@@ -621,12 +621,14 @@ class residuals:
             axlims:                  Axis limits [[xmin, xmax], [ymin, ymax]]
             stations:                 Plot stations on figure? no=0, yes=1
             events:                  Plot events on figure?  no=0, yes=1             
-            
+            by_path:                 Color black/by path term (0/1) 
         '''
         
         import matplotlib.pyplot as plt
         from matplotlib import ticker
-        from numpy import zeros,unique,where,array
+        from numpy import zeros,unique,where,array,mean,std,c_
+        from matplotlib.collections import LineCollection
+        from matplotlib.colors import ListedColormap, BoundaryNorm
         
         #Which velocity data is being plotted, Vp or Vs?
         #Depending on what it is, specify the depth, lat and lon separately
@@ -645,6 +647,18 @@ class residuals:
             
             #Plot titles:
             ptitle='Plot of raypaths for Vs'
+        
+        #Get color for plotting:
+        if by_path==0:
+            pcolor='k'
+        elif by_path==1:
+            #Get mean and std of dataset:
+            mean_pterm=mean(self.path_terms)
+            std_pterm=std(self.path_terms)
+            #Set hte colorscale to cover 97% of the data:
+            cmin=-3*std_pterm
+            cmax=3*std_pterm
+        
         
         #Get unique event indices for plotting events:
         unique_events=unique(self.evnum)
@@ -719,7 +733,21 @@ class residuals:
             #Labels:
             xlab='Longitude (deg)'
             ylab='Depth (km)'
-            
+          
+              
+        #Make the line collections to plot:
+        #Initiate the path list:
+        raypaths=[]
+        #Loop over each x and y to pull out x, and y, and append to raypaths:
+        for ray in range(len(x)):
+            path=c_[x[ray],y[ray]]
+            raypaths.append(path)
+        #At the end, turn raypaths into an array:
+        raypaths=array(raypaths)
+        
+        #Turn it into a line collection:
+        lc=LineCollection(raypaths,cmap=plt.get_cmap('jet'),norm=plt.Normalize(cmin,cmax))
+        
         ##Plot:
         #Initiate plot
         figure=plt.figure()
