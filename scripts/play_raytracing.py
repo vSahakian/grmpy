@@ -39,3 +39,26 @@ rt.write_sourcein(home,run_name,veltype)
 
 #Write recievers.in file:
 rt.write_receiverin(home,run_name)
+
+
+######RUN##########
+
+#For vp:
+rayfile='/media/vsahakian/katmai/anza/data/vm/fulltest_Vp/rays.dat'
+veltype=1
+
+#Read in:
+rt.store_rayinfo(home,run_name,rayfile,veltype)
+
+####
+
+#For vs:
+rayfile='/media/vsahakian/katmai/anza/data/vm/fulltest_Vs/rays.dat'
+veltype=2
+
+#Read in:
+rt.store_rayinfo(home,run_name,rayfile,veltype)
+
+###
+#Plot rays:
+def plot_rays(home,run_name,veltype,view,axlims,stations,events)

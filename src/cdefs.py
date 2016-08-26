@@ -392,7 +392,7 @@ class station:
             ylabel_toggle:  String with instructions to add y label: 'on'/'off'
         '''
         
-        import matplotlib.pyplot as plt
+        import matplotlib.pyplot
         from numpy import array,str,round
         
         #Station name?
@@ -583,11 +583,175 @@ class residuals:
         self.site_terms=site_terms
         self.path_terms=path_terms
         
+    ######
+    def add_vp_paths(self,ray_depth,ray_lat,ray_lon):
+        '''
+        Add Vp raypath locations to the residuals object
+        Input:
+            ray_depth:      List of arrays with the depth in km for each vp ray
+            ray_lat:        List of arrays with the lat in deg for each vp ray
+            ray_lon:        List of arrays with the lon in deg for each vp ray
+        '''
         
-    def plot_path():
+        self.vp_depth=ray_depth
+        self.vp_lat=ray_lat
+        self.vp_lon=ray_lon
+        
+    ######
+    def add_vs_paths(self,ray_depth,ray_lat,ray_lon):
+        '''
+        Add Vs raypath locations to the residuals object
+        Input:
+            ray_depth:      List of arrays with the depth in km for each vs ray
+            ray_lat:        List of arrays with the lat in deg for each vs ray
+            ray_lon:        List of arrays with the lon in deg for each vs ray
+        '''
+        
+        self.vs_depth=ray_depth
+        self.vs_lat=ray_lat
+        self.vs_lon=ray_lon
+                
+    #######
+    def plot_raypaths(self,veltype,view,axlims,stations,events):
         '''
         Plot the path terms
+        Input:
+            veltype:                 Velocity type to plot (vp/vs = 1/2)
+            view:                    View of the plot (map=0, lat vs depth=1, lon vs depth=2)  
+            axlims:                  Axis limits [[xmin, xmax], [ymin, ymax]]
+            stations:                 Plot stations on figure? no=0, yes=1
+            events:                  Plot events on figure?  no=0, yes=1             
+            
         '''
         
+        import matplotlib.pyplot as plt
+        from matplotlib import ticker
+        from numpy import zeros,unique,where,array
         
+        #Which velocity data is being plotted, Vp or Vs?
+        #Depending on what it is, specify the depth, lat and lon separately
+        if veltype==1:
+            depth=self.vp_depth
+            lat=self.vp_lat
+            lon=self.vp_lon
+            
+            #Plot titles:
+            ptitle='Plot of raypaths for Vp'
+            
+        elif veltype==2:
+            depth=self.vs_depth
+            lat=self.vs_lat
+            lon=self.vs_lon
+            
+            #Plot titles:
+            ptitle='Plot of raypaths for Vs'
+        
+        #Get unique event indices for plotting events:
+        unique_events=unique(self.evnum)
+        #Zero out the lat, lon, and depth arrays:
+        uedepth=[]
+        uelat=[]
+        uelon=[]
+        
+        for event_c in range(len(unique_events)):
+            #Get the event number for each event:
+            evnum_i=unique_events[event_c]
+            #Get the index of the first occurrence of this event:
+            unique_event_ind=where(self.evnum==evnum_i)[0][0]
+            #Pull out the info from here, as it should all be the same for all instances:
+            uedepth_i=self.edepth[unique_event_ind]
+            uelat_i=self.elat[unique_event_ind]
+            uelon_i=self.elon[unique_event_ind]
+            
+            #Append to arrays:
+            uedepth.append(uedepth_i)
+            uelat.append(uelat_i)
+            uelon.append(uelon_i) 
+        
+        #Make them arrays:
+        uedepth=array(uedepth)
+        uelat=array(uelat)
+        uelon=array(uelon)  
+            
+        
+        #Define the x and y to plot based on the view:
+        #Map view:   
+        if view==0:
+            x=lon
+            y=lat
+            #Stations:
+            stx=self.stlon
+            sty=self.stlat
+            #Events:
+            evx=uelon
+            evy=uelat
+            
+            #Labels:
+            xlab='Longitude (degrees)'
+            ylab='Latitude (degrees)'
+            
+        #cross section with latitude and depth:
+        elif view==1:
+            x=lat
+            y=depth
+            #Stations:
+            stx=self.stlat
+            sty=zeros(len(self.stlat))
+            #Events:
+            evx=uelat
+            evy=uedepth
+            
+            #Labels:
+            xlab='Latitude (degrees)'
+            ylab='Depth (km)'
+            
+        #cross section with longitude and depth
+        elif view==2:
+            x=lon
+            y=depth
+            #Stations:
+            stx=self.stlon
+            sty=zeros(len(self.stlon))
+            #Events:
+            evx=uelon
+            evy=uedepth
+            
+            #Labels:
+            xlab='Longitude (deg)'
+            ylab='Depth (km)'
+            
+        ##Plot:
+        #Initiate plot
+        figure=plt.figure()
+        #Set axis format:
+        x_formatter=ticker.ScalarFormatter(useOffset=False)
+        
+        #Plot the raypaths 
+        for path_i in range(len(depth)):
+            x_i=x[path_i]
+            y_i=y[path_i]
+            
+            plt.plot(x_i,y_i)
+            
+        #If stations are to be plotted:    
+        if stations==1:
+            #Hold on:
+            plt.hold(True)
+            #Scatter:
+            plt.scatter(stx,sty,color='black',s=100,marker='^')
+            
+        if events==1:
+            #Hold on
+            plt.hold(True)
+            #Scatter events:
+            plt.scatter(evx,evy,color='g',s=20)
+            
+        #Axis labels, etc.:
+        plt.xlabel(xlab)
+        plt.ylabel(ylab)
+        plt.title(ptitle)
+        
+        #Set format of axis:
+        ax=plt.gca()
+        ax.xaxis.set_major_formatter(x_formatter)
         

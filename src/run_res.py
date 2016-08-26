@@ -695,6 +695,7 @@ def plot_site_WE(home,run_name,resaxlim):
     
     #Save the figure:
     fig.savefig(figname)
+    
 
 #######
 def get_path_resid_make_object(home,run_name,dbpath):

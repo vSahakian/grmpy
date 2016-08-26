@@ -278,8 +278,7 @@ def store_rayinfo(home,run_name,rayfile,veltype):
     
     from os import path
     import cPickle as pickle
-    from numpy import where,append
-    from math import degrees
+    from numpy import where,append,degrees
     
     #Get the run directory:
     run_dir=path.expanduser(home+run_name+'/')
@@ -323,6 +322,12 @@ def store_rayinfo(home,run_name,rayfile,veltype):
     if veltype==1:
         #Then it's vp.  Write to the Vp part of the db.
         robj.add_vp_paths(ray_depth,ray_lat,ray_lon)
-
+    elif veltype==2:
+        #Then it's vs.  Write the Vs part of the db.
+        robj.add_vs_paths(ray_depth,ray_lat,ray_lon)
         
         
+    #Save the file again...
+    rfile=open(residfile,'w')
+    pickle.dump(robj,rfile)
+    rfile.close()
