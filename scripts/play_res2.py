@@ -2,6 +2,7 @@
 
 import run_res
 from os import path
+import raytracing as rt
 
 #Change this parameter depending on where you run:
 #0=desktop
@@ -46,6 +47,9 @@ home=HOME+'/anza/models/residuals/'
 run_name='abdb_5sta_0-6.5_VR'
 dbpath=HOME+'/anza/data/abdb_5sta.pckl'
 modelpath=HOME+'/anza/models/pckl/regr_0.0_6.5_VR_98.9.pckl'
+rayfile_vp='/Users/vsahakian/anza/data/vm/fulltest_Vp/rays.dat'
+rayfile_vs='/Users/vsahakian/anza/data/vm/fulltest_Vs/rays.dat'
+
 
 
 ########
@@ -82,6 +86,14 @@ elif runall==1:
     
     #Write to an overall residuals plus more object, get path residual...
     allresiduals=run_res.get_path_resid_make_object(home,run_name,dbpath)
+    
+    #Put this stuff in play res
+    ##Read in the Vp and Vs ray info from teh rayfile:
+    #vp_path_list,rec_id,src_id=rt.parse_rayfile(rayfile_vp)
+    #vs_path_list,rec_id,src_id=rt.parse_rayfile(rayfile_vs)
+    #
+    ##Store the ray info in the residuals object:
+    #allresiduals
     
     #Write to file:
     run_res.write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev)

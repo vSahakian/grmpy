@@ -612,7 +612,7 @@ class residuals:
         self.vs_lon=ray_lon
                 
     #######
-    def plot_raypaths(self,veltype,view,axlims,stations,events,by_path):
+    def plot_raypaths(self,veltype,view,axlims,stations,events,by_path,mymap):
         '''
         Plot the path terms
         Input:
@@ -622,13 +622,16 @@ class residuals:
             stations:                 Plot stations on figure? no=0, yes=1
             events:                  Plot events on figure?  no=0, yes=1             
             by_path:                 Color black/by path term (0/1) 
+            mymap:                   String with python colormap (i.e. 'jet')
         '''
+    
         
         import matplotlib.pyplot as plt
         from matplotlib import ticker
-        from numpy import zeros,unique,where,array,mean,std,c_
+        from numpy import zeros,unique,where,array,mean,std,c_,arange
         from matplotlib.collections import LineCollection
-        from matplotlib.colors import ListedColormap, BoundaryNorm
+        import matplotlib.colors as colors
+        import matplotlib.cm as cm
         
         #Which velocity data is being plotted, Vp or Vs?
         #Depending on what it is, specify the depth, lat and lon separately
@@ -657,8 +660,7 @@ class residuals:
             std_pterm=std(self.path_terms)
             #Set hte colorscale to cover 97% of the data:
             cmin=-3*std_pterm
-            cmax=3*std_pterm
-        
+            cmax=3*std_pterm 
         
         #Get unique event indices for plotting events:
         unique_events=unique(self.evnum)
@@ -734,21 +736,22 @@ class residuals:
             xlab='Longitude (deg)'
             ylab='Depth (km)'
           
-              
-        #Make the line collections to plot:
-        #Initiate the path list:
-        raypaths=[]
-        #Loop over each x and y to pull out x, and y, and append to raypaths:
-        for ray in range(len(x)):
-            path=c_[x[ray],y[ray]]
-            raypaths.append(path)
-        #At the end, turn raypaths into an array:
-        raypaths=array(raypaths)
-        
-        #Turn it into a line collection:
-        lc=LineCollection(raypaths,cmap=plt.get_cmap('jet'),norm=plt.Normalize(cmin,cmax))
         
         ##Plot:
+        #Get colormap
+        #Make colormap:
+        colormap_pterm=plt.get_cmap(mymap)
+        #Make a normalized colorscale
+        cNorm=colors.Normalize(vmin=cmin, vmax=cmax)
+        #Apply normalization to colormap:
+        scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap_pterm)
+        
+        #Make a fake contour plot for the colorbar:
+        Z=[[0,0],[0,0]]
+        levels=arange(cmin,cmax,0.01)
+        c=plt.contourf(Z, levels, cmap=colormap_pterm)
+ 
+        
         #Initiate plot
         figure=plt.figure()
         #Set axis format:
@@ -756,23 +759,30 @@ class residuals:
         
         #Plot the raypaths 
         for path_i in range(len(depth)):
+            #Assign color to path term:
+            colorVal = scalarMap.to_rgba(self.path_terms[path_i])
+            #Get x and y
             x_i=x[path_i]
             y_i=y[path_i]
             
-            plt.plot(x_i,y_i)
+            plt.plot(x_i,y_i,color=colorVal)
             
+        #Add colorbar:
+        cb=plt.colorbar(c)
+        cb.set_label('Path term (ln residual)')
+        
         #If stations are to be plotted:    
         if stations==1:
             #Hold on:
-            plt.hold(True)
+            #plt.hold(True)
             #Scatter:
-            plt.scatter(stx,sty,color='black',s=100,marker='^')
+            plt.scatter(stx,sty,color='black',s=100,marker='^',zorder=len(self.mw)+5)
             
         if events==1:
             #Hold on
-            plt.hold(True)
+            #plt.hold(True)
             #Scatter events:
-            plt.scatter(evx,evy,color='g',s=20)
+            plt.scatter(evx,evy,color='g',s=20,zorder=len(self.mw)+7)
             
         #Axis labels, etc.:
         plt.xlabel(xlab)
@@ -782,4 +792,11 @@ class residuals:
         #Set format of axis:
         ax=plt.gca()
         ax.xaxis.set_major_formatter(x_formatter)
+        
+        #Show plot:
+        plt.show()
+        
+        #Return :
+        
+        return figure
         
