@@ -66,8 +66,44 @@ rt.store_rayinfo(home,run_name,rayfile,veltype)
 
 ###
 #Plot rays:
+#Vp:
+veltype=1
+#map:
 view=0
 axlims=[[-116.9,-116.35],[33.3,33.75]]
+stations=1
+events=1
+by_path=1
+mymap='jet'
 
-def plot_rays(home,run_name,veltype,view,axlims,stations,events,by_path):
+def plot_rays(home,run_name,veltype,view,axlims,stations,events,by_path,mymap):
+    '''
+    Plot the raypaths and save the png and pdf figures
+    VJS 8/2016
+    Input:
+        home:           String with the home directory for the project
+        run_name:       String with the run name combo of db and model
+        veltype:        Vp/Vs (1/2)
+        view:           Plot view; map/lat vs depth/lon vs depth, 0/1/2
+        axlims:         Axis limits [[xmin, xmax],[ymin,ymax]]
+        stations:       Plot stations?  no/yes = 0/1
+        events:         Plot events?  no/yes = 0/1
+        by_path:        Color raypaths by path?  no/yes=0/1
+        mymap:          String with the python colormap to use
+    Output: 
+        figure          Prints a png and pdf version of the figure to the run fig directory
+    '''
+    
+    from os import path
+    
+    #Get the run directory:
+    run_dir=path.expanduser(home+run_name+'/')
+    
+    #Get the residuals object:
+    residfile=run_dir+run_name+'_robj.pckl'
+    
+    #Load the residuals object:
+    rfile=open(residfile,'r')
+    robj=pickle.load(rfile)
+    rfile.close()
     
