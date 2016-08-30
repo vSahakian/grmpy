@@ -128,10 +128,17 @@ def get_total_res(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     
     #Figure names:
     f1name=run_dir+'figs/'+run_name+'_total.png'
+    f1pdf=run_dir+'figs/pdfs/'+run_name+'_total.pdf'
+    #pdfs
     f2name=run_dir+'figs/'+run_name+'_total_hist.png'
+    f2pdf=run_dir+'figs/pdfs/'+run_name+'_total_hist.pdf'
+    
     #Save:
     f1.savefig(f1name)
+    f1.savefig(f1pdf)
+    
     f2.savefig(f2name)
+    f2.savefig(f2pdf)
     
     return db.mw,allresid,mean_residual,std_dev
     
@@ -301,8 +308,10 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     
     #Get the file path of the output figure:
     f1figname=fig_dir+run_name+'_E_resids.png'
+    f1pdf=fig_dir+'pdfs/'+run_name+'_E_resids.pdf'
+    
     f2figname=fig_dir+run_name+'_E_resids_hist.png'
-
+    f2pdf=fig_dir+'pdfs/'+run_name+'_E_resids_hist.pdf'
     
     ###Plotting###
     #For titles:
@@ -334,6 +343,7 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     
     #Save:
     f1.savefig(f1figname)
+    f1.savefig(f1pdf)
     
     #Histogram...
     f2=plt.figure()
@@ -346,6 +356,7 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     
     f2.show()
     f2.savefig(f2figname)
+    f2.savefig(f2pdf)
     
     return E_evnum,E_mw,E_residual,E_mean,E_std_dev
     
@@ -531,6 +542,7 @@ def plot_Wresid(home,run_name,resaxlim):
     
     #Get the file path of the output figure:
     figname=fig_dir+run_name+'_W_resids.png'
+    pdfname=fig_dir+'pdfs/'+run_name+'_W_resids.pdf'
     
     #Get event list directory for this run:
     sobjfile=so_dir+run_name+'.pckl'
@@ -603,6 +615,7 @@ def plot_Wresid(home,run_name,resaxlim):
     
     #Save:
     plt.savefig(figname)
+    plt.savefig(pdfname)
     
     return W_mean,W_std_dev
     
@@ -634,6 +647,7 @@ def plot_site_WE(home,run_name,resaxlim):
     
     #Get the file path of the output figure:
     figname=fig_dir+run_name+'_site_W_resids.png'
+    pdfname=fig_dir+'pdfs/'+run_name+'_site_W_resids.pdf'
     
     #Get event list directory for this run:
     sobjfile=so_dir+run_name+'.pckl'
@@ -696,6 +710,7 @@ def plot_site_WE(home,run_name,resaxlim):
     
     #Save the figure:
     fig.savefig(figname)
+    fig.savefig(pdfname)
     
 
 #######
@@ -714,6 +729,7 @@ def get_path_resid_make_object(home,run_name,dbpath):
     from os import path
     import cdefs as cdf
     import cPickle as pickle
+    from numpy import mean,std
     
     #Get the run directory:
     run_dir=path.expanduser(home+run_name+'/')
@@ -735,11 +751,15 @@ def get_path_resid_make_object(home,run_name,dbpath):
     pickle.dump(allresiduals,rfile)
     rfile.close()
     
+    #Get path term stats:
+    pterm_mean=mean(allresiduals.path_terms)
+    pterm_std=std(allresiduals.path_terms)
+    
     #REturn the allr esiduals object:
-    return allresiduals
+    return allresiduals,pterm_mean,pterm_std
  
 ######
-def write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev):
+def write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std):
     '''
     Write out statistics to a file
     Input:
@@ -751,6 +771,8 @@ def write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std
         E_std_dev:      Std Dev Event Residual
         W_mean:         Mean Within-Event Residual
         W_std_dev:      Std Dev Within-Event Residual
+        pterm_mean:     Mean of the path terms
+        pterm_std:      Std Dev of the path terms
     Output:
         STatistics file to home/run_name/run_name_stats.txt 
     '''
@@ -773,4 +795,6 @@ def write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std
     sfile.write('\n')
     sfile.write('Within-Event Residual Mean:         '+str(W_mean)+'\n')
     sfile.write('Within-Event Residual Std Dev:      '+str(W_std_dev)+'\n')
+    sfile.write('Path Term Residual Mean:            '+str(pterm_mean)+'\n')
+    sfile.write('Path Term Residual Std Dev:         '+str(pterm_std)+'\n')
     sfile.close()

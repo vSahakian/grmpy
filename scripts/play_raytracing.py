@@ -100,6 +100,10 @@ def plot_rays(home,run_name,veltype,view,axlims,stations,events,by_path,mymap):
     #Get the run directory:
     run_dir=path.expanduser(home+run_name+'/')
     
+    #And the figure directories:
+    fig_dir=run_dir+'figs/'
+    pdf_dir=fig_dir+'pdfs/'
+    
     #Get the residuals object:
     residfile=run_dir+run_name+'_robj.pckl'
     
@@ -109,3 +113,12 @@ def plot_rays(home,run_name,veltype,view,axlims,stations,events,by_path,mymap):
     rfile.close()
     
     figure=robj.plot_raypaths(veltype,view,axlims,stations,events,by_path,mymap)
+    
+    #Save the figures:
+    #Get the figure name:
+    pngfile=fig_dir+run_name+'_view'+str(view)+'_sta'+str(stations)+'_ev'+str(events)+'.png'
+    pdffile=pdf_dir+run_name+'_view'+str(view)+'_sta'+str(stations)+'_ev'+str(events)+'.png'
+    #Save png:
+    figure.savefig(pngfile)
+    #save pdf:
+    figure.savefig(pdffile)
