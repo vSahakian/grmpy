@@ -90,6 +90,7 @@ def plot_rays(home,run_name,veltype,view,axlims,stations,events,by_path,mymap):
         events:         Plot events?  no/yes = 0/1
         by_path:        Color raypaths by path?  no/yes=0/1
         mymap:          String with the python colormap to use
+        cutoff_val:     Value above/below which to color raypath; otherwise the path is gray (plots if abs(path_term)>=cutoff_val)
     Output: 
         figure          Prints a png and pdf version of the figure to the run fig directory
     '''
@@ -107,3 +108,4 @@ def plot_rays(home,run_name,veltype,view,axlims,stations,events,by_path,mymap):
     robj=pickle.load(rfile)
     rfile.close()
     
+    figure=robj.plot_raypaths(veltype,view,axlims,stations,events,by_path,mymap)

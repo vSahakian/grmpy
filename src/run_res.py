@@ -44,6 +44,7 @@ def init(home,run_name):
         makedirs(run_dir+'W_resids/')
         makedirs(run_dir+'site_resids/')
         makedirs(run_dir+'figs/')
+        makedirs(run_dir+'figs/pdfs/')
         makedirs(run_dir+'raytracing/')
         
         #If it's ok to go ahead and clobber, set the run variable to 1:
