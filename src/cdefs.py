@@ -715,7 +715,7 @@ class residuals:
             sty=zeros(len(self.stlat))
             #Events:
             evx=uelat
-            evy=uedepth
+            evy=-1*uedepth
             
             #Labels:
             xlab='Latitude (degrees)'
@@ -730,7 +730,7 @@ class residuals:
             sty=zeros(len(self.stlon))
             #Events:
             evx=uelon
-            evy=uedepth
+            evy=-1*uedepth
             
             #Labels:
             xlab='Longitude (deg)'
@@ -900,7 +900,7 @@ class residuals:
             sty=zeros(len(self.stlat))
             #Events:
             evx=uelat
-            evy=uedepth
+            evy=-1*uedepth
             
             #Labels:
             xlab='Latitude (degrees)'
@@ -915,7 +915,7 @@ class residuals:
             sty=zeros(len(self.stlon))
             #Events:
             evx=uelon
-            evy=uedepth
+            evy=-1*uedepth
             
             #Labels:
             xlab='Longitude (deg)'
