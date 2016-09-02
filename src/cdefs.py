@@ -134,7 +134,7 @@ class db:
         
         plt.show()
         
-    def plot_rpga_withmodel(self,bmin,bmax,step,mw,d,rng,sdist,axlims,VR,vref=True):
+    def plot_rpga_withmodel(self,bmin,bmax,step,mw,d,rng,sdist,axlims,VR,vref=True,nga_mw=True,nga_pred=True):
         '''
         Plots log10 PGA, for various distance ranges specified by bmin, bmax,
         and step.
@@ -149,6 +149,8 @@ class db:
             axlims:     Array with lims: [[xmin,xmax],[ymin,ymax]]
             VR:         Variance Reduction from inversion
             vref:       Reference vs30 value (Default: 760 m/s)
+            nga_mw:     mw range for NGA plotting, if provided
+            nga_pred:   prediction array for NGA plotting, if provided
         '''
         
         from matplotlib import pyplot as plt
@@ -207,9 +209,6 @@ class db:
             
             #Plot
             f=plt.plot(mw_dist,d_dist,color=colors_gmpe[j],label=lab)
-
-        #Add legend:
-        plt.legend(loc=4)
             
         #Limits:
         xlims=axlims[0]
@@ -217,7 +216,21 @@ class db:
         plt.xlim(xlims)
         plt.ylim(ylims)
         
-        plt.show(f)
+        
+        #If NGA data are not provided, end and return the figure.
+        if nga_mw==None and nga_pred==None:
+            #Add legend:
+            plt.legend(loc=4)
+        
+            plt.show(f)
+            return f
+        #Otherwise, plot the NGA data:
+        else:
+            plt.plot(nga_mw,nga_pred,linestyle='--',color='b',label='ASK2014')
+            
+            #Add legend:
+            plt.legend(loc=4)            
+            
         
         
         
@@ -272,11 +285,8 @@ class total_residuals:
         from matplotlib.ticker import MultipleLocator
         from numpy import str,array,ones,around
         
-        #Initialize scatter plot:
-        f1=plt.figure()
-        
         #Color:
-        rgb=array([70,158,133])/255.0
+        rgb=array([111,168,163])/255.0
         rgb.astype(float)
         color=rgb*ones((len(self.mw),3))
         
@@ -286,10 +296,10 @@ class total_residuals:
         
         #definitions for axes
         fudge_factor=0.02
-        left, width=0.1, 0.65
+        left, width=0.1, 0.70
         bottom, height=0.1,0.81
         left_h=left+width+fudge_factor
-        width_h=0.2
+        width_h=0.15
         
         #define axis limits for scatter, and histogram:
         rect_scatter=[left,bottom,width,height]
@@ -307,60 +317,37 @@ class total_residuals:
         
         #Scatter:
         axScatter.scatter(self.mw,self.total_residuals,edgecolors=color,facecolors='none',lw=0.9)
-        #fix axes:
-        axScatter.set_xlim=axlims[0]
-        axScatter.set_ylim=axlims[1]
+        
+        #Histogram:
+        #want 4x as many bins as main plot y-axis limit units:
+        nbins=(axlims[1][1]-axlims[1][0])*4
+        
+        #set the number of bins, adn the range to be the x axis limits (same as y axis, ln residuals):
+        axHisty.hist(self.total_residuals,bins=nbins,range=[axlims[1][0],axlims[1][1]],orientation='horizontal',color=rgb)
+        
+        #Also plot a dashed line at 0:
+        axScatter.plot(axlims[0],[0,0],linestyle='--',color='0.75')
+        
+        #set axis limits:
+        #scatter
+        axScatter.set_xlim(axlims[0])
+        axScatter.set_ylim(axlims[1])
+        #histogram
+        axHisty.set_ylim(axlims[1])
+        #set axis ticks:
+        axHisty.xaxis.set_major_locator(hist_xLocator)
+        #set no labels on the y axis:
+        axHisty.yaxis.set_ticklabels('')
         
         #Labels
         axScatter.set_xlabel(r"$\mathbf{M}$")
         axScatter.set_ylabel('ln Residuals')
         axScatter.set_title('Total Residuals for run '+run_name+'\n'+'Mean: '+str(around(self.mean_residual,decimals=2))+' Std Dev: '+str(around(self.std_dev,decimals=2)))
 
-        
-        #Plot histogram:
-        #want 4x as many bins as main plot y-axis limit units:
-        nbins=(axlims[1][1]-axlims[1][0])*4
-        
-        #set the number of bins, adn the range to be the x axis limits (same as y axis, ln residuals):
-        axHisty.hist(self.total_residuals,bins=nbins,range=[axlims[1][0],axlims[1][1]],orientation='horizontal',color=rgb)
-        #set axis limits:
-        axHisty.set_xlim=axlims[1]
-        #set axis ticks:
-        axHisty.xaxis.set_major_locator(hist_xLocator)
-        
-        #Use the y-axis limits of the main plot for the x-axis limits of the hist:
-        
-        ##Plot:
-        #plt.scatter(self.mw,self.total_residuals,edgecolors=color,facecolors='none',lw=0.9)
-        
-        ##LImits:
-        #plt.xlim(axlims[0])
-        #plt.ylim(axlims[1])
-        
         #Show
         f1.show()        
         
-    #    #Initialize historgram:
-    #    f2=plt.figure()
-    #    
-    #    #Plot:
-    #    #Want 4x as many bins as main plot y-axis limit units:
-    #    nbins=(axlims[1][1]-axlims[1][0])*4
-    ##Set the number of bins, adn the range to be the x axis limits (same as y axis, ln residuals):
-    #    plt.hist(self.total_residuals,bins=nbins,range=[axlims[1][0],axlims[1][1]],color=rgb)
-    #    #Use the y-axis limits of the main plot for the x-axis limits of the hist:
-#
-#        
-#        #Titles
-#        plt.xlabel('ln Residuals')
-#        plt.ylabel('# of occurences')
-        #
-        #ptitle='Total Residuals'+'\n'+'Mean: '+str(around(self.mean_residual,decimals=2))+' Std Dev: '+str(around(self.std_dev,decimals=2))
-        #plt.title(ptitle)
-        #                        
-        #f2.show()
-        
-        return f1 #,f2
+        return f1
              
         
 class event:

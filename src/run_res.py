@@ -172,6 +172,7 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     import gmpe as gm
     import cPickle as pickle
     import matplotlib.pyplot as plt
+    from matplotlib.ticker import MultipleLocator
 
     
     #Get directory for output:
@@ -319,7 +320,17 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     f2figname=fig_dir+run_name+'_E_resids_hist.png'
     f2pdf=fig_dir+'pdfs/'+run_name+'_E_resids_hist.pdf'
     
-    ###Plotting###
+    ##
+    #Set up plot to have histogram adjacent to scatter...
+    ##
+    
+    #definitions for axes
+    fudge_factor=0.02
+    left, width=0.1, 0.70
+    bottom, height=0.1,0.81
+    left_h=left+width+fudge_factor
+    width_h=0.15
+
     #For titles:
     E_std_dev_short=np.around(E_std_dev,decimals=2)
     
@@ -328,21 +339,54 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     axylim=resaxlim[1]
 
     #Color:
-    rgb=np.array([70,158,133])/255.0
+    rgb=np.array([111,168,163])/255.0
     rgb.astype(float)
     color=rgb*np.ones((len(E_mw),3))
 
+
+
     #Plot...    
     f1=plt.figure()
-    plt.scatter(E_mw,E_residual,edgecolors=color,facecolors='none',lw=0.8)
+    
+    #define axis limits for scatter, and histogram:
+    rect_scatter=[left,bottom,width,height]
+    rect_histy=[left_h,bottom,width_h,height]
+    
+    #define axis tick locations for histogram:
+    hist_xLocator=MultipleLocator(500) 
+    
+    #define axes:
+    axScatter=plt.axes(rect_scatter)
+    axHisty=plt.axes(rect_histy)
+    
+    axScatter.scatter(E_mw,E_residual,edgecolors=color,facecolors='none',lw=0.8)
+
+    #Histogram:
+    #want 4x as many bins as main plot y-axis limit units:
+    nbins=(axylim[1]-axylim[0])*4
+    
+    #set the number of bins, adn the range to be the x axis limits (same as y axis, ln residuals):
+    axHisty.hist(E_residual,bins=nbins,range=[axylim[0],axylim[1]],orientation='horizontal',color=rgb)
+    
+    #Also plot a dashed line at 0:
+    axScatter.plot(axxlim,[0,0],linestyle='--',color='0.75')     
+    
+    #set axis limits:
+    #scatter
+    axScatter.set_xlim(axxlim)
+    axScatter.set_ylim(axylim)
+    #histogram
+    axHisty.set_ylim(axylim)
+    #set axis ticks:
+    axHisty.xaxis.set_major_locator(hist_xLocator)
+    #set no labels on the y axis:
+    axHisty.yaxis.set_ticklabels('')      
     
     #Add titles, limits...
-    plt.xlim(axxlim)
-    plt.ylim(axylim)
-    plt.xlabel(r"$\mathbf{M}$")
-    plt.ylabel('ln Residual')
+    axScatter.set_xlabel(r"$\mathbf{M}$")
+    axScatter.set_ylabel('ln Residual')
     ptitle=r"Event Residuals"+"\n"+"Run: "+run_name+", Std Dev: "+np.str(E_std_dev_short)
-    plt.title(ptitle)
+    axScatter.set_title(ptitle)
     
     #Show...
     f1.show()
@@ -351,23 +395,23 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     f1.savefig(f1figname)
     f1.savefig(f1pdf)
     
-    #Histogram...
-    f2=plt.figure()
-    #Want 4x as many bins as main plot y-axis limit units:
-    nbins=(axylim[1]-axylim[0])*4
-    #Set the number of bins, adn the range to be the x axis limits (same as y axis, ln residuals):
-    plt.hist(E_residual,bins=nbins,range=[axylim[0],axylim[1]],color=rgb)
-
-    
-    plt.xlabel('ln Residuals')
-    plt.ylabel('Number of occurences')
-            
-    ptitle=r"Event Residuals"+"\n"+"Mean: "+str(np.around(E_mean,decimals=2))+" Std Dev: "+str(np.around(E_std_dev,decimals=2))
-    plt.title(ptitle)
-    
-    f2.show()
-    f2.savefig(f2figname)
-    f2.savefig(f2pdf)
+#    #Histogram...
+#    f2=plt.figure()
+#    #Want 4x as many bins as main plot y-axis limit units:
+#    nbins=(axylim[1]-axylim[0])*4
+#    #Set the number of bins, adn the range to be the x axis limits (same as y axis, ln residuals):
+#    plt.hist(E_residual,bins=nbins,range=[axylim[0],axylim[1]],color=rgb)
+#
+#    
+#    plt.xlabel('ln Residuals')
+#    plt.ylabel('Number of occurences')
+#            
+#    ptitle=r"Event Residuals"+"\n"+"Mean: "+str(np.around(E_mean,decimals=2))+" Std Dev: "+str(np.around(E_std_dev,decimals=2))
+#    plt.title(ptitle)
+#    
+#    f2.show()
+#    f2.savefig(f2figname)
+#    f2.savefig(f2pdf)
     
     return E_evnum,E_mw,E_residual,E_mean,E_std_dev
     
@@ -606,8 +650,10 @@ def plot_Wresid(home,run_name,resaxlim):
         #Plot
         plt.scatter(mw,W_residuals,edgecolors=color_i,facecolors='none',lw=0.8,label=sta_lab)
         plt.hold(True)
-        
-        
+     
+    #Also plot a line at 0:
+    plt.plot(axxlim,[0,0],linestyle='--',color='0.75')
+      
     #Get stats:
     W_mean=np.mean(W_res_array)
     

@@ -94,22 +94,7 @@ hfile=HOME+'/anza/data/YSH_2010.hash'
 fig_dir=HOME+'/anza/models/figs/'
 obj_dir=HOME+'/anza/models/pckl/'
 
-#Read data from .mat file, store important values:
-ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth=dr.mread(ffile,hfile)
-
-#Load into database object
-abdb=cdf.db(ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth)
-
-#Save the database object:
-fname=HOME+'/anza/data/abdb.pckl'
-datobj=open(fname,'w')
-pickle.dump(abdb,datobj)
-datobj.close
-#rng=np.array([0,1,2,3.3,4.5,6.5])
-#rng=np.array([0,6.5])
-#rng=np.array([0,2,3,4,6.5])
-
-
+####
 #Number of distances to include in smoothing - there will be this many extra
 #equations added on at each range boundary
 sdist=np.array([1,5,10,15,20])
