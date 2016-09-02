@@ -269,6 +269,7 @@ class total_residuals:
         '''
             
         import matplotlib.pyplot as plt
+        from matplotlib.ticker import MultipleLocator
         from numpy import str,array,ones,around
         
         #Initialize scatter plot:
@@ -279,36 +280,87 @@ class total_residuals:
         rgb.astype(float)
         color=rgb*ones((len(self.mw),3))
         
-        #Plot:
-        plt.scatter(self.mw,self.total_residuals,edgecolors=color,facecolors='none',lw=0.9)
+        ##
+        #Set up plot to have histogram adjacent to scatter...
+        ##
         
-        #LImits:
-        plt.xlim(axlims[0])
-        plt.ylim(axlims[1])
+        #definitions for axes
+        fudge_factor=0.02
+        left, width=0.1, 0.65
+        bottom, height=0.1,0.81
+        left_h=left+width+fudge_factor
+        width_h=0.2
+        
+        #define axis limits for scatter, and histogram:
+        rect_scatter=[left,bottom,width,height]
+        rect_histy=[left_h,bottom,width_h,height]
+        
+        #define axis tick locations for histogram:
+        hist_xLocator=MultipleLocator(500) 
+        
+        #Start figure:
+        f1=plt.figure()
+        
+        #define axes:
+        axScatter=plt.axes(rect_scatter)
+        axHisty=plt.axes(rect_histy)
+        
+        #Scatter:
+        axScatter.scatter(self.mw,self.total_residuals,edgecolors=color,facecolors='none',lw=0.9)
+        #fix axes:
+        axScatter.set_xlim=axlims[0]
+        axScatter.set_ylim=axlims[1]
         
         #Labels
-        plt.xlabel(r"$\mathbf{M}$")
-        plt.ylabel('ln Residuals')
-        plt.title('Total Residuals for run '+run_name)
+        axScatter.set_xlabel(r"$\mathbf{M}$")
+        axScatter.set_ylabel('ln Residuals')
+        axScatter.set_title('Total Residuals for run '+run_name+'\n'+'Mean: '+str(around(self.mean_residual,decimals=2))+' Std Dev: '+str(around(self.std_dev,decimals=2)))
+
+        
+        #Plot histogram:
+        #want 4x as many bins as main plot y-axis limit units:
+        nbins=(axlims[1][1]-axlims[1][0])*4
+        
+        #set the number of bins, adn the range to be the x axis limits (same as y axis, ln residuals):
+        axHisty.hist(self.total_residuals,bins=nbins,range=[axlims[1][0],axlims[1][1]],orientation='horizontal',color=rgb)
+        #set axis limits:
+        axHisty.set_xlim=axlims[1]
+        #set axis ticks:
+        axHisty.xaxis.set_major_locator(hist_xLocator)
+        
+        #Use the y-axis limits of the main plot for the x-axis limits of the hist:
+        
+        ##Plot:
+        #plt.scatter(self.mw,self.total_residuals,edgecolors=color,facecolors='none',lw=0.9)
+        
+        ##LImits:
+        #plt.xlim(axlims[0])
+        #plt.ylim(axlims[1])
+        
         #Show
         f1.show()        
         
-        #Initialize historgram:
-        f2=plt.figure()
+    #    #Initialize historgram:
+    #    f2=plt.figure()
+    #    
+    #    #Plot:
+    #    #Want 4x as many bins as main plot y-axis limit units:
+    #    nbins=(axlims[1][1]-axlims[1][0])*4
+    ##Set the number of bins, adn the range to be the x axis limits (same as y axis, ln residuals):
+    #    plt.hist(self.total_residuals,bins=nbins,range=[axlims[1][0],axlims[1][1]],color=rgb)
+    #    #Use the y-axis limits of the main plot for the x-axis limits of the hist:
+#
+#        
+#        #Titles
+#        plt.xlabel('ln Residuals')
+#        plt.ylabel('# of occurences')
+        #
+        #ptitle='Total Residuals'+'\n'+'Mean: '+str(around(self.mean_residual,decimals=2))+' Std Dev: '+str(around(self.std_dev,decimals=2))
+        #plt.title(ptitle)
+        #                        
+        #f2.show()
         
-        #Plot:
-        plt.hist(self.total_residuals,color=rgb)
-        
-        #Titles
-        plt.xlabel('ln Residuals')
-        plt.ylabel('# of occurences')
-        
-        ptitle='Total Residuals'+'\n'+'Mean: '+str(around(self.mean_residual,decimals=2))+' Std Dev: '+str(around(self.std_dev,decimals=2))
-        plt.title(ptitle)
-                                
-        f2.show()
-        
-        return f1,f2
+        return f1 #,f2
              
         
 class event:
@@ -336,7 +388,10 @@ class event:
         self.stlon=stlon
         self.source_i=source_i
         self.receiver_i=receiver_i
-        
+    
+    def add_total_resid(self,total_residuals):
+        self.total_residual=total_residuals
+            
     def add_E_resid(self,E_residual,E_std):
         self.E_residual=E_residual
         self.E_std=E_std
@@ -351,7 +406,7 @@ class station:
     Save all data for one station
     '''
     
-    def __init__(self,sta,stnum,vs30,evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,source_i,receiver_i,E_residual,W_residual):
+    def __init__(self,sta,stnum,vs30,evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,source_i,receiver_i,total_residual,E_residual,W_residual):
         self.sta=sta
         self.stnum=stnum
         self.vs30=vs30
@@ -370,6 +425,7 @@ class station:
         self.stlon=stlon
         self.source_i=source_i
         self.receiver_i=receiver_i
+        self.total_residual=total_residual
         self.E_residual=E_residual
         self.W_residual=W_residual
         
@@ -488,6 +544,7 @@ class residuals:
         sobjs=dread.read_obj_list(station_list_path)
         
         #Initialize the W residual, site term, and path term arrays: 
+        total_residual=[]
         E_residual=[]
         E_std=[]
         W_residual=[]
@@ -514,6 +571,7 @@ class residuals:
                 
                 #If this event is the same as the recording in question, continue:
                 if evnum_i==record_evnum_i:
+                    event_total_residual_i=event.total_residual
                     event_E_i=event.E_residual
                     event_Estd_i=event.E_std
                     event_Wmean_i=event.W_mean
@@ -521,12 +579,14 @@ class residuals:
                     
                     #Save the values that correspond to this recording, which will
                     #be stored in the residuals object:
+                    record_total_residual_i=event_total_residual_i
                     record_E_i=event_E_i
                     record_Estd_i=event_Estd_i
                     record_Wmean_i=event_Wmean_i
                     record_Wstd_i=event_Wstd_i
                     
                     #Append to the event term and std lists for the object:
+                    total_residual.append(record_total_residual_i)
                     E_residual.append(record_E_i)
                     E_std.append(record_Estd_i)
                     W_mean.append(record_Wmean_i)
@@ -575,6 +635,7 @@ class residuals:
                     
             
         #Save new 
+        self.total_residual=total_residual
         self.E_residual=E_residual
         self.E_std=E_std    
         self.W_residual=W_residual

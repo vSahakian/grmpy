@@ -124,7 +124,7 @@ def get_total_res(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     
     #Plot residuals and save plots:
     allresid=cdf.total_residuals(db.mw,total_residuals,mean_residual,std_dev)
-    f1,f2=allresid.plt_resids(run_name,resaxlim)
+    f1=allresid.plt_resids(run_name,resaxlim)
     
     #Figure names:
     f1name=run_dir+'figs/'+run_name+'_total.png'
@@ -136,10 +136,10 @@ def get_total_res(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     #Save:
     f1.savefig(f1name)
     f1.savefig(f1pdf)
-    
-    f2.savefig(f2name)
-    f2.savefig(f2pdf)
-    
+    #
+    #f2.savefig(f2name)
+    #f2.savefig(f2pdf)
+    #
     return db.mw,allresid,mean_residual,std_dev
     
     
@@ -264,6 +264,12 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
         #Make the event object:
         eventi=cdf.event(evnum_i,sta_i,stnum_i,ml_i,mw_i,pga_i,pgv_i,pga_pg_i,r_i,vs30_i,ffdf_i,md_ffdf_i,lat_i,lon_i,depth_i,stlat_i,stlon_i,source_i,receiver_i)
         
+        #Get total residual to store:
+        total_residual=pga_pg_i-d_predicted_i
+        
+        #Add total residual to object:
+        eventi.add_total_resid(total_residual)
+        
         #Compute the event terms:
         evnum_i,evmw_i,E_residual_i,std_dev_i=rcomp.event_residual(eventi,d_predicted_i)
         
@@ -347,7 +353,12 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     
     #Histogram...
     f2=plt.figure()
-    plt.hist(E_residual,color=rgb)
+    #Want 4x as many bins as main plot y-axis limit units:
+    nbins=(axylim[1]-axylim[0])*4
+    #Set the number of bins, adn the range to be the x axis limits (same as y axis, ln residuals):
+    plt.hist(E_residual,bins=nbins,range=[axylim[0],axylim[1]],color=rgb)
+
+    
     plt.xlabel('ln Residuals')
     plt.ylabel('Number of occurences')
             
@@ -435,6 +446,8 @@ def sta_list(home,run_name,dbfile):
         stlon=[]
         source_i=[]
         receiver_i=[]
+        #Total residual:
+        total_residual=[]
         #Event residuals:
         E_residual=[]
         #Within-event residuals:
@@ -467,6 +480,7 @@ def sta_list(home,run_name,dbfile):
                 stlon.append(eventi.stlon[sta_ev_ind])
                 source_i.append(eventi.source_i[sta_ev_ind])
                 receiver_i.append(eventi.receiver_i[sta_ev_ind])
+                total_residual.append(eventi.total_residual[sta_ev_ind])
                 E_residual.append(eventi.E_residual)
                 W_residual.append(eventi.W_residuals[sta_ev_ind])
                 
@@ -492,11 +506,12 @@ def sta_list(home,run_name,dbfile):
         stlon=np.array(stlon)
         source_i=np.array(source_i)
         receiver_i=np.array(receiver_i)
+        total_residual=np.array(total_residual)
         E_residual=np.array(E_residual)
         W_residual=np.array(W_residual)
         
         #Put into a station object...
-        station_i=cdf.station(station_name_i[0],station_num_i,vs30[0],evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,source_i,receiver_i,E_residual,W_residual)
+        station_i=cdf.station(station_name_i[0],station_num_i,vs30[0],evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,source_i,receiver_i,total_residual,E_residual,W_residual)
         
         #Get the site residual:
         station_i.get_site_resid()

@@ -67,7 +67,7 @@ if runall==0:
     print 'Not clobbering, exiting...'
     
 elif runall==1:
-    print 
+    print 'Continuing...'
     
     #Get total residuals and plots:
     tr_mw,tot_resid,mean_tot,std_dev_tot=run_res.get_total_res(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim)
@@ -87,9 +87,6 @@ elif runall==1:
     #Write to an overall residuals plus more object, get path residual...
     allresiduals,pterm_mean,pterm_std=run_res.get_path_resid_make_object(home,run_name,dbpath)
     
-    #Get path term mean...
-    
-    
     #Put this stuff in play res
     ##Read in the Vp and Vs ray info from teh rayfile:
     #vp_path_list,rec_id,src_id=rt.parse_rayfile(rayfile_vp)
@@ -99,4 +96,4 @@ elif runall==1:
     #allresiduals
     
     #Write to file:
-    run_res.write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev.pterm_mean,pterm_std)
+    run_res.write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std)

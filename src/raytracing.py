@@ -328,7 +328,11 @@ def store_rayinfo(home,run_name,rayfile,veltype):
         
         
     #Save the file again...
-    rfile=open(residfile,'w')
+    #Get the new name to add on raydat:
+    rbase=residfile.split('.pckl')
+    residfile_out=rbase[0]+'_raydat.pckl'
+    #Save
+    rfile=open(residfile_out,'w')
     pickle.dump(robj,rfile)
     rfile.close()
 
@@ -364,7 +368,10 @@ def plot_rays(home,run_name,veltype,view,axlims,stations,events,by_path,mymap):
     pdf_dir=fig_dir+'pdfs/'
     
     #Get the residuals object:
-    residfile=run_dir+run_name+'_robj.pckl'
+    residfile_old=run_dir+run_name+'_robj.pckl'
+    #Get the new name to add on raydat:
+    rbase=residfile_old.split('.pckl')
+    residfile=rbase[0]+'_raydat.pckl'
     
     #Load the residuals object:
     rfile=open(residfile,'r')
