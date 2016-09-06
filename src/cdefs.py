@@ -134,14 +134,13 @@ class db:
         
         plt.show()
         
-    def plot_rpga_withmodel(self,bmin,bmax,step,mw,d,rng,sdist,axlims,VR,vref=True,nga_mw=True,nga_pred=True):
+    def plot_rpga_withmodel(self,bmin,bmax,mw,d,rng,sdist,axlims,VR,nga_mw=True,nga_pred=True,vref=True):
         '''
         Plots log10 PGA, for various distance ranges specified by bmin, bmax,
         and step.
         Input:
             bmin:       Min value for bins for data
             bmax:       Max balue for bins for data
-            step:       Step interval for bins for data
             mw:         Mw array from gmpe.compute_model_fixeddist
             d:          d array from compute_model_fixeddist
             rng:        Magnitude ranges, same array used for inversion
@@ -154,43 +153,45 @@ class db:
         '''
         
         from matplotlib import pyplot as plt
+        import matplotlib.colors as colors
+        import matplotlib.cm as cm
         import numpy as np
         
         #Vs30 reference:
         if vref==None:
             vref=760
             
-        #Get bins:
-        bins=np.arange(bmin,bmax,step)
-        #Get the bin index for each recording:
-        dinds=np.digitize(np.floor(self.r),bins)
+        ##Get bins:
+        #bins=np.arange(bmin,bmax,step)
+        ##Get the bin index for each recording:
+        #dinds=np.digitize(np.floor(self.r),bins)
+        #
         
-        #Sort data to plot:
+        #Get colormap
+        mymap='jet'
+        #Make colormap:
+        colormap_radius=plt.get_cmap(mymap)
+        #Make a normalized colorscale
+        cNorm=colors.Normalize(vmin=bmin, vmax=bmax)
+        #Apply normalization to colormap:
+        scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap_radius)
+        
+        #Make a fake contour plot for the colorbar:
+        Z=[[0,0],[0,0]]
+        levels=np.arange(bmin,bmax,0.01)
+        c=plt.contourf(Z, levels, cmap=colormap_radius)
         
         #Open figure
         f=plt.figure()
         
-        #Define color scale -
-        #colormap needs floats that go from 0 to 1, so bins must be normalized.
-        #bins is not a float though, and in order to divide by the scalar it 
-        #must first be converted to a float. 
-        colors=plt.cm.rainbow(bins.astype(float)/bins.max())
-        #FIGURE OUT THE COLORBAR PROBLEM!!
-        #f.colorbar(colors)
+        #get colorvalue to plot
+        colorVal=scalarMap.to_rgba(self.r)
         
-        #Plot a different color for each distance bin:
-        for i in bins:
-            #Find which data points are in this bin:
-            bind=np.where(dinds==i+1)[0]
-            #Make an array of size len(bind),4 for the colors, so that these can
-            #be plotted in scatter as x,y,z (mw, pga, color).  In this bin, all
-            #the colors should be the same, so tile the color for this bin i and 
-            #multiply it by an array of ones. (maybe I don't even need to do this?)
-            ###
-            #Valerie, a few weeks later that descriptoin above is incomprehensible...wtf were you thinking...
-            clrs=np.ones((len(bind),4))*np.tile(colors[i,:],(len(bind),1))
-            #plot
-            f=plt.scatter(self.mw[bind],np.log10(self.pga_pg[bind]),edgecolors=clrs,facecolors='none',lw=0.5)
+        plt.scatter(self.mw,np.log10(self.pga_pg),edgecolors=colorVal,facecolors='none',lw=0.5)
+        
+        #Add colorbar:
+        cb=plt.colorbar(c)
+        cb.set_label('Distance (km)')
 
         #Label the plot - Mbold on the x, log10PGA on the y, 
         plt.xlabel(r"$\mathbf{M}$")
@@ -208,14 +209,23 @@ class db:
             d_dist=d[:,j]
             
             #Plot
-            f=plt.plot(mw_dist,d_dist,color=colors_gmpe[j],label=lab)
+            plt.plot(mw_dist,d_dist,color=colors_gmpe[j],linewidth=2,label=lab)
             
+        ##Plot dummy object
+        #xdumdum=array([1e99,1e99])
+        #ydumdum=array([1e99,1e99])
+        #zdumdum=array([1e99,1e99])
+        #dummy=plt.scatter(xdumdum,ydumdum,c=zdumdum,cmap=colors)
+        #print colors
+        #plt.colorbar(colors)
+        
         #Limits:
         xlims=axlims[0]
         ylims=axlims[1]
         plt.xlim(xlims)
         plt.ylim(ylims)
         
+
         
         #If NGA data are not provided, end and return the figure.
         if nga_mw==None and nga_pred==None:
@@ -226,10 +236,13 @@ class db:
             return f
         #Otherwise, plot the NGA data:
         else:
-            plt.plot(nga_mw,nga_pred,linestyle='--',color='b',label='ASK2014')
+            plt.plot(nga_mw,nga_pred,linestyle='--',linewidth=2,color='b',label='ASK2014')
             
             #Add legend:
-            plt.legend(loc=4)            
+            plt.legend(loc=4)  
+            
+            plt.show(f)
+            return f          
             
         
         
@@ -660,7 +673,7 @@ class residuals:
         self.vs_lon=ray_lon
                 
     #######
-    def plot_raypaths(self,veltype,view,axlims,stations,events,by_path,mymap):
+    def plot_raypaths(self,veltype,view,axlims,stations,events,by_path,mymap,faultfile):
         '''
         Plot the path terms
         Input:
@@ -671,6 +684,7 @@ class residuals:
             events:                  Plot events on figure?  no=0, yes=1             
             by_path:                 Color black/by path term (0/1) 
             mymap:                   String with python colormap (i.e. 'jet')
+            faultfile:               String to path of the pckl file with fault segments
         '''
     
         
@@ -680,6 +694,10 @@ class residuals:
         from matplotlib.collections import LineCollection
         import matplotlib.colors as colors
         import matplotlib.cm as cm
+        import dread
+        
+        #Read fault file and store data - list of arrays, with each array being a segment of the fault (lon, lat):
+        fault_segments=dread.read_obj_list(faultfile)
         
         #Which velocity data is being plotted, Vp or Vs?
         #Depending on what it is, specify the depth, lat and lon separately
@@ -805,6 +823,8 @@ class residuals:
         #Set axis format:
         x_formatter=ticker.ScalarFormatter(useOffset=False)
         
+        #Plot the dem
+        
         #Plot the raypaths 
         for path_i in range(len(depth)):
             #Assign color to path term:
@@ -818,6 +838,7 @@ class residuals:
         #Add colorbar:
         cb=plt.colorbar(c)
         cb.set_label('Path term (ln residual)')
+            
         
         #If stations are to be plotted:    
         if stations==1:
@@ -830,8 +851,18 @@ class residuals:
             #Hold on
             #plt.hold(True)
             #Scatter events:
-            plt.scatter(evx,evy,color='g',s=20,zorder=len(self.mw)+7)
+            plt.scatter(evx,evy,edgecolors='g',facecolors='none',s=15,linewidths=2,zorder=len(self.mw)+7)
             
+        #Plot faults, if it's map view:
+        if view==0:
+            for segment_i in range(len(fault_segments)):
+                fault=fault_segments[segment_i]
+                plt.plot(fault[:,0],fault[:,1],color='k',zorder=len(self.mw)+9)
+            
+                #Axis limits:
+                plt.xlim(axlims[0])
+                plt.ylim(axlims[1])
+        
         #Axis labels, etc.:
         plt.xlabel(xlab)
         plt.ylabel(ylab)
@@ -865,7 +896,6 @@ class residuals:
         import matplotlib.pyplot as plt
         from matplotlib import ticker
         from numpy import zeros,unique,where,array,mean,std,c_,arange
-        from matplotlib.collections import LineCollection
         import matplotlib.colors as colors
         import matplotlib.cm as cm
         

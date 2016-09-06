@@ -208,11 +208,11 @@ def jb_ascii_read(flatfile):
 
 
 
-def read_obj_list(obj):
+def read_obj_list(objfile):
     '''
     Read a pickle file with a list of event of station objects
     Input:
-        obj:        String with path to the pickle file containing the list of objects
+        objfile:        String with path to the pickle file containing the list of objects
     Output:
         obj_list:   List with event or station objects in it
     '''
@@ -220,7 +220,7 @@ def read_obj_list(obj):
     import cPickle as pickle
     
     #Open the file
-    obj=open(obj,'r')
+    obj=open(objfile,'r')
     
     #Zero out a list to add the event objects to:
     obj_list=[]
@@ -232,7 +232,7 @@ def read_obj_list(obj):
             obji=pickle.load(obj)
             obj_list.append(obji)
         except EOFError:
-            print ('File read complete')
+            print ('File read complete - '+objfile)
             readfile=False
             obj.close()
         
@@ -328,3 +328,237 @@ def db_station_sample(dbpath_in,numstas,dbpath_out):
     pickle.dump(db_samp,doutfile)
     doutfile.close()
     
+    
+def multiseg2pckl(multisegpath,pcklpath,pathlimits):
+    '''
+    VJS 9/2016
+    Convert a GMT multisegment file to a pckl file to be plotted in python
+    Input:
+        multisegpath:       String with the path to the input multisegment file
+        pcklpath:           String with the path to the output pckl file; List 
+                            of arrays, each with a segment to scatter or plot
+                            Output to pcklpath.
+        pathlimits:         [[lonmin,lonmax],[latmin,latmax], same as
+                            [[xmin,xmax],[ymin,ymax]] 
+    Output:
+        allsegments         List of arrays, each with two columns (lon, lat)
+    '''
+    
+    from numpy import zeros,array,where
+    import matplotlib.path as mplPath
+    import cPickle as pickle
+    
+    #Get the corner coordinates out of pathlimits: first lonmin/max, latmin/max:
+    lonmin=pathlimits[0][0]
+    lonmax=pathlimits[0][1]
+    latmin=pathlimits[1][0]
+    latmax=pathlimits[1][1]
+    
+    #Now the actual corners:
+    bottom_left=[lonmin,latmin]
+    bottom_right=[lonmax,latmin]
+    top_right=[lonmax,latmax]
+    top_left=[lonmin,latmax]
+    
+    #Define the path bounds - for a squre, it's 5 points:
+    path_coordinates=array([bottom_left,bottom_right,top_right,top_left,bottom_left])
+    #Define the regionpath with the mplPath command:
+    region_path=mplPath.Path(path_coordinates)
+    
+    #First count the number of segments and the number of elements in each segment
+    Nsegments=0
+    Num_elements=[]
+    f=open(multisegpath,'r')
+    first_line=True
+    while True:
+        line=f.readline()
+        if '>' in line:
+            if first_line==False: #Append previous count
+                Num_elements.append(Numel)
+            first_line=False
+            Nsegments+=1
+            Numel=0
+        else:
+            Numel+=1
+        if line=='': #End of file
+            Num_elements.append(Numel-1)
+            break
+    f.close()
+            
+    #Now loop over segments and make an arra per segment adn append to list of arrays
+    all_segments=[]    
+    f=open(multisegpath,'r')
+    
+    for ksegment in range(Nsegments):
+        
+        #First line in the segmetn is the stupid carrot
+        line=f.readline()
+        
+        #Now read the next Num_elements[ksegment] lines
+        lonlat=zeros((Num_elements[ksegment],2))
+        for kelement in range(Num_elements[ksegment]):
+            line=f.readline()
+            lonlat[kelement,0]=float(line.split()[0])
+            lonlat[kelement,1]=float(line.split()[1])
+            
+        
+        #Before appending this segment to the list, check if any points along 
+        #the segment are in the path
+        
+        #Are any points of this segment in the path defined above?
+        points_logical=where(region_path.contains_points(lonlat)==True)[0]
+        
+        #If any points along htis segment are contained:
+        if len(points_logical>0):  
+            #Done, append to list
+            all_segments.append(lonlat)
+    
+    f.close()
+    
+    #Write to the pickle file:
+    fout=open(pcklpath,'w')
+    for segment_i in range(len(all_segments)):
+        pickle.dump(all_segments[segment_i],fout)
+    fout.close()
+    
+    return all_segments
+                
+    
+    
+#def multiseg2pckl(multisegpath,pcklpath):
+#    '''
+#    VJS 9/2016
+#    Convert a GMT multisegment file to a pckl file to be plotted in python
+#    Input:
+#        multisegpath:       String with the path to the input multisegment file
+#        pcklpath:           String with the path to the output pckl file
+#    Output:
+#        pcklfile:           List of arrays, each with a segment to scatter or plot
+#                            Output to pcklpath
+#    '''
+#    
+#    from numpy import array,r_,c_
+#    import matplotlib.path as mplPath
+#    
+#    #Open file:
+#    f=open(multisegpath,'r')
+#    
+#    #Initialize list:
+#    segment_list=[]
+#    
+#    #Initiate counter:
+#    counter=0
+#    
+#    #Loop over and read line by line:
+#    while True:
+#        
+#        #read the line:
+#        line=f.readline()
+#        
+#        #If it's the first line, counter will be 0, and the line will have a carrot:
+#        if counter==0:
+#            
+#            #Initialize the lon and lat arrays:  
+#            lon=array([])
+#            lat=array([])   
+#                        
+#            #Now read the next line, and start appending:
+#            line=f.readline()
+#            #Read in lon and lat:
+#            lon_i=float(line.split()[0])
+#            lat_i=float(line.split()[1])
+#            
+#            #Add to counter...
+#            counter+=1
+#            
+#            #And append lon_i and lat_i to lon and lat - but it's the first entry,
+#            #so make them equal to lon and lat:
+#            lon=lon_i
+#            lat=lat_i
+#        
+#        #If it's not the first line:
+#        else:
+#            
+#            #Then it's either the end of the file:
+#            if line=='':
+#                #So append lon and lat together into the segment_coord:
+#                segment_coord=c_[lon,lat]
+#                segment_list.append(segment_coord)
+#                
+#                #And exit:
+#                break
+#            
+#            #Or "line" is another coordinate in the same segment:
+#            elif '>' not in line:
+#            
+#                #Read in lon and lat:
+#                lon_i=float(line.split()[0])
+#                lat_i=float(line.split()[1])
+#                
+#                #append them to lon and lat:
+#                lon=r_[lon,lon_i]
+#                lat=r_[lat,lat_i]
+#            
+#            #Or it's the beginning of a new segment:    
+#            elif '>' in line:
+#                #Append the last segment lon and lats together and into segment_coord:
+#                segment_coord=c_[lon,lat]
+#                segment_list.append(segment_coord)
+#                
+#                #Re-initialize lon_i and lat_i, lon and lat:
+#                lon=array([])
+#                lat=array([])
+#                
+#                #Let it return to the top...
+#                
+#                
+#        
+#        ##If it's the end of the file, break; otherwise, keep goign:
+#        #if line=='':
+#        #    break
+#        #else:
+#        #    #Initialize array to read into:
+#        #    lon=array([])
+#        #    lat=array([])
+#        #    
+#        #    #If it's a carrot, skip the carrot line and have "line" be the next line:
+#        #    if '>' in line:
+#        #        line=f.readline()
+#        #        
+#        #        while True:
+#        #            #Read that line as numbers - first split the columns:
+#        #            lon_i=float(line.split()[0])
+#        #            lat_i=float(line.split()[1])
+#        #            
+#        #            #If this is hte first entry of array, make the arrays equal this value:
+#        #            if len(lon)==0:
+#        #                lon=lon_i
+#        #                lat=lat_i
+#        #            #Otherwise, append these values to the lon and lat arrays:
+#        #            else:
+#        #                lon=r_[lon,lon_i]
+#        #                lat=r_[lat,lat_i]
+#        #               
+#        #            #Once that line has been assigned, read the next one:     
+#        #            line=f.readline()
+#        #            
+#        #            #If the next one is a carrot, it's the end of this segment,
+#        #            #so break:
+#        #            if '>' in line:
+#        #                break
+#        #        
+#        #        #If it broke, it's the end of a segment, so append to lat and lon
+#        #        #to the array segment_coord, the array for this segment:
+#        #        segment_coord=c_[lon,lat]
+#        #        
+#        #        #And then append this array to the list:
+#        #        segment_list.append(segment_coord)
+                    
+
+                    
+                    
+                    
+            
+                
+                
+            

@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 #0=desktop
 #1=mac
 
-what_home=0
+what_home=1
 
 if what_home==0:
     #Desktop:
@@ -30,6 +30,7 @@ home=HOME+'/anza/models/residuals/'
 run_name='abdb_5sta_0-6.5_VR'
 dbpath=HOME+'/anza/data/abdb_5sta.pckl'
 modelpath=HOME+'/anza/models/pckl/regr_0.0_6.5_VR_98.9.pckl'
+faultfile=HOME+'/anza/data/faults/Holocene_LatestPleistocene_117.5w_115.5w_33n_34n.txt'
 
 ########################
 ####Set up Raytracing###
@@ -55,12 +56,25 @@ modelpath=HOME+'/anza/models/pckl/regr_0.0_6.5_VR_98.9.pckl'
 ###Store ray files###
 #####################
 
+#Get the "in" and "out" residual object file names:
+#"In" is the original residuals object:
+
+#Get the run directory:
+run_dir=path.expanduser(home+run_name+'/')
+#Get the residuals object:
+residfile_in=run_dir+run_name+'_robj.pckl'
+
+#"Out" is the _raydat.pckl object - also serves as the "in" for the second:
+rbase=residfile_in.split('.pckl')
+residfile_out=rbase[0]+'_raydat.pckl'
+
+
 #For vp:
 rayfile=HOME+'/anza/data/vm/fulltest_Vp/rays.dat'
 veltype=1
 
 #Read in:
-rt.store_rayinfo(home,run_name,rayfile,veltype)
+rt.store_rayinfo(residfile_in,residfile_out,rayfile,veltype)
 
 #####
 
@@ -69,13 +83,19 @@ rayfile=HOME+'/anza/data/vm/fulltest_Vs/rays.dat'
 veltype=2
 
 #Read in:
-rt.store_rayinfo(home,run_name,rayfile,veltype)
+rt.store_rayinfo(residfile_out,residfile_out,rayfile,veltype)
 
-###
-#Plot rays:
-#Vp:
+
+
+###############
+###Plot rays###
+###############
+
+
+#Vp and Vs:
 veltype=[1,2]
-#map:
+
+#map, and cross sections:
 view=[0,1,2]
 axlims=[[-116.9,-116.35],[33.3,33.75]]
 stations=1
@@ -88,6 +108,6 @@ mymap='jet'
 #Plot in a loop
 for vel_i in range(len(veltype)):
     for view_i in range(len(view)):
-        rt.plot_rays(home,run_name,veltype[vel_i],view[view_i],axlims,stations,events,by_path,mymap)
+        rt.plot_rays(home,run_name,veltype[vel_i],view[view_i],axlims,stations,events,by_path,mymap,faultfile)
         plt.close()
         plt.close()

@@ -263,13 +263,13 @@ def parse_rayfile(rayfile):
 #######
 #Function to extract rayfile info, sort, convert to depth/lat/lon, and store
 #in a residuals object
-def store_rayinfo(home,run_name,rayfile,veltype):
+def store_rayinfo(rfile_in,rfile_out,rayfile,veltype):
     '''
     Extract rayfile info, sort, convert to depth/lat/lon, and store into
     the residuals object
     Input:
-        home:           String with the home location (i.e., anza dir)
-        run_name:       String with database and model combo
+        rfile_in:       String with input residual object location
+        frile_out:      String with output residual object location
         rayfile:        String with the path to the rayfile
         veltype:        Velocity type Vp=1, Vs=2
     Output:
@@ -280,14 +280,8 @@ def store_rayinfo(home,run_name,rayfile,veltype):
     import cPickle as pickle
     from numpy import where,append,degrees
     
-    #Get the run directory:
-    run_dir=path.expanduser(home+run_name+'/')
-    
-    #Get the residuals object:
-    residfile=run_dir+run_name+'_robj.pckl'
-    
     #Load the residuals object:
-    rfile=open(residfile,'r')
+    rfile=open(rfile_in,'r')
     robj=pickle.load(rfile)
     rfile.close()
     
@@ -328,17 +322,13 @@ def store_rayinfo(home,run_name,rayfile,veltype):
         
         
     #Save the file again...
-    #Get the new name to add on raydat:
-    rbase=residfile.split('.pckl')
-    residfile_out=rbase[0]+'_raydat.pckl'
-    #Save
-    rfile=open(residfile_out,'w')
+    rfile=open(rfile_out,'w')
     pickle.dump(robj,rfile)
     rfile.close()
 
     
 ##############    
-def plot_rays(home,run_name,veltype,view,axlims,stations,events,by_path,mymap):
+def plot_rays(home,run_name,veltype,view,axlims,stations,events,by_path,mymap,faultfile):
     '''
     Plot the raypaths and save the png and pdf figures
     VJS 8/2016
@@ -352,6 +342,7 @@ def plot_rays(home,run_name,veltype,view,axlims,stations,events,by_path,mymap):
         events:         Plot events?  no/yes = 0/1
         by_path:        Color raypaths by path?  no/yes=0/1
         mymap:          String with the python colormap to use
+        faultfile:      String to the path of the pckl file with faults to plot
         cutoff_val:     Value above/below which to color raypath; otherwise the path is gray (plots if abs(path_term)>=cutoff_val)
     Output: 
         figure          Prints a png and pdf version of the figure to the run fig directory
@@ -378,7 +369,7 @@ def plot_rays(home,run_name,veltype,view,axlims,stations,events,by_path,mymap):
     robj=pickle.load(rfile)
     rfile.close()
     
-    figure=robj.plot_raypaths(veltype,view,axlims,stations,events,by_path,mymap)
+    figure=robj.plot_raypaths(veltype,view,axlims,stations,events,by_path,mymap,faultfile)
     
     #Save the figures:
     #Get the figure name:
