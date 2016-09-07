@@ -343,7 +343,6 @@ def plot_rays(home,run_name,veltype,view,axlims,stations,events,by_path,mymap,fa
         by_path:        Color raypaths by path?  no/yes=0/1
         mymap:          String with the python colormap to use
         faultfile:      String to the path of the pckl file with faults to plot
-        cutoff_val:     Value above/below which to color raypath; otherwise the path is gray (plots if abs(path_term)>=cutoff_val)
     Output: 
         figure          Prints a png and pdf version of the figure to the run fig directory
     '''
@@ -374,7 +373,61 @@ def plot_rays(home,run_name,veltype,view,axlims,stations,events,by_path,mymap,fa
     #Save the figures:
     #Get the figure name:
     pngfile=fig_dir+run_name+'_vtype'+str(veltype)+'_view'+str(view)+'_sta'+str(stations)+'_ev'+str(events)+'.png'
-    pdffile=pdf_dir+run_name+'_vtype'+str(veltype)+'_view'+str(view)+'_sta'+str(stations)+'_ev'+str(events)+'.png'
+    pdffile=pdf_dir+run_name+'_vtype'+str(veltype)+'_view'+str(view)+'_sta'+str(stations)+'_ev'+str(events)+'.pdf'
+    #Save png:
+    figure.savefig(pngfile)
+    #save pdf:
+    figure.savefig(pdffile)
+    
+    
+######
+def plot_rays_cutoffval(home,run_name,veltype,view,axlims,stations,events,mymap,faultfile,cutoff_val):
+    '''
+    Plot the raypaths and save the png and pdf figures
+    VJS 8/2016
+    Input:
+        home:           String with the home directory for the project
+        run_name:       String with the run name combo of db and model
+        veltype:        Vp/Vs (1/2)
+        view:           Plot view; map/lat vs depth/lon vs depth, 0/1/2
+        axlims:         Axis limits [[xmin, xmax],[ymin,ymax]]
+        stations:       Plot stations?  no/yes = 0/1
+        events:         Plot events?  no/yes = 0/1
+        by_path:        Color raypaths by path?  no/yes=0/1
+        mymap:          String with the python colormap to use
+        faultfile:      String to the path of the pckl file with faults to plot
+        cutoff_val:     Value above/below which to color raypath; otherwise the path is gray (plots if abs(path_term)>=cutoff_val)
+    Output: 
+        figure          Prints a png and pdf version of the figure to the run fig directory
+    '''
+    
+    from os import path
+    import cPickle as pickle
+    
+    #Get the run directory:
+    run_dir=path.expanduser(home+run_name+'/')
+    
+    #And the figure directories:
+    fig_dir=run_dir+'figs/'
+    pdf_dir=fig_dir+'pdfs/'
+    
+    #Get the residuals object:
+    residfile_old=run_dir+run_name+'_robj.pckl'
+    #Get the new name to add on raydat:
+    rbase=residfile_old.split('.pckl')
+    residfile=rbase[0]+'_raydat.pckl'
+    
+    #Load the residuals object:
+    rfile=open(residfile,'r')
+    robj=pickle.load(rfile)
+    rfile.close()
+    
+    figure=robj.plot_raypaths_cutoffval(veltype,view,axlims,stations,events,mymap,faultfile,cutoff_val)
+    
+    #Save the figures:
+    #Get the figure name:
+    pngfile=fig_dir+run_name+'_vtype'+str(veltype)+'_view'+str(view)+'_sta'+str(stations)+'_ev'+str(events)+'_cval'+str(cutoff_val)+'.png'
+    pdffile=pdf_dir+run_name+'_vtype'+str(veltype)+'_view'+str(view)+'_sta'+str(stations)+'_ev'+str(events)+'_cval'+str(cutoff_val)+'.pdf'
     #Save png:
     figure.savefig(pngfile)
     #save pdf:

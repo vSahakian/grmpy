@@ -775,7 +775,7 @@ def plot_site_WE(home,run_name,resaxlim):
     
 
 #######
-def get_path_resid_make_object(home,run_name,dbpath):
+def get_path_resid_make_object(home,run_name,dbpath,axlims,axlims_dist):
     '''
     Get the path term, meanwhile make an all residuals object
     VJS 8/2016
@@ -783,8 +783,14 @@ def get_path_resid_make_object(home,run_name,dbpath):
         home:       Path to the home directory
         run_name:   STring with the run name
         dbpath:     Path to the database being used
+        axlims:     Axis limits for plotting [[xmin,xmax],[ymin,ymax]]
+        axlims_dist: Axis limits for plotting the distance path terms [[xmin,xmax],[ymin,ymax]]
     Output:
+        f_mw:           Figure of path term vs. mw
+        f_dist:         Figure of path term vs. r
         allresiduals:   An object containing all db info, all residuals, and raytracing indices
+        pterm_mean:     Mean of path term
+        pterm_std:      Standard deviation of path term
     '''
     
     from os import path
@@ -798,6 +804,15 @@ def get_path_resid_make_object(home,run_name,dbpath):
     #Neet the directories to the event list, and station list (eo, so):
     eo_dir=run_dir+'event_objs/'
     so_dir=run_dir+'sta_objs/'
+    fig_dir=run_dir+'figs/'
+    pdf_dir=fig_dir+'pdfs/'
+
+    #Figure names:
+    mwfile=fig_dir+run_name+'_pathterms_mw.png'
+    mwpdf=pdf_dir+run_name+'_pathterms_mw.pdf'
+    
+    distfile=fig_dir+run_name+'_pathterms_r.png'
+    distpdf=pdf_dir+run_name+'_pathterms_r.pdf'
 
     #Now get the path for these lists of objects:
     event_list_path=eo_dir+run_name+'.pckl'
@@ -816,8 +831,21 @@ def get_path_resid_make_object(home,run_name,dbpath):
     pterm_mean=mean(allresiduals.path_terms)
     pterm_std=std(allresiduals.path_terms)
     
+    ##Plot:
+    #First by magnitude:
+    f_mw=allresiduals.plot_path_term_mw(run_name,axlims)
+    #save:
+    f_mw.savefig(mwfile)
+    f_mw.savefig(mwpdf)
+    
+    #then by distance:
+    f_dist=allresiduals.plot_path_term_r(run_name,axlims_dist)
+    #save
+    f_dist.savefig(distfile)
+    f_dist.savefig(distpdf)
+    
     #REturn the allr esiduals object:
-    return allresiduals,pterm_mean,pterm_std
+    return f_mw,f_dist,allresiduals,pterm_mean,pterm_std
  
 ######
 def write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std):

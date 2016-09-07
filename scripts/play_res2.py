@@ -56,6 +56,7 @@ rayfile_vs='/Users/vsahakian/anza/data/vm/fulltest_Vs/rays.dat'
 
 ffdf_flag=0
 resaxlim=[[1,4],[-4,4]]
+resaxlim_dist=[[0,22],[-4,4]]
 
 #Initialize runall as being 1, in case the directory is new:
 runall=1
@@ -85,7 +86,7 @@ elif runall==1:
     run_res.plot_site_WE(home,run_name,resaxlim)
     
     #Write to an overall residuals plus more object, get path residual...
-    allresiduals,pterm_mean,pterm_std=run_res.get_path_resid_make_object(home,run_name,dbpath)
+    f_mw,f_dist,allresiduals,pterm_mean,pterm_std=run_res.get_path_resid_make_object(home,run_name,dbpath,resaxlim,resaxlim_dist)
     
     #Put this stuff in play res
     ##Read in the Vp and Vs ray info from teh rayfile:

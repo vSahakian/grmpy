@@ -644,6 +644,168 @@ class residuals:
         self.site_terms=site_terms
         self.path_terms=path_terms
         
+    
+##########
+    def plot_path_term_mw(self,run_name,axlims):
+        '''
+        VJS 9/2016
+        Plot the path terms vs. Mw
+        Input:  
+            run_name:           String with the database/inversion combo run name
+            axlims:             Axis limits [[xmin,xmax],[ymin,ymax]]
+        Output:
+            fig1:               Figure with path terms 
+        '''
+        
+        from matplotlib import pyplot as plt
+        from matplotlib.ticker import MultipleLocator
+        from numpy import str,array,ones,around,mean,std
+        
+        #Stats:
+        mean_pterm=mean(self.path_terms)
+        std_pterm=std(self.path_terms)
+        
+        #Color:
+        rgb=array([111,168,163])/255.0
+        rgb.astype(float)
+        color=rgb*ones((len(self.mw),3))
+        
+        #definitions for axes
+        fudge_factor=0.02
+        left, width=0.1, 0.70
+        bottom, height=0.1,0.81
+        left_h=left+width+fudge_factor
+        width_h=0.15
+        
+        #define axis limits for scatter, and histogram:
+        rect_scatter=[left,bottom,width,height]
+        rect_histy=[left_h,bottom,width_h,height]
+        
+        #define axis tick locations for histogram:
+        hist_xLocator=MultipleLocator(500) 
+        
+        #Start figure:
+        f1=plt.figure()
+        
+        #define axes:
+        axScatter=plt.axes(rect_scatter)
+        axHisty=plt.axes(rect_histy)
+        
+        #Scatter:
+        axScatter.scatter(self.mw,self.path_terms,edgecolors=color,facecolors='none',lw=0.9)
+        
+        #Histogram:
+        #want 4x as many bins as main plot y-axis limit units:
+        nbins=(axlims[1][1]-axlims[1][0])*4
+        
+        #set the number of bins, adn the range to be the x axis limits (same as y axis, ln residuals):
+        axHisty.hist(self.path_terms,bins=nbins,range=[axlims[1][0],axlims[1][1]],orientation='horizontal',color=rgb)
+        
+        #Also plot a dashed line at 0:
+        axScatter.plot(axlims[0],[0,0],linestyle='--',color='0.75')
+        
+        #set axis limits:
+        #scatter
+        axScatter.set_xlim(axlims[0])
+        axScatter.set_ylim(axlims[1])
+        #histogram
+        axHisty.set_ylim(axlims[1])
+        #set axis ticks:
+        axHisty.xaxis.set_major_locator(hist_xLocator)
+        #set no labels on the y axis:
+        axHisty.yaxis.set_ticklabels('')
+        
+        #Labels
+        axScatter.set_xlabel(r"$\mathbf{M}$")
+        axScatter.set_ylabel('ln Residuals')
+        axScatter.set_title('Path Terms for run '+run_name+'\n'+'Mean: '+str(around(mean_pterm,decimals=2))+' Std Dev: '+str(around(std_pterm,decimals=2)))
+
+        #Show
+        f1.show()        
+        
+        return f1
+
+##########
+    def plot_path_term_r(self,run_name,axlims):
+        '''
+        VJS 9/2016
+        Plot the path terms vs. distances
+        Input:  
+            run_name:           String with the database/inversion combo run name
+            axlims:             Axis limits [[xmin,xmax],[ymin,ymax]]
+        Output:
+            fig1:               Figure with path terms 
+        '''
+        
+        from matplotlib import pyplot as plt
+        from matplotlib.ticker import MultipleLocator
+        from numpy import str,array,ones,around,mean,std
+        
+        #Stats:
+        mean_pterm=mean(self.path_terms)
+        std_pterm=std(self.path_terms)
+        
+        #Color:
+        rgb=array([111,168,163])/255.0
+        rgb.astype(float)
+        color=rgb*ones((len(self.r),3))
+        
+        #definitions for axes
+        fudge_factor=0.02
+        left, width=0.1, 0.70
+        bottom, height=0.1,0.81
+        left_h=left+width+fudge_factor
+        width_h=0.15
+        
+        #define axis limits for scatter, and histogram:
+        rect_scatter=[left,bottom,width,height]
+        rect_histy=[left_h,bottom,width_h,height]
+        
+        #define axis tick locations for histogram:
+        hist_xLocator=MultipleLocator(500) 
+        
+        #Start figure:
+        f1=plt.figure()
+        
+        #define axes:
+        axScatter=plt.axes(rect_scatter)
+        axHisty=plt.axes(rect_histy)
+        
+        #Scatter:
+        axScatter.scatter(self.r,self.path_terms,edgecolors=color,facecolors='none',lw=0.9)
+        
+        #Histogram:
+        #want 4x as many bins as main plot y-axis limit units:
+        nbins=(axlims[1][1]-axlims[1][0])*4
+        
+        #set the number of bins, adn the range to be the x axis limits (same as y axis, ln residuals):
+        axHisty.hist(self.path_terms,bins=nbins,range=[axlims[1][0],axlims[1][1]],orientation='horizontal',color=rgb)
+        
+        #Also plot a dashed line at 0:
+        axScatter.plot(axlims[0],[0,0],linestyle='--',color='0.75')
+        
+        #set axis limits:
+        #scatter
+        axScatter.set_xlim(axlims[0])
+        axScatter.set_ylim(axlims[1])
+        #histogram
+        axHisty.set_ylim(axlims[1])
+        #set axis ticks:
+        axHisty.xaxis.set_major_locator(hist_xLocator)
+        #set no labels on the y axis:
+        axHisty.yaxis.set_ticklabels('')
+        
+        #Labels
+        axScatter.set_xlabel('Distance (km)')
+        axScatter.set_ylabel('ln Residuals')
+        axScatter.set_title('Path Terms for run '+run_name+'\n'+'Mean: '+str(around(mean_pterm,decimals=2))+' Std Dev: '+str(around(std_pterm,decimals=2)))
+
+        #Show
+        f1.show()        
+        
+        return f1
+            
+    
     ######
     def add_vp_paths(self,ray_depth,ray_lat,ray_lon):
         '''
@@ -879,7 +1041,7 @@ class residuals:
         
         return figure
         
-    def plot_raypaths_cutoffval(self,veltype,view,axlims,stations,events,mymap,cutoff_val):
+    def plot_raypaths_cutoffval(self,veltype,view,axlims,stations,events,mymap,faultfile,cutoff_val):
         '''
         Plot the path terms above a certain cutoff value.  Plot the rest as gray.
         Input:
@@ -889,15 +1051,20 @@ class residuals:
             stations:                Plot stations on figure? no=0, yes=1
             events:                  Plot events on figure?  no=0, yes=1 
             mymap:                   String with python colormap (i.e. 'jet')
+            fautlfile:               String to path of the pckl file with fault segments
             cutoff_val:              Cutoff value to plot (i.e., only plot path term if abs(path term) >= cutoff_val) 
         '''
     
         
         import matplotlib.pyplot as plt
         from matplotlib import ticker
-        from numpy import zeros,unique,where,array,mean,std,c_,arange
+        from numpy import zeros,unique,where,array,std,arange
         import matplotlib.colors as colors
         import matplotlib.cm as cm
+        import dread
+        
+        #Read fault file and store data - list of arrays, with each array being a segment of the fault (lon, lat):
+        fault_segments=dread.read_obj_list(faultfile)
         
         #Which velocity data is being plotted, Vp or Vs?
         #Depending on what it is, specify the depth, lat and lon separately
@@ -919,7 +1086,6 @@ class residuals:
         
         #Get color for plotting:
         #Get mean and std of dataset:
-        mean_pterm=mean(self.path_terms)
         std_pterm=std(self.path_terms)
         #Set hte colorscale to cover 97% of the data:
         cmin=-3*std_pterm
@@ -1065,7 +1231,17 @@ class residuals:
             #Hold on
             #plt.hold(True)
             #Scatter events:
-            plt.scatter(evx,evy,color='g',s=20,zorder=len(self.mw)+7)
+            plt.scatter(evx,evy,edgecolors='g',facecolors='none',s=15,linewidths=2,zorder=len(self.mw)+7)
+            
+        #Plot faults, if it's map view:
+        if view==0:
+            for segment_i in range(len(fault_segments)):
+                fault=fault_segments[segment_i]
+                plt.plot(fault[:,0],fault[:,1],color='k',zorder=len(self.mw)+9)
+            
+                #Axis limits:
+                plt.xlim(axlims[0])
+                plt.ylim(axlims[1])
             
         #Axis labels, etc.:
         plt.xlabel(xlab)
@@ -1082,3 +1258,70 @@ class residuals:
         #Return :
         
         return figure
+        
+        
+    ###############
+    def plot_raypaths_3d(self,veltype,stations,events,mymap):
+        '''
+        Plot the raypaths in 3d
+        VJS 9/2016
+        '''
+        
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.mplot3d import Axes3D
+        from matplotlib import ticker
+        from numpy import zeros,unique,where,array,std,arange
+        import matplotlib.colors as colors
+        import matplotlib.cm as cm
+        import dread
+        
+        #Get data to plot based on specified velocity type:
+        if veltype==1:
+            #Then it's vp
+            ray_x=self.vp_lon
+            ray_y=self.vp_lat
+            ray_z=self.vp_depth
+        elif veltype==2:
+            ray_x=self.vs_lon
+            ray_y=self.vs_lat
+            ray_z=self.vs_depth
+        
+        ##Plot:
+        #get min and max for colormap:
+        cmin=-3*std(self.path_terms)
+        cmax=3*std(self.path_terms)
+        
+        #Get colormap
+        #Make colormap:
+        colormap_pterm=plt.get_cmap(mymap)
+        #Make a normalized colorscale
+        cNorm=colors.Normalize(vmin=cmin, vmax=cmax)
+        #Apply normalization to colormap:
+        scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap_pterm)
+        
+        #Make a fake contour plot for the colorbar:
+        Z=[[0,0],[0,0]]
+        levels=arange(cmin,cmax,0.01)
+        c=plt.contourf(Z, levels, cmap=colormap_pterm)
+        
+        #Initiate figure
+        f3d=plt.figure()
+        
+        #and axes with projection:
+        ax=f3d.gca(projection='3d')
+        
+        #Plot raypaths in 3d:
+        for ray_i in range(len(ray_x)):
+            x_i=ray_x[ray_i]
+            y_i=ray_y[ray_i]
+            z_i=-1*ray_z[ray_i]
+                
+            #get color to plot:
+            colorVal=scalarMap.to_rgba(self.path_terms[ray_i])
+            
+            ax.plot(x_i,y_i,z_i,color=colorVal)
+        
+        #Add colorbar:
+        cb=plt.colorbar(c)
+        cb.set_label('Path term (ln residual)')
+        
