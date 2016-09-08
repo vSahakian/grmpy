@@ -432,3 +432,44 @@ def plot_rays_cutoffval(home,run_name,veltype,view,axlims,stations,events,mymap,
     figure.savefig(pngfile)
     #save pdf:
     figure.savefig(pdffile)
+    
+    
+#######
+def plot_3d_raypaths(home,run_name,vtype,stations,events,axlims,colormap,faultfile):
+    '''
+    Plot the 3d raypaths for a given object
+    Input:
+        home:           String with the path to the project home
+        run_name:       String with the database/model combination
+        vtype:          Velocity type to plot: 1/2 = Vp/Vs
+        stations:       Plot stations?  0/1=no/yes
+        events:         Plot events?    0/1=no/yes
+        axlims:         Axis limits: [[xmin,xmax],[ymin,ymax],[zmin,zmax]]
+        colormap:       STring with colormap to plot, i.e. 'jet'
+        faultfile:      String with path to the faults stored in a pckl file
+    Output:
+        figure3d:       Figure in 3d
+    '''
+    
+    from os import path
+    import cPickle as pickle
+    import matplotlib.pyplot as plt
+    
+    #Get the run directory:
+    run_dir=path.expanduser(home+run_name+'/')
+    
+    #Residuals file with raypaths:
+    residpath=run_dir+run_name+'_robj_raydat.pckl'
+
+    #Open the object:
+    rfile=open(residpath,'r')
+    robj=pickle.load(rfile)
+    rfile.close()
+    
+    #plot:
+    figure3d=robj.plot_raypaths_3d(vtype,stations,events,axlims,colormap,faultfile)
+    
+    #return:
+    plt.show(figure3d)
+    
+    return figure3d

@@ -1239,9 +1239,9 @@ class residuals:
                 fault=fault_segments[segment_i]
                 plt.plot(fault[:,0],fault[:,1],color='k',zorder=len(self.mw)+9)
             
-                #Axis limits:
-                plt.xlim(axlims[0])
-                plt.ylim(axlims[1])
+        #Axis limits:
+        plt.xlim(axlims[0])
+        plt.ylim(axlims[1])
             
         #Axis labels, etc.:
         plt.xlabel(xlab)
@@ -1261,10 +1261,19 @@ class residuals:
         
         
     ###############
-    def plot_raypaths_3d(self,veltype,stations,events,mymap):
+    def plot_raypaths_3d(self,veltype,stations,events,axlims,mymap,faultfile):
         '''
         Plot the raypaths in 3d
         VJS 9/2016
+        Input:
+            veltype:        Velocity type (1/2, Vp/Vs)
+            stations:       Plot stations?  0/1 = no/yes
+            events?         Plot events?  0/1 = no/yes
+            axlims:         Axis limits: [[xmin,xmax],[ymin,ymax],[zmin,zmax]]
+            mymap:          STring with the colormap to plot
+            faultfile:      String with path to the faultfile to plot
+        Output:
+            figure:         Figure with 3D raypaths
         '''
         
         import matplotlib.pyplot as plt
@@ -1274,6 +1283,9 @@ class residuals:
         import matplotlib.colors as colors
         import matplotlib.cm as cm
         import dread
+        
+        #Read fault file and store data - list of arrays, with each array being a segment of the fault (lon, lat):
+        fault_segments=dread.read_obj_list(faultfile)
         
         #Get data to plot based on specified velocity type:
         if veltype==1:
@@ -1309,19 +1321,70 @@ class residuals:
         
         #and axes with projection:
         ax=f3d.gca(projection='3d')
+        #Set axis format:
+        x_formatter=ticker.ScalarFormatter(useOffset=False)
         
         #Plot raypaths in 3d:
         for ray_i in range(len(ray_x)):
             x_i=ray_x[ray_i]
             y_i=ray_y[ray_i]
-            z_i=-1*ray_z[ray_i]
+            z_i=ray_z[ray_i]
                 
             #get color to plot:
             colorVal=scalarMap.to_rgba(self.path_terms[ray_i])
             
             ax.plot(x_i,y_i,z_i,color=colorVal)
+            
+        #Plot stations?
+        if stations==1:
+            sta_x=self.stlon
+            sta_y=self.stlat
+            sta_z=zeros(len(self.stlat))
+            
+            #Plot:
+            ax.scatter(sta_x,sta_y,sta_z,s=150,marker='^',color='k',zorder=(len(ray_x)+10))
+            
+        if events==1:
+            ev_x=self.elon
+            ev_y=self.elat
+            ev_z=self.edepth
+            
+            #Make event depths negative:
+            ev_z=-1*ev_z
+            
+            #Plot:
+            ax.scatter(ev_x,ev_y,ev_z,s=20,edgecolors='g',facecolors='none',linewidths=1,zorder=(len(ray_x)+15))
         
+        #Plot faults:
+        for segment_i in range(len(fault_segments)):
+            fault=fault_segments[segment_i]
+            fault_z=zeros(len(fault))
+            ax.plot(fault[:,0],fault[:,1],fault_z,color='k',zorder=len(self.mw)+17)
+    
         #Add colorbar:
         cb=plt.colorbar(c)
         cb.set_label('Path term (ln residual)')
         
+        #Set labels:
+        #Set velocity handle:
+        if veltype==1:
+            vtype='Vp'
+        elif veltype==2:
+            vtype='Vs'
+            
+        ax.set_xlabel('Longitude (deg)')
+        ax.set_ylabel('Latitude (deg)')
+        ax.set_zlabel('Depth (km)')
+        ax.set_title('Raypaths for '+vtype)
+        
+        #Set limits:
+        ax.set_xlim(axlims[0])
+        ax.set_ylim(axlims[1])
+        ax.set_zlim(axlims[2])
+        
+        #Set format of axis:
+        ax=plt.gca()
+        ax.xaxis.set_major_formatter(x_formatter)        
+             
+        #Return:
+        return ax

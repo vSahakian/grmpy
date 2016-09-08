@@ -126,3 +126,11 @@ for vel_i in range(len(veltype)):
         rt.plot_rays_cutoffval(home,run_name,veltype[vel_i],view[view_i],axlims,stations,events,mymap,faultfile,cutoff_val)
         plt.close()
         plt.close()
+        
+#For the map view, plot the 3d raypaths once, then rotate and save:
+axlims_3d=[[-116.9,-116.35],[33.3,33.75],[-20,1]]
+vtype=2
+
+#plot:
+figure3d=(home,run_name,vtype,stations,events,axlims_3d,mymap,faultfile)
+
