@@ -171,11 +171,11 @@ def write_receiverin(home,run_name):
         sourceiline=sourceiline+'\t\t the source of each path\n'
         
         #Now the number of the path in the source list:
-        for path in range(len(npsource)):
-            if path==0:
-                npsourceline=str(npsource[path])
+        for pathi in range(len(npsource)):
+            if pathi==0:
+                npsourceline=str(npsource[pathi])
             else:
-                npsourceline=npsourceline+' '+str(npsource[path])
+                npsourceline=npsourceline+' '+str(npsource[pathi])
         #end it:
         npsourceline=npsourceline+'\t\t\t number of the path in the source list\n'
         
