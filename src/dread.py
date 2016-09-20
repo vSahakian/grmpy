@@ -3,7 +3,7 @@
 
 #Module to read and digest data of different forms, and prepare it for grmpepy
 
-def mread(flatfile,hashfile,stationfile):
+def mread(flatfile,hashfile,stationfile,station_cols):
     '''
     Read data from Annemarie's flatfile
     VJS 6/2016
@@ -12,6 +12,7 @@ def mread(flatfile,hashfile,stationfile):
         flatfile:        String with path to the anza flatfile from AB
         hashfile:        String with path to the anza hash file from AB, with locations
         stationfile:     STring with path to the station file, for anza stations 
+        station_cols: 	 Array with columns to use for station name, lat, lon, and el [name, lat, lon, el]
     Output
     
     '''
@@ -26,8 +27,12 @@ def mread(flatfile,hashfile,stationfile):
     hashr=genfromtxt(hashfile)
     #Read in station info from columns of station file:
     #Station name:
-    stat_sta_r=genfromtxt(stationfile,skip_header=3,usecols=1,dtype='S5')
-    stat_coord_r=genfromtxt(stationfile,skip_header=3,usecols=[2,3])
+    name_col=station_cols[0]
+    lat_col=station_cols[1]
+    lon_col=station_cols[2]
+    elv_col=station_cols[3]
+    stat_sta_r=genfromtxt(stationfile,skip_header=3,usecols=name_col,dtype='S5')
+    stat_coord_r=genfromtxt(stationfile,skip_header=3,usecols=[lat_col,lon_col,elv_col])
     
     #Info from the hashfile:
     hevent=hashr[:,6]
@@ -70,6 +75,7 @@ def mread(flatfile,hashfile,stationfile):
     #First zero out arrays:
     sta_lat=zeros((len(dsta[0]),1))
     sta_lon=zeros((len(dsta[0]),1))
+    sta_elv=zeros((len(dsta[0]),1))
     
     for j in range(len(dsta[0])):
         stationi=dsta[0][j][0].astype('S5')
@@ -79,6 +85,7 @@ def mread(flatfile,hashfile,stationfile):
         #Now get the information for this station, lat and lon:
         sta_lat[j]=stat_coord_r[station_ind,0]
         sta_lon[j]=stat_coord_r[station_ind,1]
+        sta_elv[j]=stat_coord_r[station_ind,2]
         
     
     ###Get indices for event and station for the sources.in and receivers.in files####
@@ -141,6 +148,7 @@ def mread(flatfile,hashfile,stationfile):
     depth=ev_dep[:,0]
     stlat=sta_lat[:,0]
     stlon=sta_lon[:,0]
+    stelv=sta_elv[:,0]
     source_i=source_ind
     receiver_i=receiver_ind
     
@@ -179,7 +187,7 @@ def mread(flatfile,hashfile,stationfile):
     
     #Return the event numeber, station name, station number, ml,mw, PGA,pgv, 
     #epcentral distance (Dist), vs30
-    return event,sta,N,ml,mw,DA,DV,dist[:,0],vs30,lat,lon,depth,stlat,stlon,source_i,receiver_i
+    return event,sta,N,ml,mw,DA,DV,dist[:,0],vs30,lat,lon,depth,stlat,stlon,stelv,source_i,receiver_i
 
 
 def jb_ascii_read(flatfile):
@@ -311,6 +319,7 @@ def db_station_sample(dbpath_in,numstas,dbpath_out):
     sta=db_orig.sta[keep_event_ind]
     stlat=db_orig.stlat[keep_event_ind]
     stlon=db_orig.stlon[keep_event_ind]
+    stelv=db_orig.stelv[keep_event_ind]
     stnum=db_orig.stnum[keep_event_ind]
     vs30=db_orig.vs30[keep_event_ind]
     
@@ -321,7 +330,7 @@ def db_station_sample(dbpath_in,numstas,dbpath_out):
     DV=pga/1e-9
     
     #Make sampled database:
-    db_samp=cdf.db(evnum,sta,stnum,ml,mw,DA,DV,r,vs30,elat,elon,edepth,stlat,stlon,source_i,receiver_i)
+    db_samp=cdf.db(evnum,sta,stnum,ml,mw,DA,DV,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i)
     
     #Save to file...
     doutfile=open(dbpath_out,'w')

@@ -42,10 +42,10 @@ coeff_file=coeff_file=home+'/data/coeffs/ASK14_coeffs.m'
 #sfile=HOME+'/anza/data/stations/AZ.ll'
 #
 ##Read data from .mat file, store important values:
-#ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth,stlat,stlon,source_i,receiver_i=dr.mread(ffile,hfile,sfile)
+#ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth,stlat,stlon,stelv,source_i,receiver_i=dr.mread(ffile,hfile,sfile)
 #
 ##Load into database object
-#abdb=cdf.db(ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth,stlat,stlon,source_i,receiver_i)
+#abdb=cdf.db(ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth,stlat,stlon,stelv,source_i,receiver_i)
 #
 ##Save the database object:
 #fname=HOME+'/anza/data/abdb.pckl'

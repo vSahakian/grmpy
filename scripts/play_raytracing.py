@@ -30,7 +30,7 @@ home=HOME+'/anza/models/residuals/'
 run_name='abdb_5sta_0-6.5_VR'
 dbpath=HOME+'/anza/data/abdb_5sta.pckl'
 modelpath=HOME+'/anza/models/pckl/regr_0.0_6.5_VR_98.9.pckl'
-faultfile=HOME+'/anza/data/faults/Holocene_LatestPleistocene_117.5w_115.5w_33n_34n.txt'
+faultfile=HOME+'/anza/data/faults/Holocene_LatestPleistocene_117.5w_115.5w_33n_34n.pckl'
 
 ########################
 ####Set up Raytracing###

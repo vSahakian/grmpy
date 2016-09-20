@@ -252,6 +252,7 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
         depth_i=db.edepth[unique_ind]
         stlat_i=db.stlat[unique_ind]
         stlon_i=db.stlon[unique_ind]
+        stelv_i=db.stelv[unique_ind]
         source_i=db.source_i[unique_ind]
         receiver_i=db.receiver_i[unique_ind]
         
@@ -263,7 +264,7 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     
     
         #Make the event object:
-        eventi=cdf.event(evnum_i,sta_i,stnum_i,ml_i,mw_i,pga_i,pgv_i,pga_pg_i,r_i,vs30_i,ffdf_i,md_ffdf_i,lat_i,lon_i,depth_i,stlat_i,stlon_i,source_i,receiver_i)
+        eventi=cdf.event(evnum_i,sta_i,stnum_i,ml_i,mw_i,pga_i,pgv_i,pga_pg_i,r_i,vs30_i,ffdf_i,md_ffdf_i,lat_i,lon_i,depth_i,stlat_i,stlon_i,stelv_i,source_i,receiver_i)
         
         #Get total residual to store:
         total_residual=pga_pg_i-d_predicted_i
@@ -488,6 +489,7 @@ def sta_list(home,run_name,dbfile):
         edepth=[]
         stlat=[]
         stlon=[]
+        stelv=[]
         source_i=[]
         receiver_i=[]
         #Total residual:
@@ -522,6 +524,7 @@ def sta_list(home,run_name,dbfile):
                 edepth.append(eventi.edepth[sta_ev_ind])
                 stlat.append(eventi.stlat[sta_ev_ind])
                 stlon.append(eventi.stlon[sta_ev_ind])
+                stelv.append(eventi.stelv[sta_ev_ind])
                 source_i.append(eventi.source_i[sta_ev_ind])
                 receiver_i.append(eventi.receiver_i[sta_ev_ind])
                 total_residual.append(eventi.total_residual[sta_ev_ind])
@@ -548,6 +551,7 @@ def sta_list(home,run_name,dbfile):
         edepth=np.array(edepth)
         stlat=np.array(stlat)
         stlon=np.array(stlon)
+        stelv=np.array(stelv)
         source_i=np.array(source_i)
         receiver_i=np.array(receiver_i)
         total_residual=np.array(total_residual)
@@ -555,7 +559,7 @@ def sta_list(home,run_name,dbfile):
         W_residual=np.array(W_residual)
         
         #Put into a station object...
-        station_i=cdf.station(station_name_i[0],station_num_i,vs30[0],evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,source_i,receiver_i,total_residual,E_residual,W_residual)
+        station_i=cdf.station(station_name_i[0],station_num_i,vs30[0],evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,total_residual,E_residual,W_residual)
         
         #Get the site residual:
         station_i.get_site_resid()

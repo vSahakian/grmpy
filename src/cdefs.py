@@ -11,7 +11,7 @@ class db:
     This class describes a set of events
     '''
     
-    def __init__(self,event,sta,N,ml,mw,DA,DV,r,vs30,elat,elon,edepth,stlat,stlon,source_i,receiver_i,):
+    def __init__(self,event,sta,N,ml,mw,DA,DV,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,):
         '''
         Initiate the class by giving the event number (event), 
         station name (sta), station number (N), local mag (ml), moment mag (mw), 
@@ -62,6 +62,7 @@ class db:
         self.edepth=edepth
         self.stlat=stlat
         self.stlon=stlon
+        self.stelv=stelv
         self.source_i=source_i
         self.receiver_i=receiver_i
         
@@ -368,7 +369,7 @@ class event:
     Save all data for one event, to use in residual computation
     '''
     
-    def __init__(self,evnum,sta,stnum,ml,mw,pga,pgv,pga_pg,r,vs30,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,source_i,receiver_i):
+    def __init__(self,evnum,sta,stnum,ml,mw,pga,pgv,pga_pg,r,vs30,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i):
         self.evnum=evnum
         self.sta=sta
         self.stnum=stnum
@@ -386,6 +387,7 @@ class event:
         self.edepth=edepth
         self.stlat=stlat
         self.stlon=stlon
+        self.stelv=stelv
         self.source_i=source_i
         self.receiver_i=receiver_i
     
@@ -406,7 +408,7 @@ class station:
     Save all data for one station
     '''
     
-    def __init__(self,sta,stnum,vs30,evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,source_i,receiver_i,total_residual,E_residual,W_residual):
+    def __init__(self,sta,stnum,vs30,evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,total_residual,E_residual,W_residual):
         self.sta=sta
         self.stnum=stnum
         self.vs30=vs30
@@ -423,6 +425,7 @@ class station:
         self.edepth=edepth
         self.stlat=stlat
         self.stlon=stlon
+        self.stelv=stelv
         self.source_i=source_i
         self.receiver_i=receiver_i
         self.total_residual=total_residual
@@ -533,6 +536,7 @@ class residuals:
         self.md_ffdf=db.md_ffdf
         self.stlat=db.stlat
         self.stlon=db.stlon
+        self.stelv=db.stelv
         self.source_i=db.source_i
         self.receiver_i=db.receiver_i
         
@@ -778,7 +782,7 @@ class residuals:
             y=depth
             #Stations:
             stx=self.stlat
-            sty=zeros(len(self.stlat))
+            sty=self.stelv
             #Events:
             evx=uelat
             evy=-1*uedepth
@@ -793,7 +797,7 @@ class residuals:
             y=depth
             #Stations:
             stx=self.stlon
-            sty=zeros(len(self.stlon))
+            sty=self.stelv
             #Events:
             evx=uelon
             evy=-1*uedepth
@@ -975,7 +979,7 @@ class residuals:
             y=depth
             #Stations:
             stx=self.stlat
-            sty=zeros(len(self.stlat))
+            sty=self.stelv
             #Events:
             evx=uelat
             evy=-1*uedepth
@@ -990,7 +994,7 @@ class residuals:
             y=depth
             #Stations:
             stx=self.stlon
-            sty=zeros(len(self.stlon))
+            sty=self.stelv
             #Events:
             evx=uelon
             evy=-1*uedepth

@@ -142,8 +142,8 @@ def write_receiverin(home,run_name):
         
         #Get info:
         #station info
-        #set depth to 0, meaning it's on the surface interface (which has elevation in model)
-        rdepth=0
+        #Receiver elevation should be negative (station elevation as written is positive in database objects)
+        rdepth=-1*receiveri.stelv[0][0]
         #get lat/lon
         rlat=receiveri.stlat[0][0]
         rlon=receiveri.stlon[0][0]
