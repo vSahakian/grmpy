@@ -45,7 +45,7 @@ faultfile=HOME+'/anza/data/faults/Holocene_LatestPleistocene_117.5w_115.5w_33n_3
 ##Use the directories defined in lines 15 - 33
 ##Import raytracing above
 ##Set velocity type:
-#veltype=1
+#veltype=2
 #
 ##Write source.in file:
 #rt.write_sourcein(home,run_name,veltype)

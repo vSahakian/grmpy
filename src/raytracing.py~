@@ -181,7 +181,7 @@ def write_receiverin(home,run_name):
         
         #Write them:
         f.write(rposline)
-        f.write(nposline)
+        f.writimpore(nposline)
         f.write(sourceiline)
         f.write(npsourceline)
         
