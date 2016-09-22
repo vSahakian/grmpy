@@ -46,12 +46,14 @@ faultfile=HOME+'/anza/data/faults/Holocene_LatestPleistocene_117.5w_115.5w_33n_3
 ##Import raytracing above
 ##Set velocity type:
 #veltype=1
+##Set longitude format (here, 241 instead of -118 for lontype=1)
+#lontype=1  #for Malcolm's new propgrid format
 #
 ##Write source.in file:
-#rt.write_sourcein(home,run_name,veltype)
+#rt.write_sourcein(home,run_name,veltype,lontype)
 #
 ##Write recievers.in file:
-#rt.write_receiverin(home,run_name)
+#rt.write_receiverin(home,run_name,lontype)
 
 
 

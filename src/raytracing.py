@@ -4,7 +4,7 @@
 ##Module to deal with raytracing stuff...
 #Make the input files, plot results, etc.
 
-def write_sourcein(home,run_name,veltype):
+def write_sourcein(home,run_name,veltype,lontype):
     '''
     Write a source.in file for fm3d raytracing
     VJS 8/2016
@@ -12,6 +12,9 @@ def write_sourcein(home,run_name,veltype):
         home:           String to home path for the main working directory
         run_name:       String to the name of the run
         veltype:        1=Vp, 2=Vs
+        lontype:        Output lon type, assuming the input longitude in the database
+                        is -118 etc. for west...
+                        0=negative West (i.e., -118), 1=positive West (i.e., 241) 
     Output:
         source_veltype.in:     Writes out the source.in file for raytracing
     '''
@@ -61,12 +64,17 @@ def write_sourcein(home,run_name,veltype):
         #Get the event:
         eventi=eobjs[event_ind]
         
-        #Get the source info:
-        #position
-        sdepth=eventi.edepth[0]
-        slat=eventi.elat[0]
-        slon=eventi.elon[0]
-        #number of paths - always =1 here, defined above
+        if lontype==0:
+            #Get the source info:
+            #position
+            sdepth=eventi.edepth[0]
+            slat=eventi.elat[0]
+            slon=eventi.elon[0]
+            #number of paths - always =1 here, defined above
+        elif lontype==1:
+            sdepth=eventi.edepth[0]
+            slat=eventi.elat[0]
+            slon=eventi.elon[0]+360            
         
         #Number of sections on the path:  Always 1 here, since one layer
         nsections=1
@@ -96,12 +104,15 @@ def write_sourcein(home,run_name,veltype):
     print 'Wrote file '+sourcefile+' for velocity type '+vm+' to '+sourcefile
 
 
-def write_receiverin(home,run_name):
+def write_receiverin(home,run_name,lontype):
     '''
     Write a receiver.in in file for fm3d raytracing
     Input:
         home:           String to the home path for the working directory
         run_name:       String for the run name (db/model combo)
+        lontype:        Output lon type, assuming the input longitude in the database
+                        is -118 etc. for west...
+                        0=negative West (i.e., -118), 1=positive West (i.e., 241) 
     Output:
         receivers.in:   Receivers.in file for fm3d raytracing
     '''
@@ -144,9 +155,14 @@ def write_receiverin(home,run_name):
         #station info
         #Receiver elevation should be negative (station elevation as written is positive in database objects)
         rdepth=-1*receiveri.stelv[0][0]
-        #get lat/lon
-        rlat=receiveri.stlat[0][0]
-        rlon=receiveri.stlon[0][0]
+        #get lat/lon - use lontype flag:
+        if lontype==0:
+            rlat=receiveri.stlat[0][0]
+            rlon=receiveri.stlon[0][0]
+        elif lontype==1:
+            rlat=receiveri.stlat[0][0]
+            rlon=receiveri.stlon[0][0]+360
+            
         #number of paths to receiver
         npaths=len(receiveri.source_i)
         #The source of each path:
