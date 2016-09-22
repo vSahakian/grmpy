@@ -1392,3 +1392,86 @@ class residuals:
              
         #Return:
         return ax
+        
+
+###########
+##########
+
+##Material Model object:
+
+class material_model:
+    '''
+    A class for storing and manipulating material models 
+    '''
+    
+    def __init__(self,x,y,z,nx,ny,nz,material_model):
+        '''
+        Make a material model object to store the information relating to 
+        a velocity or attenuation model, etc.
+        Input:
+            x:                  Array with values of x nodes
+            y:                  Array with values of y nodes
+            z:                  Array with values of z nodes
+            nx:                 Number of x nodes
+            ny:                 Number of y nodes
+            nz:                 Number of z nodes
+            material_model:     Three-dimensional array with dimensions being (z,x,y)
+        Output:
+            material_object:    An object with the above info
+        '''
+        
+        self.x=x
+        self.y=y
+        self.z=z
+        self.nx=nx
+        self.ny=ny
+        self.nz=nz
+        self.materials=material_model
+        
+    def plot_zslice(self,z_val,colormap,climits,xlab,ylab):
+        '''
+        Plot a z slice
+        Input:
+            zval:           Depth at which to plot
+            colormap:       String with colormap to use
+            climits:        Array with limits for color: [cmin, cmax]
+            xlab:           String with xlabel
+            ylab:           String with ylabel
+        '''
+        
+        import matplotlib.pyplot as plt
+        from numpy import argmin
+        
+        #Find z value in model closest to the input slice depth:
+        z_dist=abs(self.z-z_val)
+        min_zdist_i=argmin(z_dist)
+        
+        #Print which distance:
+        print 'Closest z node to requested value is '+str(self.z[min_zdist_i])
+        
+        #Get array to plot:
+        slice_array=self.materials[min_zdist_i]
+        #Get X and Y to plot:
+        X=self.x
+        Y=self.y
+        
+        #Initiate plot:
+        #f1=plt.figure()
+        #plt.pcolormesh(X,Y,slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1])
+        #plt.axis([X.min(),X.max(),Y.min(),Y.max()])
+        #plt.colorbar()
+        
+        f1=plt.figure()
+        plt.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='lower')
+        plt.colorbar()
+
+        ###Title:
+        #depth being plotted:
+        z_plot=self.z[min_zdist_i]
+        ptitle='Depth slice at '+str(z_plot)+' km'
+        
+        plt.title(ptitle)
+        plt.xlabel(xlab)
+        plt.ylabel(ylab)
+
+        return f1

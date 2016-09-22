@@ -43,13 +43,19 @@ elif what_home==1:
 #dbpath=HOME+'/anza/data/abdb.pckl'
 #modelpath=HOME+'/anza/models/pckl/regr_0.0_6.5_VR_98.9.pckl'
 
+#home=HOME+'/anza/models/residuals/'
+#run_name='abdb_5sta_0-6.5_VR'
+#dbpath=HOME+'/anza/data/abdb_5sta.pckl'
+#modelpath=HOME+'/anza/models/pckl/regr_0.0_6.5_VR_98.9.pckl'
+#rayfile_vp='/Users/vsahakian/anza/data/vm/fulltest_Vp/rays.dat'
+#rayfile_vs='/Users/vsahakian/anza/data/vm/fulltest_Vs/rays.dat'
+
 home=HOME+'/anza/models/residuals/'
-run_name='abdb_5sta_0-6.5_VR'
+run_name='abdb_5sta_0-6.5_topography'
 dbpath=HOME+'/anza/data/abdb_5sta.pckl'
 modelpath=HOME+'/anza/models/pckl/regr_0.0_6.5_VR_98.9.pckl'
-rayfile_vp='/Users/vsahakian/anza/data/vm/fulltest_Vp/rays.dat'
-rayfile_vs='/Users/vsahakian/anza/data/vm/fulltest_Vs/rays.dat'
-
+rayfile_vp='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vp/rays.dat'
+rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
 
 
 ########

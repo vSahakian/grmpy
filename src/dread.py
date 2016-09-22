@@ -470,140 +470,89 @@ def multiseg2pckl(multisegpath,pcklpath,pathlimits):
                 
     
     
-#def multiseg2pckl(multisegpath,pcklpath):
-#    '''
-#    VJS 9/2016
-#    Convert a GMT multisegment file to a pckl file to be plotted in python
-#    Input:
-#        multisegpath:       String with the path to the input multisegment file
-#        pcklpath:           String with the path to the output pckl file
-#    Output:
-#        pcklfile:           List of arrays, each with a segment to scatter or plot
-#                            Output to pcklpath
-#    '''
-#    
-#    from numpy import array,r_,c_
-#    import matplotlib.path as mplPath
-#    
-#    #Open file:
-#    f=open(multisegpath,'r')
-#    
-#    #Initialize list:
-#    segment_list=[]
-#    
-#    #Initiate counter:
-#    counter=0
-#    
-#    #Loop over and read line by line:
-#    while True:
-#        
-#        #read the line:
-#        line=f.readline()
-#        
-#        #If it's the first line, counter will be 0, and the line will have a carrot:
-#        if counter==0:
-#            
-#            #Initialize the lon and lat arrays:  
-#            lon=array([])
-#            lat=array([])   
-#                        
-#            #Now read the next line, and start appending:
-#            line=f.readline()
-#            #Read in lon and lat:
-#            lon_i=float(line.split()[0])
-#            lat_i=float(line.split()[1])
-#            
-#            #Add to counter...
-#            counter+=1
-#            
-#            #And append lon_i and lat_i to lon and lat - but it's the first entry,
-#            #so make them equal to lon and lat:
-#            lon=lon_i
-#            lat=lat_i
-#        
-#        #If it's not the first line:
-#        else:
-#            
-#            #Then it's either the end of the file:
-#            if line=='':
-#                #So append lon and lat together into the segment_coord:
-#                segment_coord=c_[lon,lat]
-#                segment_list.append(segment_coord)
-#                
-#                #And exit:
-#                break
-#            
-#            #Or "line" is another coordinate in the same segment:
-#            elif '>' not in line:
-#            
-#                #Read in lon and lat:
-#                lon_i=float(line.split()[0])
-#                lat_i=float(line.split()[1])
-#                
-#                #append them to lon and lat:
-#                lon=r_[lon,lon_i]
-#                lat=r_[lat,lat_i]
-#            
-#            #Or it's the beginning of a new segment:    
-#            elif '>' in line:
-#                #Append the last segment lon and lats together and into segment_coord:
-#                segment_coord=c_[lon,lat]
-#                segment_list.append(segment_coord)
-#                
-#                #Re-initialize lon_i and lat_i, lon and lat:
-#                lon=array([])
-#                lat=array([])
-#                
-#                #Let it return to the top...
-#                
-#                
-#        
-#        ##If it's the end of the file, break; otherwise, keep goign:
-#        #if line=='':
-#        #    break
-#        #else:
-#        #    #Initialize array to read into:
-#        #    lon=array([])
-#        #    lat=array([])
-#        #    
-#        #    #If it's a carrot, skip the carrot line and have "line" be the next line:
-#        #    if '>' in line:
-#        #        line=f.readline()
-#        #        
-#        #        while True:
-#        #            #Read that line as numbers - first split the columns:
-#        #            lon_i=float(line.split()[0])
-#        #            lat_i=float(line.split()[1])
-#        #            
-#        #            #If this is hte first entry of array, make the arrays equal this value:
-#        #            if len(lon)==0:
-#        #                lon=lon_i
-#        #                lat=lat_i
-#        #            #Otherwise, append these values to the lon and lat arrays:
-#        #            else:
-#        #                lon=r_[lon,lon_i]
-#        #                lat=r_[lat,lat_i]
-#        #               
-#        #            #Once that line has been assigned, read the next one:     
-#        #            line=f.readline()
-#        #            
-#        #            #If the next one is a carrot, it's the end of this segment,
-#        #            #so break:
-#        #            if '>' in line:
-#        #                break
-#        #        
-#        #        #If it broke, it's the end of a segment, so append to lat and lon
-#        #        #to the array segment_coord, the array for this segment:
-#        #        segment_coord=c_[lon,lat]
-#        #        
-#        #        #And then append this array to the list:
-#        #        segment_list.append(segment_coord)
+def read_material_model(coordspath,modelpath):
+    '''
+    Read in a velocity model (like Fang 2016), parse into format to be read by
+    cdefs to make an object
+    Input:
+        coordspath:             String with path to the coordinates file, with info
+                                    about the x, y, and z limits of the model
+                                    File format:
+                                        x1 x2 x3 ...\r\n
+                                        \r\n
+                                        y1 y2 y3 ...\r\n
+                                        \r\n
+                                        z1  z3  z3  ...   (double spaces between z's)
+                                        
+        modelpath:           String with path to the velocity file (i.e., Vp or Vs)
+                                    with format columns: x, rows: y; repeats in z
+    Output:
+        x:                      Array with the x values of the model nodes
+        y:                      Array with the y values of the model nodes
+        z:                      Array with the z values of the model nodes
+        model:                  Multi-dim array with model: len(model) = len(z);
+                                    shape(model[0]) = len(x),len(y)
+    '''
+    from numpy import array,zeros,genfromtxt,shape
+    
+    #Read in the model info and store:
+    model_in=genfromtxt(modelpath)
+    
+    ###Read in the coordinates file:
+    cfile=open(coordspath,'r')
+    
+    #Read line by line, starting with x:
+    xline_raw=cfile.readline()
+    #split up - first cut off the \r\n, then split each number by spaces.
+    xline=array(xline_raw.split('\r')[0].split(' '))
+    x=xline.astype(float)
+    
+    #Read one more line since there's a space:
+    cfile.readline()
+    
+    #Again for y and z:
+    yline_raw=cfile.readline()
+    #split up - first cut off the \r\n, then split each number by spaces.
+    yline=array(yline_raw.split('\r')[0].split(' '))
+    y=yline.astype(float)
+     
+    cfile.readline()                   
                     
-
+    zline_raw=cfile.readline()
+    #split up - first cut off the \r\n, then split each number by spaces.
+    zline=array(zline_raw.split('  '))
+    z=zline.astype(float)         
+       
+    #Close file:
+    cfile.close()   
+    
                     
-                    
-                    
-            
+    ###########
+    ##Now get model info:
+    #Number of x, y, and z points:
+    nx=len(x)
+    ny=len(y)
+    nz=len(z)
+    
+    #Initialize the model array:
+    material_model=zeros((nz,nx,ny))
+    print shape(material_model[0])
                 
-                
+    #Now extract model values.
+    #Loop over the number of z entries, and pull out the chunk that corresponds 
+    #to that z; then add it to material_model
+    #Initiate a counter for counting the z position:
+    count_z=0
+    
+    for z_i in range(nz):
+        print shape(model_in[count_z:count_z+nx,:])
+        i_beg=z_i
+        i_end=z_i+nx
+        material_model[z_i]=model_in[count_z:count_z+nx,:]
+        
+        #Add to counter:
+        count_z=count_z+nx
             
+    
+    #Return values:
+    return x, y, z, nx, ny, nz, material_model
