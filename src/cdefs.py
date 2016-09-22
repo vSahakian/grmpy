@@ -1428,7 +1428,7 @@ class material_model:
         self.nz=nz
         self.materials=material_model
         
-    def plot_zslice(self,z_val,colormap,climits,xlab,ylab):
+    def plot_zslice(self,z_val,colormap,climits,xlab,ylab,modellab):
         '''
         Plot a z slice
         Input:
@@ -1437,6 +1437,7 @@ class material_model:
             climits:        Array with limits for color: [cmin, cmax]
             xlab:           String with xlabel
             ylab:           String with ylabel
+            modellab:       String with label for the colorbar (i.e., 'Vs')
         '''
         
         import matplotlib.pyplot as plt
@@ -1463,8 +1464,9 @@ class material_model:
         
         f1=plt.figure()
         plt.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='lower')
-        plt.colorbar()
-
+        cbar=plt.colorbar()
+        cbar.set_label(modellab+' (km/s)')
+    
         ###Title:
         #depth being plotted:
         z_plot=self.z[min_zdist_i]
@@ -1476,7 +1478,7 @@ class material_model:
 
         return f1
         
-    def plot_yslice(self,y_val,colormap,climits,xlab,zlab):
+    def plot_yslice(self,y_val,colormap,climits,xlab,zlab,modellab,aspectr):
         '''
         Plot a z slice
         Input:
@@ -1485,6 +1487,8 @@ class material_model:
             climits:        Array with limits for color: [cmin, cmax]
             xlab:           String with xlabel
             zlab:           String with zlabel
+            modellab:       String with label for the colorbar (i.e., 'Vs')
+            aspectr:        Aspect ratio for plot
         '''
         
         import matplotlib.pyplot as plt
@@ -1510,9 +1514,10 @@ class material_model:
         #plt.colorbar()
         
         f1=plt.figure()
-        plt.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='upper')
-        plt.colorbar()
-
+        plt.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='upper',aspect=aspectr)
+        cbar=plt.colorbar()
+        cbar.set_label(modellab+' (km/s)')
+        
         ###Title:
         #depth being plotted:
         y_plot=self.y[min_ydist_i]
@@ -1524,7 +1529,7 @@ class material_model:
 
         return f1
         
-    def plot_xslice(self,x_val,colormap,climits,ylab,zlab):
+    def plot_xslice(self,x_val,colormap,climits,ylab,zlab,modellab,aspectr):
         '''
         Plot a z slice
         Input:
@@ -1533,6 +1538,8 @@ class material_model:
             climits:        Array with limits for color: [cmin, cmax]
             ylab:           String with ylabel
             zlab:           String with zlabel
+            modellab:       String with label for the colorbar (i.e., 'Vs')
+            aspectr:        Aspect ratio for plot
         '''
         
         import matplotlib.pyplot as plt
@@ -1558,9 +1565,10 @@ class material_model:
         #plt.colorbar()
         
         f1=plt.figure()
-        plt.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='upper')
-        plt.colorbar()
-
+        plt.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='upper',aspect=aspectr)
+        cbar=plt.colorbar()
+        cbar.set_label(modellab+' (km/s)')
+        
         ###Title:
         #depth being plotted:
         x_plot=self.x[min_xdist_i]
