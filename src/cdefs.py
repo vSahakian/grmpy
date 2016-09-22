@@ -1475,3 +1475,99 @@ class material_model:
         plt.ylabel(ylab)
 
         return f1
+        
+    def plot_yslice(self,y_val,colormap,climits,xlab,zlab):
+        '''
+        Plot a z slice
+        Input:
+            yval:           y node at which to plot
+            colormap:       String with colormap to use
+            climits:        Array with limits for color: [cmin, cmax]
+            xlab:           String with xlabel
+            zlab:           String with zlabel
+        '''
+        
+        import matplotlib.pyplot as plt
+        from numpy import argmin
+        
+        #Find z value in model closest to the input slice depth:
+        y_dist=abs(self.y-y_val)
+        min_ydist_i=argmin(y_dist)
+        
+        #Print which distance:
+        print 'Closest y node to requested value is '+str(self.y[min_ydist_i])
+        
+        #Get array to plot:
+        slice_array=self.materials[:,:,min_ydist_i]
+        #Get X and Y to plot:
+        X=self.x
+        Y=-1*self.z
+        
+        #Initiate plot:
+        #f1=plt.figure()
+        #plt.pcolormesh(X,Y,slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1])
+        #plt.axis([X.min(),X.max(),Y.min(),Y.max()])
+        #plt.colorbar()
+        
+        f1=plt.figure()
+        plt.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='upper')
+        plt.colorbar()
+
+        ###Title:
+        #depth being plotted:
+        y_plot=self.y[min_ydist_i]
+        ptitle='Latitude slice at '+str(y_plot)+' degrees'
+        
+        plt.title(ptitle)
+        plt.xlabel(xlab)
+        plt.ylabel(zlab)
+
+        return f1
+        
+    def plot_xslice(self,x_val,colormap,climits,ylab,zlab):
+        '''
+        Plot a z slice
+        Input:
+            xval:           x node at which to plot
+            colormap:       String with colormap to use
+            climits:        Array with limits for color: [cmin, cmax]
+            ylab:           String with ylabel
+            zlab:           String with zlabel
+        '''
+        
+        import matplotlib.pyplot as plt
+        from numpy import argmin
+        
+        #Find z value in model closest to the input slice depth:
+        x_dist=abs(self.x-x_val)
+        min_xdist_i=argmin(x_dist)
+        
+        #Print which distance:
+        print 'Closest x node to requested value is '+str(self.x[min_xdist_i])
+        
+        #Get array to plot:
+        slice_array=self.materials[:,:,min_xdist_i]
+        #Get X and Y to plot:
+        X=self.y
+        Y=-1*self.z
+        
+        #Initiate plot:
+        #f1=plt.figure()
+        #plt.pcolormesh(X,Y,slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1])
+        #plt.axis([X.min(),X.max(),Y.min(),Y.max()])
+        #plt.colorbar()
+        
+        f1=plt.figure()
+        plt.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='upper')
+        plt.colorbar()
+
+        ###Title:
+        #depth being plotted:
+        x_plot=self.x[min_xdist_i]
+        ptitle='Longitude slice at '+str(x_plot)+' degrees'
+        
+        plt.title(ptitle)
+        plt.xlabel(ylab)
+        plt.ylabel(zlab)
+
+        return f1        
