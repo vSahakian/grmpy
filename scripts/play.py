@@ -26,6 +26,10 @@ elif what_home==1:
 fig_dir=HOME+'/anza/models/figs/'
 obj_dir=HOME+'/anza/models/pckl/'
 
+
+################################################################################
+##              The below is now in make_database.py                          ##
+#################################################################################
 ######Making the database object - once made and saved, do not run this again######
 #
 ##AB's flatfile and hasfhile; Debi's station file; columns for Debi's stationfile:
@@ -56,6 +60,9 @@ obj_dir=HOME+'/anza/models/pckl/'
 #dr.db_station_sample(dbpathin,min_stations,dbpathout)
 #
 ########################End making database object############################
+################################################################################
+##              The above is now in make_database.py                          ##
+#################################################################################
 
 
 ##########Open the database object:###################

@@ -263,7 +263,7 @@ def db_station_sample(dbpath_in,numstas,dbpath_out):
         Writes out the sampled database to dbpath_out
     '''
     import cPickle as pickle
-    from numpy import unique,where,array,r_
+    from numpy import unique,where,array,r_,zeros
     import cdefs as cdf
     
     #Read in the original database
@@ -314,14 +314,50 @@ def db_station_sample(dbpath_in,numstas,dbpath_out):
     pga_pg=db_orig.pga_pg[keep_event_ind]
     pgv=db_orig.pgv[keep_event_ind]
     r=db_orig.r[keep_event_ind]
-    receiver_i=db_orig.receiver_i[keep_event_ind]
-    source_i=db_orig.source_i[keep_event_ind]
     sta=db_orig.sta[keep_event_ind]
     stlat=db_orig.stlat[keep_event_ind]
     stlon=db_orig.stlon[keep_event_ind]
     stelv=db_orig.stelv[keep_event_ind]
     stnum=db_orig.stnum[keep_event_ind]
     vs30=db_orig.vs30[keep_event_ind]
+    
+    ###Change the source and receiver indices for raytracing...
+    #Get the unique station and event indices:
+    unique_events=unique(evnum)
+    
+    #Zero out source ind array:
+    source_ind=zeros((len(evnum)))
+    #For each event in the record, devent, give it the source index to be used:
+    for event_ind in range(len(unique_events)):
+        eventi=unique_events[event_ind]
+        
+        #Find where in the recordings list the event number is the same as this one:
+        recording_event_ind=where(evnum==eventi)
+        
+        #Set the source ind to be one plus this event, so it indexes with the raytracing program:
+        source_ind[recording_event_ind]=event_ind+1
+        
+    #Now set these to integers...
+    source_i=source_ind.astype('int64')
+    
+    ##
+    ##Next stations:
+    unique_stations=unique(stnum)
+    
+    #Zero out array:
+    receiver_ind=zeros((len(stnum)))
+    #Loop through the unique stations:
+    for station_ind in range(len(unique_stations)):
+        stationi=unique_stations[station_ind]
+        
+        #Find where in the recordings list the station is the same as this one:
+        recording_station_ind=where(stnum==stationi)[0]
+    
+        #Set the receiver ind to be one plus this station, so it indexes with the raytracin gprogram:
+        receiver_ind[recording_station_ind]=station_ind+1    
+        
+    #Set these to integers:
+    receiver_i=receiver_ind.astype('int64')
     
     #BEFORE SAVING:
     #cdefs only takes DA and DV in nm/s/s and nm/s...convert to these (currently
