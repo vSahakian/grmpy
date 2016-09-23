@@ -26,13 +26,19 @@ elif what_home==1:
 #dbpath=HOME+'/anza/data/abdb.pckl'
 #modelpath=HOME+'/anza/models/pckl/regr_0.0_1.0_2.0_6.5_VR_98.9.pckl'
 
+#home=HOME+'/anza/models/residuals/'
+#run_name='abdb_5sta_0-6.5_VR'
+#dbpath=HOME+'/anza/data/abdb_5sta.pckl'
+#modelpath=HOME+'/anza/models/pckl/regr_0.0_6.5_VR_98.9.pckl'
+#faultfile=HOME+'/anza/data/faults/Holocene_LatestPleistocene_117.5w_115.5w_33n_34n.pckl'
+
 home=HOME+'/anza/models/residuals/'
-run_name='abdb_5sta_0-6.5_VR'
+run_name='abdb_5sta_0-6.5_topography'
 dbpath=HOME+'/anza/data/abdb_5sta.pckl'
 modelpath=HOME+'/anza/models/pckl/regr_0.0_6.5_VR_98.9.pckl'
-faultfile=HOME+'/anza/data/faults/Holocene_LatestPleistocene_117.5w_115.5w_33n_34n.pckl'
-
-
+rayfile_vp='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vp/rays.dat'
+rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
+faultfile='/media/vsahakian/katmai/anza/data/faults/Holocene_LatestPleistocene_117.5w_115.5w_33n_34n.pckl'
 
 ########################
 ####Set up Raytracing###
@@ -65,31 +71,36 @@ faultfile=HOME+'/anza/data/faults/Holocene_LatestPleistocene_117.5w_115.5w_33n_3
 ##Get the "in" and "out" residual object file names:
 ##"In" is the original residuals object:
 #
-##Get the run directory:
-#run_dir=path.expanduser(home+run_name+'/')
-##Get the residuals object:
-#residfile_in=run_dir+run_name+'_robj.pckl'
-#
-##"Out" is the _raydat.pckl object - also serves as the "in" for the second:
-#rbase=residfile_in.split('.pckl')
-#residfile_out=rbase[0]+'_raydat.pckl'
-#
-#
-##For vp:
-#rayfile=HOME+'/anza/data/vm/fulltest_Vp/rays.dat'
-#veltype=1
-#
-##Read in:
-#rt.store_rayinfo(residfile_in,residfile_out,rayfile,veltype)
-#
-######
-#
-##For vs:
-#rayfile=HOME+'/anza/data/vm/fulltest_Vs/rays.dat'
-#veltype=2
-#
-##Read in:
-#rt.store_rayinfo(residfile_out,residfile_out,rayfile,veltype)
+#Get the run directory:
+run_dir=path.expanduser(home+run_name+'/')
+#Get the residuals object:
+residfile_in=run_dir+run_name+'_robj.pckl'
+
+#"Out" is the _raydat.pckl object - also serves as the "in" for the second:
+rbase=residfile_in.split('.pckl')
+residfile_out=rbase[0]+'_raydat.pckl'
+
+##Longitude conversion?  
+#Yes - these rayfiles are in positive west, convert to negative west (so flag =1)
+lonconvert=1
+
+#For vp:
+rayfile=rayfile_vp
+veltype=1
+
+#Read in:
+rt.store_rayinfo(residfile_in,residfile_out,rayfile,veltype,lonconvert)
+print 'Stored Vp rays in the residuals object'
+
+#####
+
+#For vs:
+rayfile=rayfile_vs
+veltype=2
+
+#Read in:
+rt.store_rayinfo(residfile_out,residfile_out,rayfile,veltype,lonconvert)
+print 'Stored Vs rays in the residuals object'
 
 
 
@@ -118,6 +129,7 @@ cutoff_val=1.0
 for vel_i in range(len(veltype)):
     for view_i in range(len(view)):
         rt.plot_rays(home,run_name,veltype[vel_i],view[view_i],axlims,stations,events,by_path,mymap,faultfile)
+        print 'Plotted velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
         plt.close()
         plt.close()
 
@@ -126,6 +138,7 @@ for vel_i in range(len(veltype)):
 for vel_i in range(len(veltype)):
     for view_i in range(len(view)):
         rt.plot_rays_cutoffval(home,run_name,veltype[vel_i],view[view_i],axlims,stations,events,mymap,faultfile,cutoff_val)
+        print 'Plotted cuttoff value '+str(cutoff_val)+', velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
         plt.close()
         plt.close()
         
@@ -134,5 +147,5 @@ axlims_3d=[[-116.9,-116.35],[33.3,33.75],[-20,1]]
 vtype=2
 
 #plot:
-figure3d=(home,run_name,vtype,stations,events,axlims_3d,mymap,faultfile)
+figure3d=rt.plot_3d_raypaths(home,run_name,vtype,stations,events,axlims_3d,mymap,faultfile)
 

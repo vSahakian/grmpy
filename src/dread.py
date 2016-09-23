@@ -556,3 +556,20 @@ def read_material_model(coordspath,modelpath):
     
     #Return values:
     return x, y, z, nx, ny, nz, material_model
+    
+
+#####
+#Read in propagation grid info
+def read_propgrid(progridpath):
+    '''
+    Read in the informatoin from the fm3d propagation grid file, output
+    to usable format for interpolating the velocity models.
+    Input: 
+        propgridpath:           String with path to the propgrid.in folder
+    Output:
+        dx:                     X-spacing in propgrid file
+        dy:                     Y-spacing in propgrid file
+        dz:                     Z-spacing in propgrid file
+    '''
+    
+    

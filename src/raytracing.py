@@ -222,6 +222,7 @@ def parse_rayfile(rayfile):
         path_list:      List of arrays, each array has path information
         receiver_id:    Array with id's of the receiver from receiver.in file
         source_id:      Array with id's of the source for that path from source.in file
+        
     '''
     
     from numpy import array,r_,expand_dims
@@ -279,7 +280,7 @@ def parse_rayfile(rayfile):
 #######
 #Function to extract rayfile info, sort, convert to depth/lat/lon, and store
 #in a residuals object
-def store_rayinfo(rfile_in,rfile_out,rayfile,veltype):
+def store_rayinfo(rfile_in,rfile_out,rayfile,veltype,lon_conversion):
     '''
     Extract rayfile info, sort, convert to depth/lat/lon, and store into
     the residuals object
@@ -288,6 +289,7 @@ def store_rayinfo(rfile_in,rfile_out,rayfile,veltype):
         frile_out:      String with output residual object location
         rayfile:        String with the path to the rayfile
         veltype:        Velocity type Vp=1, Vs=2
+        lon_conversion: Flag to convert longitude.  0=none; 1=+West to -West; 2=-West to +West
     Output:
         residuals object
     '''
@@ -320,7 +322,13 @@ def store_rayinfo(rfile_in,rfile_out,rayfile,veltype):
         #Convert the ray info to depth/lat degrees/lon degrees:
         ray_depth_i=path_list[ray_ind][:,0]-6371   #minus the radius of the earth
         ray_lat_i=degrees(path_list[ray_ind][:,1])
-        ray_lon_i=degrees(path_list[ray_ind][:,2])
+        #convert longitude?
+        if lon_conversion==0:
+            ray_lon_i=degrees(path_list[ray_ind][:,2])
+        elif lon_conversion==1:
+            ray_lon_i=degrees(path_list[ray_ind][:,2])-360
+        elif lon_conversion==2:
+            ray_lon_i=degrees(path_list[ray_ind][:,2])+360
         
         #Add this info to the sorted path list:
         ray_depth.append(ray_depth_i)

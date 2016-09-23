@@ -1343,7 +1343,7 @@ class residuals:
         if stations==1:
             sta_x=self.stlon
             sta_y=self.stlat
-            sta_z=zeros(len(self.stlat))
+            sta_z=self.stelv
             
             #Plot:
             ax.scatter(sta_x,sta_y,sta_z,s=150,marker='^',color='k',zorder=(len(ray_x)+10))
