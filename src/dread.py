@@ -545,7 +545,6 @@ def read_material_model(coordspath,modelpath):
     count_z=0
     
     for z_i in range(nz):
-        print shape(model_in[count_z:count_z+nx,:])
         i_beg=z_i
         i_end=z_i+nx
         material_model[z_i]=model_in[count_z:count_z+nx,:]

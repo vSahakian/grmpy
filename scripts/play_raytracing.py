@@ -116,7 +116,11 @@ veltype=[1,2]
 
 #map, and cross sections:
 view=[0,1,2]
-axlims=[[-116.9,-116.35],[33.3,33.75]]
+axlims_view0=[[-116.9,-116.35],[33.3,33.75]]
+axlims_view1=[[33.3,33.75],[-25,5]]
+axlims_view2=[[-116.9,-116.35],[-25,5]]
+axlims=[axlims_view0,axlims_view1,axlims_view2]
+
 stations=1
 events=1
 by_path=1
@@ -128,7 +132,7 @@ cutoff_val=1.0
 #Plot in a loop
 for vel_i in range(len(veltype)):
     for view_i in range(len(view)):
-        rt.plot_rays(home,run_name,veltype[vel_i],view[view_i],axlims,stations,events,by_path,mymap,faultfile)
+        rt.plot_rays(home,run_name,veltype[vel_i],view[view_i],axlims[view_i],stations,events,by_path,mymap,faultfile)
         print 'Plotted velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
         plt.close()
         plt.close()
@@ -137,7 +141,7 @@ for vel_i in range(len(veltype)):
 #Plot in a loop
 for vel_i in range(len(veltype)):
     for view_i in range(len(view)):
-        rt.plot_rays_cutoffval(home,run_name,veltype[vel_i],view[view_i],axlims,stations,events,mymap,faultfile,cutoff_val)
+        rt.plot_rays_cutoffval(home,run_name,veltype[vel_i],view[view_i],axlims[view_i],stations,events,mymap,faultfile,cutoff_val)
         print 'Plotted cuttoff value '+str(cutoff_val)+', velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
         plt.close()
         plt.close()

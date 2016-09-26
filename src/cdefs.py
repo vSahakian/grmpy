@@ -1025,9 +1025,9 @@ class residuals:
                 fault=fault_segments[segment_i]
                 plt.plot(fault[:,0],fault[:,1],color='k',zorder=len(self.mw)+9)
             
-                #Axis limits:
-                plt.xlim(axlims[0])
-                plt.ylim(axlims[1])
+        #Axis limits:
+        plt.xlim(axlims[0])
+        plt.ylim(axlims[1])
         
         #Axis labels, etc.:
         plt.xlabel(xlab)
