@@ -837,6 +837,30 @@ class residuals:
         self.vs_depth=ray_depth
         self.vs_lat=ray_lat
         self.vs_lon=ray_lon
+        
+    def add_material_values(self,value_list,value_flag):
+        '''
+        Add information about the material values to a residuals object
+        Input:
+            value_list:         List of arrays of values of a particular material model.
+                                The length of each array in the list should be the same as
+                                the number of points along the correspoinding ray.
+            value_flag:         Flag for what type of value is being added:
+                                0=Vp, 1=Vs, 2=Vp/Vs, 3=Qp, 4=Qs, 5=Qp/Qs
+        '''
+        
+        if value_flag==0:
+            self.rayval_vp=value_list
+        elif value_flag==1:
+            self.rayval_vs=value_list
+        elif value_flag==2:
+            self.rayval_vpvs=value_list
+        elif value_flag==3:
+            self.rayval_qp=value_list
+        elif value_flag==4:
+            self.rayval_qs=value_list
+        elif value_flag==5:
+            self.rayval_qpqs=value_list
                 
     #######
     def plot_raypaths(self,veltype,view,axlims,stations,events,by_path,mymap,faultfile):

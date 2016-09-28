@@ -4,8 +4,9 @@
 import dread
 import cdefs as cdf
 import cPickle as pickle
-from numpy import meshgrid,zeros
-from scipy.interpolate import griddata,Rbf
+from numpy import meshgrid,zeros,where
+from scipy.interpolate import Rbf
+from matplotlib.pyplot import scatter
 
 #Change this parameter depending on where you run:
 #0=desktop
@@ -71,11 +72,43 @@ data=mmodel.materials.transpose(2,1,0).ravel()
 #Make interpolator
 interpolator = Rbf(columnx, columny, columnz, data,function='linear')
 
-#Interpolate
+######
+##Interpolate
+######
+
+#First initialize empty list to put interpolated values in:
+ray_dat=[]
+
+for ray_i in range(len(robj.vs_lon)):
+    ray_x_i=robj.vs_lon[ray_i]
+    ray_y_i=robj.vs_lat[ray_i]
+    ray_z_i=robj.vs_depth[ray_i]
+    
+    #Interpolate:
+    vs_i=interpolator(ray_x_i,ray_y_i,ray_z_i)
+    
+    #Append to the list:
+    ray_dat.append(vs_i)
+    
+#######
+##Interpolate by reshaping:
+##
+
+
+
+######
+##Single ray:
+ray_x=robj.vs_lon[0]
+ray_y=robj.vs_lat[0]
+ray_z=robj.vs_depth[0]
+
 vs=interpolator(ray_x,ray_y,ray_z)
 
 ##Scatter ray:
-scatter(ray_x,ray_z,c=vs,s=60,lw=0.1)
-
+i=where(columnz==-3)[0]
 #Scatter interpolater velocity model:
 scatter(columnx[i],columny[i],c=data[i],s=70)
+
+#Scatter ray and velocity on ray:
+scatter(ray_x,ray_z,c=vs,s=60,lw=0.1)
+
