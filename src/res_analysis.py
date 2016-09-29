@@ -2,12 +2,13 @@
 ##VJS 6/2016
 
 ##Interpolate rays through a material model##
-def interpolate_rays(residobj,materialobj,rayflag):
+def interpolate_rays(residobj,materialobj,interptype,rayflag):
     '''
     Interpolate rays through a material model
     Input:
         residobj:           Object with residuals and ray position information
         materialobj:        Object with material model.  Depth should be positive for input.
+        interptype:         String with type of interpolation from rbf, i.e., 'linear'
         rayflag:            Flag for type of ray to interpolate.  0=Vp/1=Vs
     Output:
         ray_data:           List of arrays, each of same length as corresponding ray.
@@ -34,7 +35,7 @@ def interpolate_rays(residobj,materialobj,rayflag):
     
     #Make interpolator
     print 'Making interpolator...'
-    interpolator = Rbf(columnx, columny, columnz, data,function='linear')
+    interpolator = Rbf(columnx, columny, columnz, data,function=interptype)
 
     #Get the values to interpolate., then interpolate
     #First, which value are you doing this for?
