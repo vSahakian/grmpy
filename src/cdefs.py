@@ -838,7 +838,7 @@ class residuals:
         self.vs_lat=ray_lat
         self.vs_lon=ray_lon
         
-    def add_material_values(self,value_list,value_flag):
+    def add_material_values(self,value_list,value_flag,ray_type):
         '''
         Add information about the material values to a residuals object
         Input:
@@ -847,20 +847,158 @@ class residuals:
                                 the number of points along the correspoinding ray.
             value_flag:         Flag for what type of value is being added:
                                 0=Vp, 1=Vs, 2=Vp/Vs, 3=Qp, 4=Qs, 5=Qp/Qs
+            ray_type:           0=p-wave, 1=s-wave
         '''
         
-        if value_flag==0:
-            self.rayval_vp=value_list
-        elif value_flag==1:
-            self.rayval_vs=value_list
-        elif value_flag==2:
-            self.rayval_vpvs=value_list
-        elif value_flag==3:
-            self.rayval_qp=value_list
-        elif value_flag==4:
-            self.rayval_qs=value_list
-        elif value_flag==5:
-            self.rayval_qpqs=value_list
+        #Save for p-waves?
+        if ray_type==0:
+            print 'Adding values for p-rays into object'
+            if value_flag==0:
+                self.rayval_p_vp=value_list
+            elif value_flag==1:
+                self.rayval_p_vs=value_list
+            elif value_flag==2:
+                self.rayval_p_vpvs=value_list
+            elif value_flag==3:
+                self.rayval_p_qp=value_list
+            elif value_flag==4:
+                self.rayval_p_qs=value_list
+            elif value_flag==5:
+                self.rayval_p_qpqs=value_list            
+        
+        #S- rays?
+        elif ray_type==1:
+            print 'Adding values for s-rays into object'
+            if value_flag==0:
+                self.rayval_s_vp=value_list
+            elif value_flag==1:
+                self.rayval_s_vs=value_list
+            elif value_flag==2:
+                self.rayval_s_vpvs=value_list
+            elif value_flag==3:
+                self.rayval_s_qp=value_list
+            elif value_flag==4:
+                self.rayval_s_qs=value_list
+            elif value_flag==5:
+                self.rayval_s_qpqs=value_list  
+                
+    #######
+    def add_indices(self,indices,indextype,ray_type,value_flag):
+        '''
+        Add indices to the residuals object.
+        Input:
+            indices:            Array with index values for every ray
+            indextype:          Flag for type of index: 
+                                    0=path integral,1=normalized path integral, 
+                                    2=gradient path integral
+            ray_type:           0=P-wave, 1=S-wave
+            value_flag:         Type of material model.  
+                                    0=Vp, 1=Vs, 2=Vp/Vs, 3=Qp, 4=Qs, 5=Qp/Qs
+        '''
+        
+        #P-rays?
+        if ray_type==0:
+            #material model?
+            #Vp
+            if value_flag==0:
+                if indextype==0:
+                    self.ind_p_vp_pathint=indices
+                elif indextype==1:
+                    self.ind_p_vp_normpathint=indices
+                elif indextype==2:
+                    self.ind_p_vp_gradpathint=indices
+             #Vs       
+            elif value_flag==1:
+                if indextype==0:
+                    self.ind_p_vs_pathint=indices
+                elif indextype==1:
+                    self.ind_p_vs_normpathint=indices
+                elif indextype==2:
+                    self.ind_p_vs_gradpathint=indices      
+            #Vp/Vs        
+            elif value_flag==2:
+                if indextype==0:
+                    self.ind_p_vpvs_pathint=indices
+                elif indextype==1:
+                    self.ind_p_vpvs_normpathint=indices
+                elif indextype==2:
+                    self.ind_p_vpvs_gradpathint=indices  
+            #Qp        
+            elif value_flag==3:
+                if indextype==0:
+                    self.ind_p_qp_pathint=indices
+                elif indextype==1:
+                    self.ind_p_qp_normpathint=indices
+                elif indextype==2:
+                    self.ind_p_qp_gradpathint=indices         
+            #Qs        
+            elif value_flag==4:
+                if indextype==0:
+                    self.ind_p_qs_pathint=indices
+                elif indextype==1:
+                    self.ind_p_qs_normpathint=indices
+                elif indextype==2:
+                    self.ind_p_qs_gradpathint=indices   
+            #Qp /Qs       
+            elif value_flag==5:
+                if indextype==0:
+                    self.ind_p_qpqs_pathint=indices
+                elif indextype==1:
+                    self.ind_p_qpqs_normpathint=indices
+                elif indextype==2:
+                    self.ind_p_qpqs_gradpathint=indices      
+                    
+        #S-rays?
+        if ray_type==1:
+            #material model?
+            #Vp
+            if value_flag==0:
+                if indextype==0:
+                    self.ind_s_vp_pathint=indices
+                elif indextype==1:
+                    self.ind_s_vp_normpathint=indices
+                elif indextype==2:
+                    self.ind_s_vp_gradpathint=indices
+             #Vs       
+            elif value_flag==1:
+                if indextype==0:
+                    self.ind_s_vs_pathint=indices
+                elif indextype==1:
+                    self.ind_s_vs_normpathint=indices
+                elif indextype==2:
+                    self.ind_s_vs_gradpathint=indices      
+            #Vp/Vs        
+            elif value_flag==2:
+                if indextype==0:
+                    self.ind_s_vpvs_pathint=indices
+                elif indextype==1:
+                    self.ind_s_vpvs_normpathint=indices
+                elif indextype==2:
+                    self.ind_s_vpvs_gradpathint=indices  
+            #Qp        
+            elif value_flag==3:
+                if indextype==0:
+                    self.ind_s_qp_pathint=indices
+                elif indextype==1:
+                    self.ind_s_qp_normpathint=indices
+                elif indextype==2:
+                    self.ind_s_qp_gradpathint=indices         
+            #Qs        
+            elif value_flag==4:
+                if indextype==0:
+                    self.ind_s_qs_pathint=indices
+                elif indextype==1:
+                    self.ind_s_qs_normpathint=indices
+                elif indextype==2:
+                    self.ind_s_qs_gradpathint=indices   
+            #Qp /Qs       
+            elif value_flag==5:
+                if indextype==0:
+                    self.ind_s_qpqs_pathint=indices
+                elif indextype==1:
+                    self.ind_s_qpqs_normpathint=indices
+                elif indextype==2:
+                    self.ind_s_qpqs_gradpathint=indices        
                 
     #######
     def plot_raypaths(self,veltype,view,axlims,stations,events,by_path,mymap,faultfile):

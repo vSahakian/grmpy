@@ -70,9 +70,20 @@ def interp_rays(residualobject,materialobject,interptype):
         
 
 #3 - Compute indices
-def compute_index(ray_vals,materialobject,index_type):
+def compute_index(pvals,svals,materialobject,index_type):
     '''
-    Compute an index
-
+    Compute indices and save to object
+    Input:
+        pvals:              List of arrays with values of P rays in material model
+        svals:              List of arrays with values of S rays in material model
+        materialobject:     Object with material model
+        index_type:         Type of index to compute: 0=path integral, 
+                                1=normalized path integral, 2=path integral of gradient,
+                                3=normalized path integral of gradient
+    Output:
+        
+    '''
+    
+    
 
 #4 - Save as object

@@ -53,8 +53,11 @@ def interpolate_rays(residobj,materialobj,interptype,rayflag):
             #Interpolate:
             vp_i=interpolator(ray_x_i,ray_y_i,ray_z_i)
     
-        #Append to the list:
-        ray_data.append(vp_i)
+            #Append to the list:
+            ray_data.append(vp_i)
+            
+            #Print position:
+            if ray_i % 1000 ==0: print ray_i
             
             
     elif rayflag==1:
@@ -70,9 +73,11 @@ def interpolate_rays(residobj,materialobj,interptype,rayflag):
             #Interpolate:
             vs_i=interpolator(ray_x_i,ray_y_i,ray_z_i)
     
-        #Append to the list:
-        ray_data.append(vs_i)            
+            #Append to the list:
+            ray_data.append(vs_i)            
             
+            #Print position:
+            if ray_i % 1000 ==0: print ray_i
             
     #Return info:
     return ray_data
@@ -117,7 +122,7 @@ def compute_pathintegral(ray_vals,materialobject,normalize_flag):
         path_integral_i=sum(ray_val_i)
         
         #Set the value of the index for this ray:
-        if normalize_flag==1:
+        if normalize_flag==0:
             path_integral_index_i=path_integral_i
         elif normalize_flag==1:
             path_integral_index_i=path_integral_i/max_val_integral
@@ -144,43 +149,47 @@ def compute_devpathintegral(ray_vals,materialobject,normalize_flag):
         dpathintegral_index:     Array with the gradient path integral index
     '''
     
-    from numpy import max,sum,array
+    from numpy import max,sum,array,gradient
     
-    #Find the maximum value in the materials object to use for normalization integral
-    if normalize_flag==1:
-        max_material_val=max(materialobject.materials)
+    ##Find the maximum value in the materials object to use for normalization integral
+    #if normalize_flag==1:
+    #    max_material_val=max(materialobject.materials)
         
     #Initialize the index list:
-    pathintegral_index=[]
+    dpathintegral_index=[]
     
     #Loop over rays:
     for ray_i in range(len(ray_vals)):
         #Get the values for this ray:
         ray_val_i=ray_vals[ray_i]
+
         #Get the length of this ray:
         ray_i_len=len(ray_val_i)
         
-        if normalize_flag==1:
-            #Get the "path integral" of the maximum value of hte array by
-            #   multiplying hte maximum value by the number of points on this array:
-            max_val_integral=ray_i_len*max_material_val
+        #if normalize_flag==1:
+        #    #Get the "path integral" of the maximum value of hte array by
+        #    #   multiplying hte maximum value by the number of points on this array:
+        #    max_val_integral=ray_i_len*max_material_val
+        
+        #Get the gradient along the ray:
+        gradient_i=gradient(ray_val_i)
         
         #Sum the values of this ray:
-        path_integral_i=sum(ray_val_i)
+        dpath_integral_i=sum(abs(gradient_i))
         
         #Set the value of the index for this ray:
-        if normalize_flag==1:
-            path_integral_index_i=path_integral_i
-        elif normalize_flag==1:
-            path_integral_index_i=path_integral_i/max_val_integral
+        if normalize_flag==0:
+            dpath_integral_index_i=dpath_integral_i
+        #elif normalize_flag==1:
+        #    path_integral_index_i=path_integral_i/max_val_integral
             
         #Append to the index list:
-        pathintegral_index.append(path_integral_index_i)
+        dpathintegral_index.append(dpath_integral_index_i)
     
     #After appending all, turn it into an array:
-    pathintegral_index=array(pathintegral_index)
+    dpathintegral_index=array(dpathintegral_index)
         
     #Return the array:
-    return pathintegral_index
+    return dpathintegral_index
             
             
