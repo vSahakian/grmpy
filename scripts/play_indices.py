@@ -7,7 +7,8 @@ import cPickle as pickle
 from numpy import meshgrid,zeros,where
 import run_res_analysis as runra
 import res_analysis as ra
-from matplotlib.pyplot import scatter
+import matplotlib.pyplot as plt
+from scipy.stats.stats import pearsonr
 
 #Change this parameter depending on where you run:
 #0=desktop
@@ -117,20 +118,36 @@ rfile_indices=open(rpath_indices,'w')
 pickle.dump(robj,rfile_indices)
 rfile_indices.close()
 
-
-
-
-
-
-
-
+#Get some correlation coefficeints:
+grad_pears_coeff,gptail=pearsonr(robj.path_terms,robj.ind_s_vs_gradpathint)
+normpath_pears_coeff,nptail=pearsonr(robj.path_terms,robj.ind_s_vs_normpathint)
+path_pears_coeff,ptail=pearsonr(robj.path_terms,robj.ind_s_vs_pathint)
 
 ########
 ########
 
+##Make some plots...automate this later...##
 
+#Plot of path term on x axis, gradient of path on y
+plt.figure()
+plt.scatter(robj.path_terms,robj.ind_s_vs_gradpathint,facecolors='none',edgecolors='blue')
+plt.xlabel('Path Term (ln residual)')
+plt.ylabel('Path integral of gradient of Vs')
+plt.title('Pearsons coefficient = '+str(grad_pears_coeff))
 
+#Plot of path term on x axis, normalized path integral on y
+plt.figure()
+plt.scatter(robj.path_terms,robj.ind_s_vs_normpathint,facecolors='none',edgecolors='blue')
+plt.xlabel('Path Term (ln residual)')
+plt.ylabel('Normalized integral of of Vs')
+plt.title('Pearsons coefficient = '+str(normpath_pears_coeff))
 
+#Plot of path term on x axis, path integral on y
+plt.figure()
+plt.scatter(robj.path_terms,robj.ind_s_vs_pathint,facecolors='none',edgecolors='blue')
+plt.xlabel('Path Term (ln residual)')
+plt.ylabel('Path integral of Vs')
+plt.title('Pearsons coefficient = '+str(path_pears_coeff))
 
 
 
