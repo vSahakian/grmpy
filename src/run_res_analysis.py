@@ -41,12 +41,13 @@ def make_material_object(coordspath,materialpath,matobjectpath,lon_convert):
 
 
 #2 - Interpolate ray values through model
-def interp_rays(residualobject,materialobject):
+def interp_rays(residualobject,materialobject,interptype):
     '''
     Interpolate P and S wave rays through the material model
     Input:
         residualobject:         Object with the residuals, ray positions, etc.
         materialobject:         Object with the materialmodel
+        interptype:             String with type of interpolation for Rbf (i.e., 'linear')
     Output:
         pvals:                  List of arrays with values of model for P wave rays
         svals:                  List of arrays with values of model for S wave rays
@@ -58,16 +59,20 @@ def interp_rays(residualobject,materialobject):
     rayflag=0
     
     #INterpolate:
-    pvals=ra.interpolate_rays(residualobject,materialobject)
+    pvals=ra.interpolate_rays(residualobject,materialobject,interptype,rayflag)
     
     #Now for S-waves:
     rayflag=1
-    svals=ra.interpolate_rays(residualobject,materialobject)
+    svals=ra.interpolate_rays(residualobject,materialobject,interptype,rayflag)
     
     #Return
     return pvals, svals
         
 
 #3 - Compute indices
+def compute_index(ray_vals,materialobject,index_type):
+    '''
+    Compute an index
+
 
 #4 - Save as object

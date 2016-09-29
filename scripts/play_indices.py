@@ -46,10 +46,15 @@ rfile.close()
 #Make material model:
 #Convert the longitudes from positive west to negative:
 lonconvert=2
-materialmodel=rra.make_material_object(coordspath,materialmodelpath,lonconvert)
+materialmodel=rra.make_material_object(coordspath,matpath,lonconvert)
 
 
+#Interpolate Vp and Vs rays through this model:
+interpolation_type='linear'
+p_ray_data,s_ray_data=rra.interp_rays(robj,materialmodel,interpolation_type)
 
+
+#Compute indices and save to a new residuals object:
 
 
 
