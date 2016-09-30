@@ -177,6 +177,19 @@ cvals=[[0,20],[1.2,3]]
 for indexi in range(len(index)):
     for color_by_i in range(len(color_by)):
         ra.plot_terms_colored(home,run_name,robj,term,index[indexi],axlims[indexi],color_by[color_by_i],cvals[color_by_i],cmap)
+        
+
+#Event residual:
+term='E_residual'
+index=['ind_s_vs_pathint','ind_s_vs_normpathint','ind_s_vs_gradpathint']
+color_by=['r','mw']
+axlims=[[[-1.5,1.5],[200,1400]],[[-1.5,1.5],[0.66,0.81]],[[-1.5,1.5],[0,5]]]
+cmap='jet'
+cvals=[[0,20],[1.2,3]]
+
+for indexi in range(len(index)):
+    for color_by_i in range(len(color_by)):
+        ra.plot_terms_colored(home,run_name,robj,term,index[indexi],axlims[indexi],color_by[color_by_i],cvals[color_by_i],cmap)
 
 ###############
 ##############
