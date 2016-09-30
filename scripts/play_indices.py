@@ -23,6 +23,9 @@ elif what_home==1:
     #Mac:
     HOME='/Users/vsahakian'
     
+#Paths:
+home=HOME+'/anza/models/residuals/'
+run_name='abdb_5sta_0-6.5_topography'
 
 #Paths to Fang 2016 model
 coordspath=HOME+'/anza/data/vm/Fang2016/coords.txt'
@@ -151,10 +154,29 @@ plt.title('Pearsons coefficient = '+str(path_pears_coeff))
 
 
 
+###
+#Some more plots...
+index=['ind_s_vs_pathint','ind_s_vs_normpathint','ind_s_vs_gradpathint']
+color_by=['r','mw']
+axlims=[[[-4,4],[200,1400]],[[-4,4],[0.66,0.81]],[[-4,4],[0,5]]]
+cmap='jet'
+cvals=[[0,20],[1.2,3]]
 
+for indexi in range(len(index)):
+    for color_by_i in range(len(color_by)):
+        ra.plot_pathterms_colored(home,run_name,robj,index[indexi],axlims[indexi],color_by[color_by_i],cvals[color_by_i],cmap)
 
+#Now for other terms...
+term='site_terms'
+index=['ind_s_vs_pathint','ind_s_vs_normpathint','ind_s_vs_gradpathint']
+color_by=['r','mw']
+axlims=[[[-1.5,1.5],[200,1400]],[[-1.5,1.5],[0.66,0.81]],[[-1.5,1.5],[0,5]]]
+cmap='jet'
+cvals=[[0,20],[1.2,3]]
 
-
+for indexi in range(len(index)):
+    for color_by_i in range(len(color_by)):
+        ra.plot_terms_colored(home,run_name,robj,term,index[indexi],axlims[indexi],color_by[color_by_i],cvals[color_by_i],cmap)
 
 ###############
 ##############

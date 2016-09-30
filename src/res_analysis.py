@@ -193,3 +193,287 @@ def compute_devpathintegral(ray_vals,materialobject,normalize_flag):
     return dpathintegral_index
             
             
+            
+ #####################
+ #####################
+ ##Plots and Correlations##
+ 
+def plot_pterms(home,run_name,robj,index,axlims):
+    '''
+    Plot path terms vs. some index, with path terms on the x-axis.
+    Input:
+        home:           String with path to the home directory for project
+        run_name:       String with database/inversion combo for residuals
+        robj:           Residuals object with indices
+        index:          STring with index to plot: 'ind'_raytype_modeltype_indextype
+                            raytype=p/s; modeltype=vp/vs/vpvs/qp/qs/qpqs;
+                            indextype=pathint,normpathint,gradpathint
+                            i.e., 'ind_p_vs_normpathint'
+        axlims:         Axis limits: [[xmin,xmax],[ymin,ymax]]
+    Output:
+        Saves plots to home/run_name/figs/pathterm_index
+    '''
+    from os import path
+    import matplotlib.pyplot as plt
+    from scipy.stats.stats import pearsonr
+    from numpy import array
+    
+    #Get run directory, and figure directory:
+    run_dir=path.expanduser(home+run_name+'/')
+    fig_dir=run_dir+'figs/'
+    pdf_dir=fig_dir+'pdfs/'
+    
+    #Get a string for the plot name and title:
+    figbasename='pathterm_'+index
+    #Index type...
+    indtype=index.split('_')[-1]
+    if indtype=='pathint':
+        indname='Path Integral'
+    elif indtype=='normpathint':
+        indname='Normalized Path Integral'
+    elif indtype=='gradpathint':
+        indname='Path Integral of the gradient'
+        
+    #What to plot?
+    x=robj.path_terms
+    y=getattr(robj,index)
+        
+    #get correlation coefficient:
+    pcoeff,tails=pearsonr(x,y)
+    pcoeff=round(pcoeff,2)
+    
+    #Title:
+    ptitle='Plot of path terms vs. '+indname+'\n Pearson coefficient: '+str(pcoeff)
+    
+    #Initiate figure:
+    f1=plt.figure()
+    
+    #Plot it:
+    color=array([102,139,139])/255.0
+    plt.scatter(x,y,edgecolors=color,facecolors='none',lw=0.9)
+    
+    #Set axis limits and labels:
+    plt.xlim(axlims[0])
+    plt.ylim(axlims[1])
+    
+    plt.xlabel('Path term (ln residual)')
+    plt.ylabel(indname)
+    plt.title(ptitle)
+    
+    #Save figure:
+    pngname=fig_dir+index+'.png'
+    pdfname=pdf_dir+index+'.pdf'
+    plt.savefig(pngname)
+    plt.savefig(pdfname)
+          
+    #Return
+    return f1
+    
+##
+def plot_pathterms_colored(home,run_name,robj,index,axlims,color_by,cvals,mymap):
+    '''
+    Plot path terms vs. some index, with path terms on the x-axis.
+    Input:
+        home:           String with path to the home directory for project
+        run_name:       String with database/inversion combo for residuals
+        robj:           Residuals object with indices
+        index:          STring with index to plot: 'ind'_raytype_modeltype_indextype
+                            raytype=p/s; modeltype=vp/vs/vpvs/qp/qs/qpqs;
+                            indextype=pathint,normpathint,gradpathint
+                            i.e., 'ind_p_vs_normpathint'
+        axlims:         Axis limits: [[xmin,xmax],[ymin,ymax]]
+        color_by:       String with variable to color by: 'r', or 'mw'
+        cvals:          Colorbar limits: [cmin,cmax]
+        mymap:          String with colormap to use (i.e., 'jet')
+    Output:
+        Saves plots to home/run_name/figs/pathterm_index
+    '''
+    from os import path
+    import matplotlib.pyplot as plt
+    from scipy.stats.stats import pearsonr
+    from numpy import array,arange
+    import matplotlib.colors as colors
+    import matplotlib.cm as cm
+    
+    #Get run directory, and figure directory:
+    run_dir=path.expanduser(home+run_name+'/')
+    fig_dir=run_dir+'figs/'
+    pdf_dir=fig_dir+'pdfs/'
+    
+    #Get a string for the plot name and title:
+    figbasename='pathterm_'+index+'_'+color_by
+    #Index type...
+    indtype=index.split('_')[-1]
+    if indtype=='pathint':
+        indname='Path Integral'
+    elif indtype=='normpathint':
+        indname='Normalized Path Integral'
+    elif indtype=='gradpathint':
+        indname='Path Integral of the gradient'
+        
+    #What to plot?
+    x=robj.path_terms
+    y=getattr(robj,index)
+        
+    #get correlation coefficient:
+    pcoeff,tails=pearsonr(x,y)
+    pcoeff=round(pcoeff,2)
+    
+    #Title:
+    ptitle='Plot of path terms vs. '+indname+'\n Pearson coefficient: '+str(pcoeff)
+    
+    #Get colormap
+    #Make colormap:
+    colormap_mwdist=plt.get_cmap(mymap)
+    #Make a normalized colorscale
+    cmin=cvals[0]
+    cmax=cvals[1]
+    cNorm=colors.Normalize(vmin=cmin, vmax=cmax)
+    #Apply normalization to colormap:
+    scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap_mwdist)
+    
+    #Make a fake contour plot for the colorbar:
+    Z=[[0,0],[0,0]]
+    levels=arange(cmin,cmax,0.01)
+    c=plt.contourf(Z, levels, cmap=colormap_mwdist)   
+    
+    #Assign values to colormap
+    colorVal = scalarMap.to_rgba(getattr(robj,color_by))
+    
+    #Plot:
+    f1=plt.figure()
+    plt.scatter(x,y,facecolors='none',edgecolors=colorVal,lw=0.5)
+    
+    #Add colorbar:
+    cb=plt.colorbar(c)
+    if color_by=='r':
+        cbarlabel='Distance (km)'
+    elif color_by=='mw':
+        cbarlabel='M'
+    cb.set_label(cbarlabel)
+    
+    #Set axis limits and labels:
+    plt.xlim(axlims[0])
+    plt.ylim(axlims[1])
+    
+    plt.xlabel('Path term (ln residual)')
+    plt.ylabel(indname)
+    plt.title(ptitle)
+    
+    #Save figure:
+    pngname=fig_dir+index+'_'+color_by+'.png'
+    pdfname=pdf_dir+index+'_'+color_by+'.pdf'
+    plt.savefig(pngname)
+    plt.savefig(pdfname)
+    
+    return f1
+    
+##
+#Other terms...
+##
+def plot_terms_colored(home,run_name,robj,term,index,axlims,color_by,cvals,mymap):
+    '''
+    Plot path terms vs. some index, with path terms on the x-axis.
+    Input:
+        home:           String with path to the home directory for project
+        run_name:       String with database/inversion combo for residuals
+        robj:           Residuals object with indices
+        term:           String with term to plot: 'site_terms','W_residual','E_residual'
+        index:          STring with index to plot: 'ind'_raytype_modeltype_indextype
+                            raytype=p/s; modeltype=vp/vs/vpvs/qp/qs/qpqs;
+                            indextype=pathint,normpathint,gradpathint
+                            i.e., 'ind_p_vs_normpathint'
+        axlims:         Axis limits: [[xmin,xmax],[ymin,ymax]]
+        color_by:       String with variable to color by: 'r', or 'mw'
+        cvals:          Colorbar limits: [cmin,cmax]
+        mymap:          String with colormap to use (i.e., 'jet')
+    Output:
+        Saves plots to home/run_name/figs/pathterm_index
+    '''
+    from os import path
+    import matplotlib.pyplot as plt
+    from scipy.stats.stats import pearsonr
+    from numpy import array,arange
+    import matplotlib.colors as colors
+    import matplotlib.cm as cm
+    
+    #Get run directory, and figure directory:
+    run_dir=path.expanduser(home+run_name+'/')
+    fig_dir=run_dir+'figs/'
+    pdf_dir=fig_dir+'pdfs/'
+    
+    #Get a string for the plot name and title:
+    figbasename=term+index+'_'+color_by
+    #Index type...
+    indtype=index.split('_')[-1]
+    if indtype=='pathint':
+        indname='Path Integral'
+    elif indtype=='normpathint':
+        indname='Normalized Path Integral'
+    elif indtype=='gradpathint':
+        indname='Path Integral of the gradient'
+        
+    #Term type:
+    if term=='site_terms':
+        termname='Site Term (ln residual)'
+    elif term=='W_residual':
+        termname='Within Event residual (ln residual)'
+    elif term=='E_residual':
+        termname='Event residual (ln residual)'
+        
+    #What to plot?
+    x=getattr(robj,term)
+    y=getattr(robj,index)
+        
+    #get correlation coefficient:
+    pcoeff,tails=pearsonr(x,y)
+    pcoeff=round(pcoeff,2)
+    
+    #Title:
+    ptitle='Plot of path terms vs. '+indname+'\n Pearson coefficient: '+str(pcoeff)
+    
+    #Get colormap
+    #Make colormap:
+    colormap_mwdist=plt.get_cmap(mymap)
+    #Make a normalized colorscale
+    cmin=cvals[0]
+    cmax=cvals[1]
+    cNorm=colors.Normalize(vmin=cmin, vmax=cmax)
+    #Apply normalization to colormap:
+    scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap_mwdist)
+    
+    #Make a fake contour plot for the colorbar:
+    Z=[[0,0],[0,0]]
+    levels=arange(cmin,cmax,0.01)
+    c=plt.contourf(Z, levels, cmap=colormap_mwdist)   
+    
+    #Assign values to colormap
+    colorVal = scalarMap.to_rgba(getattr(robj,color_by))
+    
+    #Plot:
+    f1=plt.figure()
+    plt.scatter(x,y,facecolors='none',edgecolors=colorVal,lw=0.5)
+    
+    #Add colorbar:
+    cb=plt.colorbar(c)
+    if color_by=='r':
+        cbarlabel='Distance (km)'
+    elif color_by=='mw':
+        cbarlabel='M'
+    cb.set_label(cbarlabel)
+    
+    #Set axis limits and labels:
+    plt.xlim(axlims[0])
+    plt.ylim(axlims[1])
+    
+    plt.xlabel(termname)
+    plt.ylabel(indname)
+    plt.title(ptitle)
+    
+    #Save figure:
+    pngname=fig_dir+index+'_'+color_by+'.png'
+    pdfname=pdf_dir+index+'_'+color_by+'.pdf'
+    plt.savefig(pngname)
+    plt.savefig(pdfname)
+    
+    return f1
