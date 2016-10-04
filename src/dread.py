@@ -14,7 +14,23 @@ def mread(flatfile,hashfile,stationfile,station_cols):
         stationfile:     STring with path to the station file, for anza stations 
         station_cols: 	 Array with columns to use for station name, lat, lon, and el [name, lat, lon, el]
     Output
-    
+        event:          Array with event numbers
+        sta:            List with station names
+        N:              Array with station numbers (stnum)
+        ml:             Array with local magnitudes
+        mw:             Array with moment magnitudes
+        DA:             Array with PGA values, geometrically averaged from two components, in nm/s/s
+        DV:             Array with PGV values, geometrically averaged from two components, in nm/s/s
+        dist:           Array with epicentral distance, km
+        vs30:           Array with vs30 values
+        lat:            Array with event latitude
+        lon:            Array with event longitude
+        depth:          Array with event depth
+        stlat:          Array with station latitude
+        stlon:          Array with station longitude
+        stelv:          Array with station elevation
+        source_i:       Array with the source index for raytracing (i.e., unique sources numbered)
+        receiver_i:     Array with the receiver index for raytracing (i.e., unique receivers numbered)
     '''
     
     import scipy.io as sio
@@ -558,17 +574,32 @@ def read_material_model(coordspath,modelpath):
     
 
 #####
-#Read in propagation grid info
-def read_propgrid(progridpath):
+#Read in Janine's PGA format file
+def read_jsbfile(datafile):
     '''
-    Read in the informatoin from the fm3d propagation grid file, output
-    to usable format for interpolating the velocity models.
-    Input: 
-        propgridpath:           String with path to the propgrid.in folder
+    Read in Janine's PGA data format file and print out usable data for the db object read.
+    Input:
+        datafile:           String with path to the datafile
     Output:
-        dx:                     X-spacing in propgrid file
-        dy:                     Y-spacing in propgrid file
-        dz:                     Z-spacing in propgrid file
+        
     '''
     
+    
+######
+#Get Rrup
+def compute_rrup(evlon,evlat,evdepth,stlon,stlat,stdepth):
+    '''
+    Compute Rrup given the event and station lon,lat,z positions
+    Input:
+        evlon:          Array with event longitudes (deg)
+        evlat:          Array with event latitudes (deg)
+        evdepth:        Array with event depths (km)
+        stlon:          Array with station longitudes (deg)
+        stlat:          Array with station latitudes (deg)
+        stdepth:        Array with station depths (km)
+    Output:
+        Rrup:           Array with Rrup distances (km)
+    '''
+    
+    import pyProj
     
