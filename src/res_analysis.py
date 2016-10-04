@@ -416,10 +416,13 @@ def plot_terms_colored(home,run_name,robj,term,index,axlims,color_by,cvals,mymap
     #Term type:
     if term=='site_terms':
         termname='Site Term (ln residual)'
+        termtitle='Site Term'
     elif term=='W_residual':
         termname='Within Event residual (ln residual)'
+        termtitle='Within-Event Residual'
     elif term=='E_residual':
         termname='Event residual (ln residual)'
+        termtitle='Event Residual'
         
     #What to plot?
     x=getattr(robj,term)
@@ -430,7 +433,7 @@ def plot_terms_colored(home,run_name,robj,term,index,axlims,color_by,cvals,mymap
     pcoeff=round(pcoeff,2)
     
     #Title:
-    ptitle='Plot of path terms vs. '+indname+'\n Pearson coefficient: '+str(pcoeff)
+    ptitle='Plot of '+termtitle+' vs. '+indname+'\n Pearson coefficient: '+str(pcoeff)
     
     #Get colormap
     #Make colormap:
@@ -471,8 +474,8 @@ def plot_terms_colored(home,run_name,robj,term,index,axlims,color_by,cvals,mymap
     plt.title(ptitle)
     
     #Save figure:
-    pngname=fig_dir+index+'_'+color_by+'.png'
-    pdfname=pdf_dir+index+'_'+color_by+'.pdf'
+    pngname=fig_dir+index+'_'+term+'_'+color_by+'.png'
+    pdfname=pdf_dir+index+'_'+term+'_'+color_by+'.pdf'
     plt.savefig(pngname)
     plt.savefig(pdfname)
     
