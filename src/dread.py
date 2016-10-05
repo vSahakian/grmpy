@@ -206,32 +206,6 @@ def mread(flatfile,hashfile,stationfile,station_cols):
     return event,sta,N,ml,mw,DA,DV,dist[:,0],vs30,lat,lon,depth,stlat,stlon,stelv,source_i,receiver_i
 
 
-def jb_ascii_read(flatfile):
-    '''
-    Read in data from Janine's test events format
-    Input:
-        flatfile:           String with path to the flatfile
-    '''
-    
-    from numpy import genfromtxt,unique
-    
-    #First read in the stations from the flatfile:
-    #Will be in two columns:   sta    chan
-    star=genfromtxt(flatfile,dtype='S5',skip_header=1,usecols=[0,1])
-    #Read in the data from the flatfile:
-    datr=genfromtxt(flatfile,skip_header=1,usecols=range(2,12))
-    
-    #Find the data per station:
-    #What stations are in this file?
-    unique_stations=unique(star[:,0])
-    
-    #Loop through them, and get the horizontal components:
-    
-
-
-
-
-
 def read_obj_list(objfile):
     '''
     Read a pickle file with a list of event of station objects
@@ -584,6 +558,53 @@ def read_jsbfile(datafile):
         
     '''
     
+    from numpy import genfromtxt,unique,log10
+    
+    #First read in the stations from the flatfile:
+    #Will be in two columns:   sta    chan
+    sta_r=genfromtxt(datafile,dtype='S5',usecols=[0])
+    chan_r=genfromtxt(datafile,dtype='S5',usecols=[1])
+
+    #Read in the data from the flatfile:
+    dat_r=genfromtxt(datafile,skip_header=1,usecols=range(2,14))
+    
+    #Set variables from dat_r:
+    stlat_r=dat_r[:,0]
+    stlon_r=dat_r[:,1]
+    stelv_r=dat_r[:,2]
+    evnum_r=dat_r[:,3]
+    evlat_r=dat_r[:,4]
+    evlon_r=dat_r[:,5]
+    evdep_r=dat_r[:,6]
+    grcircle_r=dat_r[:,7]
+    ml_r=dat_r[:,8]
+    mw_r=dat_r[:,9]
+    pga_mgal_r=dat_r[:,10]
+    pga_sn_r=dat_r[:,11]
+    
+    #Find the geometrical average for the E and N stations of each event:
+    #First get the unique events:
+    unique_events=unique(evnum_r)
+    
+    #For every unique event, find which stations record it:
+    for event_i in range(len(unique_events)):
+        unique_event_ind=where(evnum_r==unique_events[event_i])[0]
+        #Stations recoridng this event:
+        sta_event_i=sta_r[unique_event_ind]
+        #Get the unique stations:
+        unique_stations_i=unique(sta_event_i)
+        
+        #For each station, get the E and N component and average them:
+        for station_i in range(len(unique_stations_i)):
+            #What are the indices of this station in sta_r, same length as chan_r,
+            #for both E and N?
+            unique_station_ind=where((sta_r==unique_stations_i[station_i]) & (evnum_r==unique_events[event_i]))[0]
+            
+            chanE_ind=where(chan_r[unique_station_ind]
+            
+            #Then find just the E and N components:
+            
+    
     
 ######
 #Get Rrup
@@ -601,5 +622,6 @@ def compute_rrup(evlon,evlat,evdepth,stlon,stlat,stdepth):
         Rrup:           Array with Rrup distances (km)
     '''
     
-    import pyProj
+    import pyproj import Proj
+    
     

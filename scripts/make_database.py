@@ -33,8 +33,12 @@ scols=[0,3,4,5]
 #Read data from .mat file, store important values:
 ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth,stlat,stlon,stelv,source_i,receiver_i=dr.mread(ffile,hfile,sfile,scols)
 
+#Convert DA and DV to m/s/s and m/s, from nm/s/s and nm/s:
+DAm=DA*1e-9
+DVm=DV*1e-9
+
 #Load into database object
-abdb=cdf.db(ev,sta,N,ml,mw,DA,DV,r,vs30,lat,lon,depth,stlat,stlon,stelv,source_i,receiver_i)
+abdb=cdf.db(ev,sta,N,ml,mw,DAm,DVm,r,vs30,lat,lon,depth,stlat,stlon,stelv,source_i,receiver_i)
 
 #Save the database object:
 fname=HOME+'/anza/data/abdb.pckl'

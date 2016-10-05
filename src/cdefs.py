@@ -15,20 +15,23 @@ class db:
         '''
         Initiate the class by giving the event number (event), 
         station name (sta), station number (N), local mag (ml), moment mag (mw), 
-        PGA (DA), PGV (DV), and source to site distance (r)
+        PGA (DA - m/s2), PGV (DV - m/s), and source to site distance (r)
         '''
         import numpy as np
         
         #"Fictitions depth" or "Finite fault dimension factor"
         c=4.5
         
-        #Save pga + pgv in m/s/s, not nm/s/s
-        DAm=DA*1e-9
-        DVm=DV*1e-9
+        ##Save pga + pgv in m/s/s, not nm/s/s
+        #DAm=DA*1e-9
+        #DVm=DV*1e-9
         
+        ##Get percent g:
+        #pga_pg=DAm/9.81
+
         #Get percent g:
-        pga_pg=DAm/9.81
-        
+        pga_pg=DA/9.81 
+                       
         #Get magnitude-dependent ffdf:
         #ASK2014 c4 coefficient:
         c4=4.5
@@ -50,8 +53,8 @@ class db:
         self.stnum=N
         self.ml=ml
         self.mw=mw
-        self.pga=DAm
-        self.pgv=DVm
+        self.pga=DA
+        self.pgv=DV
         self.pga_pg=pga_pg
         self.r=r
         self.vs30=vs30
