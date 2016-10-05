@@ -558,7 +558,7 @@ def read_jsbfile(datafile):
         
     '''
     
-    from numpy import genfromtxt,unique,log10
+    from numpy import genfromtxt,unique,log10,array,where
     
     #First read in the stations from the flatfile:
     #Will be in two columns:   sta    chan
@@ -566,7 +566,7 @@ def read_jsbfile(datafile):
     chan_r=genfromtxt(datafile,dtype='S5',usecols=[1])
 
     #Read in the data from the flatfile:
-    dat_r=genfromtxt(datafile,skip_header=1,usecols=range(2,14))
+    dat_r=genfromtxt(datafile,usecols=range(2,14))
     
     #Set variables from dat_r:
     stlat_r=dat_r[:,0]
@@ -582,6 +582,20 @@ def read_jsbfile(datafile):
     pga_mgal_r=dat_r[:,10]
     pga_sn_r=dat_r[:,11]
     
+    #Set the final variables to empty lists, to append to:
+    evnum=[]
+    evlat=[]
+    evlon=[]
+    evdep=[]
+    sta=[]
+    stlat=[]
+    stlon=[]
+    stelv=[]
+    grcircle=[]
+    ml=[]
+    mw=[]
+    pga_mgal=[]
+    
     #Find the geometrical average for the E and N stations of each event:
     #First get the unique events:
     unique_events=unique(evnum_r)
@@ -590,21 +604,69 @@ def read_jsbfile(datafile):
     for event_i in range(len(unique_events)):
         unique_event_ind=where(evnum_r==unique_events[event_i])[0]
         #Stations recoridng this event:
-        sta_event_i=sta_r[unique_event_ind]
+        sta_event_iter=sta_r[unique_event_ind]
         #Get the unique stations:
-        unique_stations_i=unique(sta_event_i)
+        unique_stations_iter=unique(sta_event_iter)
         
         #For each station, get the E and N component and average them:
-        for station_i in range(len(unique_stations_i)):
+        for station_i in range(len(unique_stations_iter)):
             #What are the indices of this station in sta_r, same length as chan_r,
             #for both E and N?
-            unique_station_ind=where((sta_r==unique_stations_i[station_i]) & (evnum_r==unique_events[event_i]))[0]
+            unique_station_ind=where(sta_r[unique_event_ind]==unique_stations_iter[station_i])[0]
             
-            chanE_ind=where(chan_r[unique_station_ind]
+            #Set the channel E and N counter:
+            E_counter=0
+            N_counter=0
+            #Loop through the channels and get E and N:
+            for chan_iter in range(len(unique_station_ind)):
+                channel=chan_r[unique_event_ind[unique_station_ind]][chan_iter]
+                #Is it East?
+                if channel[2]=='E':
+                    chan_E=pga_mgal_r[unique_event_ind[unique_station_ind]][chan_iter]
+                    E_counter=E_counter+1
+                elif channel[2]=='N':
+                    N_counter=N_counter+1
+                    chan_N=pga_mgal_r[unique_event_ind[unique_station_ind]][chan_iter]
             
-            #Then find just the E and N components:
-            
+            #If for this recording (event and station combo) there is both an E and N
+            #   reading, compute the geometrical average:
+            if E_counter+N_counter==2:
+                pga_recording_i=10**((log10(chan_E)+log10(chan_N))/2)
+
+                #Now that the geometric avreage has been found for this reording, append
+                #   the recording to the lists:
+                #Save the event nuber as an integer:
+                evnum.append(int(evnum_r[unique_event_ind[unique_station_ind]][chan_iter]))
+                evlat.append(evlat_r[unique_event_ind[unique_station_ind]][chan_iter])
+                evlon.append(evlon_r[unique_event_ind[unique_station_ind]][chan_iter])
+                evdep.append(evdep_r[unique_event_ind[unique_station_ind]][chan_iter])
+                sta.append(sta_r[unique_event_ind[unique_station_ind]][chan_iter])
+                stlat.append(stlat_r[unique_event_ind[unique_station_ind]][chan_iter])
+                stlon.append(stlon_r[unique_event_ind[unique_station_ind]][chan_iter])
+                stelv.append(stelv_r[unique_event_ind[unique_station_ind]][chan_iter])
+                grcircle.append(grcircle_r[unique_event_ind[unique_station_ind]][chan_iter])
+                ml.append(ml_r[unique_event_ind[unique_station_ind]][chan_iter])
+                mw.append(mw_r[unique_event_ind[unique_station_ind]][chan_iter])
+                
+                #Save the pga as the current geometical average:
+                pga_mgal.append(pga_recording_i)
     
+    #At the end, convert the lists to arrays:
+    evnum=array(evnum)
+    evlat=array(evlat)
+    evlon=array(evlon)
+    evdep=array(evdep)
+    sta=array(sta)
+    stlat=array(stlat)
+    stlon=array(stlon)
+    stelv=array(stelv)
+    grcircle=array(grcircle)
+    ml=array(ml)
+    mw=array(mw)
+    pga_mgal=array(pga_mgal)
+    
+    #Return the data:
+    return evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,pga_mgal
     
 ######
 #Get Rrup
@@ -622,6 +684,6 @@ def compute_rrup(evlon,evlat,evdepth,stlon,stlat,stdepth):
         Rrup:           Array with Rrup distances (km)
     '''
     
-    import pyproj import Proj
-    
+    #import pyproj import Proj
+    #
     
