@@ -13,7 +13,7 @@ import gmpe as gm
 #0=desktop
 #1=mac
 
-what_home=1
+what_home=0
 
 if what_home==0:
     #Desktop:
@@ -32,3 +32,7 @@ flatfile=HOME+'/anza/data/databases/PGA_2013.dat'
 evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,pga_mgal=dr.read_jsbfile(flatfile)
 
 #Compute Rrup for the data:
+rrup=dr.compute_rrup(evlon,evlat,evdep,stlon,stlat,stelv)
+
+#Get Vs30:
+

@@ -667,12 +667,13 @@ def read_jsbfile(datafile):
     
     #Return the data:
     return evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,pga_mgal
+
     
 ######
 #Get Rrup
-def compute_rrup(evlon,evlat,evdepth,stlon,stlat,stdepth):
+def compute_rrup(evlon,evlat,evdepth,stlon,stlat,stelv):
     '''
-    Compute Rrup given the event and station lon,lat,z positions
+    Compute Rrup given the event and station lon,lat,z positions - ONLY USE ON POINT SOURCES!
     Input:
         evlon:          Array with event longitudes (deg)
         evlat:          Array with event latitudes (deg)
@@ -685,9 +686,52 @@ def compute_rrup(evlon,evlat,evdepth,stlon,stlat,stdepth):
     '''
     
     from pyproj import Proj
+    from numpy import sqrt
     
     #Convert the event and station latitude/longitude to UTM x and y:
     #Make the projection:
-    projection=Proj(
+    p=Proj(proj='utm',zone='11S',ellps='WGS84',inverse=True)
     
+    #Convert the latitude and longitude to UTM X and Y (in meters)    
+    evx,evy=p(evlon,evlat)
+    stx,sty=p(stlon,stlat)
+    
+    #Event and station depth is currently in km; convert to m:
+    evz=evdepth*1000
+    #stations are negative, have positive depth:
+    stz=stelv*-1000
+    
+    #Get distance Rrup - closest distance to rupture.
+    #   Since they are almost all point sources, this can just be site/event distance:
+    Rrup=sqrt((evx-stx)**2 + (evy-sty)**2 + (evz-stz)**2)    
+    
+######
+#Interpolate California Vs30 model for stations
+def interp_vs30(sta,stlat,stlon,vs30ascii):
+    '''
+    Interpolate the vs30 ascii file for vs30 values at select stations
+    Input:
+        sta:        List or array with strings of station names
+        stlat:      Array with station latitudes
+        stlon:      Array with station longitudes
+        vs30ascii:  String with path to the vs30 model, with no header and columns:
+                        long  lat  vs30
+    Output:
+        vs30:       Array with vs30 values at those stations
+    '''
+    
+    from scipy.interpolate import interp2d
+    from numpy import genfromtxt,meshgrid,unique
+    
+    #Import the ascii vs30 model:
+    vs30_dat=genfromtxt(vs30ascii)
+    x=vs30_dat[:,0]
+    y=vs30_dat[:,1]
+    z=vs30_dat[:,2]
+    
+    #Make the x and y meshgrid:
+    X,Y=meshgrid(unique(x),unique(y))
+    
+    #Reshape the z so it fits the meshgrid dimensions:
+    Z=z.reshape((len(unique(y)),len(unique(x))))
     
