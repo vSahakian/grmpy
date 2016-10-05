@@ -684,6 +684,10 @@ def compute_rrup(evlon,evlat,evdepth,stlon,stlat,stdepth):
         Rrup:           Array with Rrup distances (km)
     '''
     
-    #import pyproj import Proj
-    #
+    from pyproj import Proj
+    
+    #Convert the event and station latitude/longitude to UTM x and y:
+    #Make the projection:
+    projection=Proj(
+    
     

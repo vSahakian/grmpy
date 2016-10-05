@@ -13,7 +13,7 @@ import gmpe as gm
 #0=desktop
 #1=mac
 
-what_home=0
+what_home=1
 
 if what_home==0:
     #Desktop:
@@ -22,3 +22,13 @@ elif what_home==1:
     #Mac:
     HOME='/Users/vsahakian'
 
+############
+############
+
+#Janine's flatfile:
+flatfile=HOME+'/anza/data/databases/PGA_2013.dat'
+
+#Read in the data:
+evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,pga_mgal=dr.read_jsbfile(flatfile)
+
+#Compute Rrup for the data:
