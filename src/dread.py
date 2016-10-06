@@ -707,7 +707,7 @@ def compute_rrup(evlon,evlat,evdepth,stlon,stlat,stelv):
     
 ######
 #Interpolate California Vs30 model for stations
-def interp_vs30(sta,stlat,stlon,vs30ascii):
+def interp_vs30(stlat,stlon,vs30ascii):
     '''
     Interpolate the vs30 ascii file for vs30 values at select stations
     Input:
@@ -735,3 +735,5 @@ def interp_vs30(sta,stlat,stlon,vs30ascii):
     #Reshape the z so it fits the meshgrid dimensions:
     Z=z.reshape((len(unique(y)),len(unique(x))))
     
+    #Make interpolant:
+    f=interp2d(X,Y,Z)
