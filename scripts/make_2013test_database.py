@@ -69,7 +69,33 @@ for sta_i in range(len(sta)):
 
 #Now vs30 cna be used to go into the database...
 
-
 #######################
-#Make database:
+######Make database####
+##Make stnum
+#Make a list, of same length of the unique string station variable unique_stations,
+#   with the corresponding unique numbers:
+unique_stnum=np.array(range(len(unique_stations)))+1
 
+#Initiate the stnum array, of same length as sta:
+stnum=np.zeros(len(sta))
+
+#Loop through the recordings (sta), to get the number that corresponds to them:
+for sta_i in range(len(sta)):
+    #Get the index of the unique stations that this recoridng corresponds to:
+    unique_sta_index=np.where(unique_stations==sta[sta_i])[0]
+    #Now pull the station number that corresponds to this:
+    stnum[sta_i]=unique_stnum[unique_sta_index]    
+
+##   
+##Convert pga_mgal (milli * cm/s/s) to pga in m/s/s
+pga=pga_mgal*10e-5
+
+##
+##Set pgv to zeros, since it doesn't exist for now...
+pgv=np.zeros(len(pga))
+
+##
+##Make database:
+db2013test=cdf.db(evnum,sta,stnum,ml,mw,pga,pgv,rrup,vs30,evlat,evlon,evdep,stlat,stlon,stelv,source_i,receiver_i)
+
+##Save database:

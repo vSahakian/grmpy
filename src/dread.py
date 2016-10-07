@@ -557,6 +557,20 @@ def read_jsbfile(datafile):
     Input:
         datafile:           String with path to the datafile
     Output:
+        evnum:              Array with event numbers
+        evlat:              Array with event latitude
+        evlon:              Array with event longitude
+        evdep:              Array with event depth (depth positive)
+        sta:                Array with station name
+        stlat:              Array with station latitude
+        stlon:              Array with station longitude
+        stelv:              Array with station elevation (elevation positive)
+        grcircle:           Array with great circle paths
+        ml:                 Array with local magnitudes
+        mw:                 Array with moment maginitudes
+        pga_mgal:           Array with PGA in milligals
+        source_i:           Array with the source number for each recoridng, for raytracing
+        receiver_i:         Array with the receiver number for each recoridng, for raytracing
         
     '''
     
