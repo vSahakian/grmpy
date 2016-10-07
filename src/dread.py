@@ -79,6 +79,8 @@ def mread(flatfile,hashfile,stationfile,station_cols):
     ev_lon=zeros((len(devent[0]),1))
     ev_dep=zeros((len(devent[0]),1))
     
+    ######
+    #Get data from hashfile, put it in here...
     #Find which row (called event_ind) in the hashfile corresponds to this event:
     for i in range(len(devent[0])):
         event_ind=where(hevent==devent[0,i])[0][0]
@@ -558,7 +560,7 @@ def read_jsbfile(datafile):
         
     '''
     
-    from numpy import genfromtxt,unique,log10,array,where
+    from numpy import genfromtxt,unique,log10,array,where,zeros
     
     #First read in the stations from the flatfile:
     #Will be in two columns:   sta    chan
@@ -665,8 +667,52 @@ def read_jsbfile(datafile):
     mw=array(mw)
     pga_mgal=array(pga_mgal)
     
+    ###Get indices for event and station for the sources.in and receivers.in files####
+    ##Events first:
+    
+    #Get the unique station and event indices:
+    unique_events=unique(evnum)
+    
+    #Zero out source ind array:
+    source_ind=zeros((len(evnum)))
+    #For each event in the record, devent, give it the source index to be used:
+    for event_ind in range(len(unique_events)):
+        eventi=unique_events[event_ind]
+        
+        #Find where in the recordings list the event number is the same as this one:
+        recording_event_ind=where(evnum==eventi)
+        
+        #Set the source ind to be one plus this event, so it indexes with the raytracing program:
+        source_ind[recording_event_ind]=event_ind+1
+    
+    #Now set these to integers...
+    source_ind=source_ind.astype('int64')
+    
+    ##Next stations:
+    unique_stations=unique(sta)
+    
+    #Zero out array:
+    receiver_ind=zeros((len(sta)))
+    #Loop through the unique stations:
+    for station_ind in range(len(unique_stations)):
+        stationi=unique_stations[station_ind]
+        
+        #Find where in the recordings list the station is the same as this one:
+        recording_station_ind=where(sta==stationi)[0]
+    
+        #Set the receiver ind to be one plus this station, so it indexes with the raytracin gprogram:
+        receiver_ind[recording_station_ind]=station_ind+1    
+        
+    #Set these to integers:
+    receiver_ind=receiver_ind.astype('int64')
+    
+    ######
+    #At the end, convert the lists to arrays:
+    source_i=source_ind
+    receiver_i=receiver_ind
+    
     #Return the data:
-    return evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,pga_mgal
+    return evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,pga_mgal,source_i,receiver_i
 
     
 ######
@@ -705,6 +751,12 @@ def compute_rrup(evlon,evlat,evdepth,stlon,stlat,stelv):
     #   Since they are almost all point sources, this can just be site/event distance:
     Rrup=sqrt((evx-stx)**2 + (evy-sty)**2 + (evz-stz)**2)    
     
+    #Convert back to km:
+    Rrup=Rrup/1000
+    
+    #Return:
+    return Rrup
+    
 ######
 #Interpolate California Vs30 model for stations
 def interp_vs30(stlat,stlon,vs30ascii):
@@ -721,7 +773,8 @@ def interp_vs30(stlat,stlon,vs30ascii):
     '''
     
     from scipy.interpolate import interp2d
-    from numpy import genfromtxt,meshgrid,unique
+    from scipy.interpolate import Rbf
+    from numpy import genfromtxt,sqrt,zeros,argmin
     
     #Import the ascii vs30 model:
     vs30_dat=genfromtxt(vs30ascii)
@@ -729,11 +782,24 @@ def interp_vs30(stlat,stlon,vs30ascii):
     y=vs30_dat[:,1]
     z=vs30_dat[:,2]
     
-    #Make the x and y meshgrid:
-    X,Y=meshgrid(unique(x),unique(y))
+    ##Make the x and y meshgrid:
+    #X,Y=meshgrid(unique(x),unique(y))
+    #
+    ##Reshape the z so it fits the meshgrid dimensions:
+    #Z=z.reshape((len(unique(y)),len(unique(x))))
+    #
+    ##Make interpolant:
+    #f=interp2d(X,Y,Z)
     
-    #Reshape the z so it fits the meshgrid dimensions:
-    Z=z.reshape((len(unique(y)),len(unique(x))))
+    #Set vs30 array:
+    vs30=zeros(len(stlon))
     
-    #Make interpolant:
-    f=interp2d(X,Y,Z)
+    #Get minimum distance (in degrees) - for every station, find the distance to
+    #    every point in the model; find the minimum distance, adn this is where
+    #    to take the vs30 value:
+    for stai in range(len(stlon)):
+        dist=sqrt((stlon[stai]-x)**2 + (stlat[stai]-y)**2)
+        vs30[stai]=z[argmin(dist)]
+            
+    #Return:
+    return vs30
