@@ -26,13 +26,21 @@ elif what_home==1:
 ############
 
 #Janine's flatfile:
-flatfile=HOME+'/anza/data/databases/PGA_2013.dat'
+flatfile=HOME+'/anza/data/databases/db2013_test/PGA_2013.dat'
 #Vs30 file:
 vs30file=HOME+'/anza/data/vs30/California.xyz'
 
 #Output Vs30 file:
 vs30name='vs30_2013test.txt'
 vs30_outfile=HOME+'/anza/data/vs30/'+vs30name
+
+#Save the database object:
+dbfname_raw=HOME+'/anza/data/databases/db2013_test/db2013test.pckl'
+dbfname=HOME+'/anza/data/databases/db2013_test/db2013test_5sta.pckl'
+
+
+#############
+#############
 
 #Read in the data:
 evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,pga_mgal,source_i,receiver_i=dr.read_jsbfile(flatfile)
@@ -99,3 +107,22 @@ pgv=np.zeros(len(pga))
 db2013test=cdf.db(evnum,sta,stnum,ml,mw,pga,pgv,rrup,vs30,evlat,evlon,evdep,stlat,stlon,stelv,source_i,receiver_i)
 
 ##Save database:
+datobj=open(dbfname_raw,'w')
+pickle.dump(db2013test,datobj)
+datobj.close()
+
+
+########################
+####Sample Database#####
+########################
+
+#Then, sample the database so that it includes only events recorded on a minimum
+#number of stations:
+min_stations=5
+dbpathin=dbfname_raw
+dbpathout=dbfname
+
+#Sample:
+dr.db_station_sample(dbpathin,min_stations,dbpathout)
+
+#######################End making database object############################

@@ -351,14 +351,14 @@ def db_station_sample(dbpath_in,numstas,dbpath_out):
     #Set these to integers:
     receiver_i=receiver_ind.astype('int64')
     
-    #BEFORE SAVING:
-    #cdefs only takes DA and DV in nm/s/s and nm/s...convert to these (currently
-    #in m/s/s and m/s)
-    DA=pga/1e-9
-    DV=pga/1e-9
+    ##BEFORE SAVING:
+    ##cdefs only takes DA and DV in nm/s/s and nm/s...convert to these (currently
+    ##in m/s/s and m/s)
+    #DA=pga/1e-9
+    #DV=pga/1e-9
     
     #Make sampled database:
-    db_samp=cdf.db(evnum,sta,stnum,ml,mw,DA,DV,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i)
+    db_samp=cdf.db(evnum,sta,stnum,ml,mw,pga,pgv,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i)
     
     #Save to file...
     doutfile=open(dbpath_out,'w')

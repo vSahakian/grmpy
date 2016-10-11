@@ -5,14 +5,24 @@
 import cPickle as pickle
 from numpy import c_,savetxt
 
+##What are the file locations to read/write?
+#dbpath='/Users/vsahakian/anza/data/abdb_5sta.pckl'
+#
+##GMT events:
+#evpath='/Users/vsahakian/anza/data/db_5sta_event_locations.ll'
+#
+##GMT stations:
+#stpath='/Users/vsahakian/anza/data/db_5sta_sta_locations.ll'
+
+
 #What are the file locations to read/write?
-dbpath='/Users/vsahakian/anza/data/abdb_5sta.pckl'
+dbpath='/Users/vsahakian/anza/data/databases/db2013_test/db2013test_5sta.pckl'
 
 #GMT events:
-evpath='/Users/vsahakian/anza/data/db_5sta_event_locations.ll'
+evpath='/Users/vsahakian/anza/data/db2013test_5sta.ll'
 
 #GMT stations:
-stpath='/Users/vsahakian/anza/data/db_5sta_sta_locations.ll'
+stpath='/Users/vsahakian/anza/data/db2013test_5sta.ll'
 
 ####
 #Read in the database:
