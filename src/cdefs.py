@@ -13,9 +13,25 @@ class db:
     
     def __init__(self,event,sta,N,ml,mw,DA,DV,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,):
         '''
-        Initiate the class by giving the event number (event), 
-        station name (sta), station number (N), local mag (ml), moment mag (mw), 
-        PGA (DA - m/s2), PGV (DV - m/s), and source to site distance (r)
+        Initiate the class by giving database information.
+        Input:
+            event:         Array with event number (event)
+            sta:           Array/list with station name (sta)
+            N:             Array with station number (N)
+            ml:            Array with local mag (ml)
+            mw:            Array with moment mag (mw)
+            PGA:           Array with PGA in m/s/s
+            PGV:           Array with PGV in m/s
+            r:             Array with Rrup, source to site distance (r)
+            vs30:          Array with vs30 (in m/s)
+            elat:           Array with event latitude
+            elon:           Array with event longitude
+            edepth:         Array with event depth (km), positive
+            stlat:          Array with station latitude
+            stlon:          Array with station longitude
+            stelv:          Array with statin elevation (km), positive
+            source_i:       Array with source index for raytracing
+            receiver_i:     Array with receiver index for raytracing
         '''
         import numpy as np
         
@@ -88,48 +104,100 @@ class db:
         
         plt.show()
         
-    def plot_rpga(self,bmin,bmax,step):
+        
+    def plot_mpga(self,bmin,bmax):
         '''
-        Plots log10 PGA, for various distance ranges specified by bmin, bmax,
+        Plots log10 PGA, for various magnitude ranges specified by bmin, bmax,
         and step.
         Input:
             bmin:       Min value for bins
             bmax:       Max balue for bins
-            step:       Step interval for bins
         '''
         
         from matplotlib import pyplot as plt
         import numpy as np
+        import matplotlib.colors as colors
+        import matplotlib.cm as cm
+                
+        #Get colormap
+        mymap='jet'
+        #Make colormap:
+        colormap_radius=plt.get_cmap(mymap)
+        #Make a normalized colorscale
+        cNorm=colors.Normalize(vmin=bmin, vmax=bmax)
+        #Apply normalization to colormap:
+        scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap_radius)
         
-        #Get bins:
-        bins=np.arange(bmin,bmax,step)
-        #Get the bin index for each recording:
-        dinds=np.digitize(np.floor(self.r),bins)
+        #Make a fake contour plot for the colorbar:
+        Z=[[0,0],[0,0]]
+        levels=np.arange(bmin,bmax,0.01)
+        c=plt.contourf(Z, levels, cmap=colormap_radius)
         
-        #Sort data to plot:
+        #Open figure:
+        f1=plt.figure()
+        #get colorvalue to plot
+        colorVal=scalarMap.to_rgba(self.mw)
         
-        #Open figure
-        f=plt.figure()
+       #Plot...
+        plt.scatter(self.r,np.log10(self.pga_pg),edgecolors=colorVal,facecolors='none',lw=0.5)
+
+        #Add colorbar:
+        cb=plt.colorbar(c)
+        cb.set_label(r"$\mathbf{M}$")
+
+        #Label the plot - Mbold on the x, log10PGA on the y, 
+        plt.xlabel('Distance (km)')
+        plt.ylabel(r"$\log_{10} PGA$")
+        plt.title(r"PGA vs. Distance, binned by $\mathbf{M}$")
         
-        #Define color scale -
-        #colormap needs floats that go from 0 to 1, so bins must be normalized.
-        #bins is not a float though, and in order to divide by the scalar it 
-        #must first be converted to a float. 
-        colors=plt.cm.rainbow(bins.astype(float)/bins.max())
-        #FIGURE OUT THE COLORBAR PROBLEM!!
-        #f.colorbar(colors)
+        plt.show()
         
-        #Plot a different color for each distance bin:
-        for i in bins:
-            #Find which data points are in this bin:
-            bind=np.where(dinds==i+1)[0]
-            #Make an array of size len(bind),4 for the colors, so that these can
-            #be plotted in scatter as x,y,z (mw, pga, color).  In this bin, all
-            #the colors should be the same, so tile the color for this bin i and 
-            #multiply it by an array of ones. (maybe I don't even need to do this?)
-            clrs=np.ones((len(bind),4))*np.tile(colors[i,:],(len(bind),1))
-            #plot
-            f=plt.scatter(self.mw[bind],np.log10(self.pga_pg[bind]),edgecolors=clrs,facecolors='none',lw=0.5)
+        return f1
+        
+    def plot_rpga(self,bmin,bmax):
+        '''
+        Plots log10 PGA, for various distance ranges specified by bmin, bmax,
+        and step.
+        Input:
+            bmin:       Min value for colorscale
+            bmax:       Max balue for colorscale
+        '''
+        
+        from matplotlib import pyplot as plt
+        import numpy as np
+        import matplotlib.colors as colors
+        import matplotlib.cm as cm
+                
+        #Get colormap
+        mymap='jet'
+        #Make colormap:
+        colormap_radius=plt.get_cmap(mymap)
+        #Make a normalized colorscale
+        cNorm=colors.Normalize(vmin=bmin, vmax=bmax)
+        #Apply normalization to colormap:
+        scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap_radius)
+        
+        #Make a fake contour plot for the colorbar:
+        Z=[[0,0],[0,0]]
+        levels=np.arange(bmin,bmax,0.01)
+        c=plt.contourf(Z, levels, cmap=colormap_radius)
+        
+        #Open figure:
+        f1=plt.figure()
+        #get colorvalue to plot
+        colorVal=scalarMap.to_rgba(self.r)
+        
+       #Plot...
+        plt.scatter(self.mw,np.log10(self.pga_pg),edgecolors=colorVal,facecolors='none',lw=0.5)
+        
+        #Add colorbar:
+        cb=plt.colorbar(c)
+        cb.set_label('Distance (km)')
+
+        #Label the plot - Mbold on the x, log10PGA on the y, 
+        plt.xlabel(r"$\mathbf{M}$")
+        plt.ylabel(r"$\log_{10} PGA$")
+        plt.title(r"PGA vs. $\mathbf{M}$, binned by distance")
 
         #Label the plot - Mbold on the x, log10PGA on the y, 
         plt.xlabel(r"$\mathbf{M}$")
@@ -137,6 +205,8 @@ class db:
         plt.title(r"PGA vs. $\mathbf{M}$, binned by distance")
         
         plt.show()
+        
+        return f1
         
     def plot_rpga_withmodel(self,bmin,bmax,mw,d,rng,sdist,axlims,VR,nga_mw=True,nga_pred=True,vref=True):
         '''
@@ -203,6 +273,7 @@ class db:
         plt.title(r"PGA vs. $\mathbf{M}$, binned by distance" + "\n" + \
             "M Ranges: " + np.str(rng)+ ", Var Red="+np.str(np.around(VR,decimals=1)))
         
+        #Colors for GMPE:
         colors_gmpe=plt.cm.rainbow(sdist.astype(float)/sdist.max())
         
         for j in range(len(sdist)):
