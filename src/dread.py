@@ -721,6 +721,7 @@ def interp_vs30(stlat,stlon,vs30ascii):
     '''
     
     from scipy.interpolate import interp2d
+    from scipy.interpolate import Rbf
     from numpy import genfromtxt,meshgrid,unique
     
     #Import the ascii vs30 model:
@@ -731,9 +732,20 @@ def interp_vs30(stlat,stlon,vs30ascii):
     
     #Make the x and y meshgrid:
     X,Y=meshgrid(unique(x),unique(y))
+
+    #Make interpolator:
+    interpolator = Rbf(x,y,z,function='linear')
     
-    #Reshape the z so it fits the meshgrid dimensions:
-    Z=z.reshape((len(unique(y)),len(unique(x))))
+    #Interpolate:
+    vs30=interpolator(stlon,stlat)
     
-    #Make interpolant:
-    f=interp2d(X,Y,Z)
+    #Return:
+    return vs30
+    
+    ##Reshape the z so it fits the meshgrid dimensions:
+    #Z=z.reshape((len(unique(y)),len(unique(x))))
+    #
+    ###Make interpolant:
+    #
+    #
+    #f=interp2d(X,Y,Z)
