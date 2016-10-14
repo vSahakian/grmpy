@@ -2,12 +2,13 @@
 #VJS 9/2016
 
 
-def setup_run_inversion(home,dbpath,ncoeff,rng,sdist,smth,mdep_ffdf):
+def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,smth,mdep_ffdf):
     '''
     Make the necessary matrices, invert, and save model output
     Input:
         home:           String with project home (i.e., anza)
         db:             String to database path
+        dbname:         String with database path name (i.e., db2013 for pckl/db2013/)
         ncoeff:         Number of coefficients used in inversion
         rng:            Array of ranges to use in constraining the inversion
         sdist:          Number of distances to include in smoothing - there will be this many extra
@@ -25,7 +26,7 @@ def setup_run_inversion(home,dbpath,ncoeff,rng,sdist,smth,mdep_ffdf):
     import numpy as np
 
     #Get directories for things:
-    obj_dir=home+'/models/pckl/'        
+    obj_dir=home+'/models/pckl/'+dbname+'/'        
                         
     #Open database object:
     dbfile=open(dbpath,'r')
@@ -65,12 +66,13 @@ def setup_run_inversion(home,dbpath,ncoeff,rng,sdist,smth,mdep_ffdf):
     
     
 ############
-def plot_data_model(home,dbpath,modelpath,coeff_file,mdep_ffdf,sdist,axlims,bmin,bmax,vref):
+def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,axlims,bmin,bmax,vref):
     '''
     Plot the data with the model, and ASK 2014
     Input:
         home:           String with path to the project directory (ie., Anza)
         dbpath:         String with path to the database object
+        dbname:         String with database path name (i.e., db2013 for pckl/db2013/)
         modelpath:      String with path to the model object
         coeff_file:     String with path to the coefficient file
         mdep_ffdf:      Flag for using mag dependent ffdf (0/1=off/on)
@@ -88,7 +90,7 @@ def plot_data_model(home,dbpath,modelpath,coeff_file,mdep_ffdf,sdist,axlims,bmin
     from numpy import ones,str,around
     
     #Get directories for things:
-    fig_dir=home+'/models/figs/'
+    fig_dir=home+'/models/figs/'+dbname+'/'
     
     #Read in database:
     dbfile=open(dbpath,'r')
