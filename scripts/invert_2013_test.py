@@ -50,7 +50,7 @@ vref=760
 
 #Bin min and max for data scatter colorbar (distances):
 bmin=10
-bmax=240
+bmax=150
 
 #Number of coefficients to solve for in functional form:
 ncoeff=5
@@ -77,7 +77,7 @@ mdep_ffdf=0
 #plot_max=300
 #plot_step=60
 #plotdist=np.array(range(plot_min,plot_max,plot_step))
-plotdist=np.array([0,20,40,60,160,300])
+plotdist=np.array([0,20,40,60,150])
 
 
 ####################################################

@@ -153,3 +153,18 @@ vtype=2
 #plot:
 figure3d=rt.plot_3d_raypaths(home,run_name,vtype,stations,events,axlims_3d,mymap,faultfile)
 
+
+##################################
+########Grid path term############
+
+rpath='/media/vsahakian/katmai/anza/models/residuals/abdb_5sta_0-6.5_topography/abdb_5sta_0-6.5_topography_robj_raydat_interp_indices_FangVs.pckl'
+
+#Info from propgrid (in the future write a function to do this automatically):
+nz=36 
+nlat=218 
+nlon=278
+#bins:
+b=(nlon,nlat,nz)
+
+stattype='mean'
+veltype=1

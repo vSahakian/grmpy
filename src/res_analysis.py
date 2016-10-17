@@ -482,7 +482,70 @@ def plot_terms_colored(home,run_name,robj,term,index,axlims,color_by,cvals,mymap
     return f1
     
     
-def grid_path_term(home,run_name,robj,):
+def grid_path_term(home,run_name,rpath,bindims,raytype,stat_type):
     '''
-    Grid the path terms onto a 3d grid
+    Average the path terms for every cell on a 3d grid
+    Input:
+        home:
+        run_name:
+        rpath:
+        bindims:            Bin dimensions (nx, ny, nz)
+        raytype:            Type of ray: 0=Vp, 1=Vs
+        stat_type:          String, type of statistic for binning:
+                                'mean', 'median', 'count',or sum'
     '''
+    
+    from scipy.stats import binned_statistic_dd 
+    import cPickle as pickle
+    from numpy import ones,r_
+    
+    #Open object:
+    rfile=open(rpath,'r')
+    robj=pickle.load(rfile)
+    rfile.close()
+    
+    ##Setup input##
+    #First make the path term to match the lat and lon format - a list of arrays, with the same path term value:
+    path_list=[]
+    for ray_i in range(len(robj.path_terms)):
+        ray_length_i=len(robj.vs_lon[ray_i])
+        path_terms_i=robj.path_terms[ray_i]*ones(ray_length_i)
+        
+        #Append to the list of path terms:
+        path_list.append(path_terms_i)
+        
+    
+    #Now loop over the number of rays, and for each ray, append it to the larger array:
+    #Classify if it's p or s:
+    #If it's P:
+    if raytype==0:
+        for ray_i in range(len(path_list)):
+            #If it's the first ray, initiate the arrays:
+            if ray_i==0:
+                lon=robj.vp_lon[ray_i]
+                lat=robj.vp_lat[ray_i]
+                dep=robj.vp_depth[ray_i]
+                path=path_list[ray_i]
+            else:
+                lon=r_[lon,robj.vp_lon[ray_i]]
+                lat=r_[lat,robj.vp_lat[ray_i]]
+                dep=r_[dep,robj.vp_depth[ray_i]]
+                path=r_[path,path_list[ray_i]]
+                
+    elif raytype==1:
+        for ray_i in range(len(path_list)):
+            #If it's the first ray, initiate the arrays:
+            if ray_i==0:
+                lon=robj.vs_lon[ray_i]
+                lat=robj.vs_lat[ray_i]
+                dep=robj.vs_depth[ray_i]
+                path=path_list[ray_i]
+            else:
+                lon=r_[lon,robj.vs_lon[ray_i]]
+                lat=r_[lat,robj.vs_lat[ray_i]]
+                dep=r_[dep,robj.vs_depth[ray_i]]
+                path=r_[path,path_list[ray_i]]
+                
+        
+    ##Now bin...
+    statistic,bin_edges,binnumer=binned_statistic_dd(lon,lat,dep,path,statistic=stat_type,bins=bindims)
