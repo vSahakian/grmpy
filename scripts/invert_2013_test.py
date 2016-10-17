@@ -9,7 +9,7 @@ import run_inversion as run_inv
 #0=desktop
 #1=mac
 
-what_home=1
+what_home=0
 
 if what_home==0:
     #Desktop:
@@ -25,11 +25,18 @@ fig_dir=home+'/models/figs/'+invrun
 obj_dir=home+'/models/pckl/'+invrun
 model_dir=home+'/models/pckl/'+invrun
 
-#Coefficient file for ASK
-coeff_file=coeff_file=home+'/data/coeffs/ASK14_coeffs.m'
 
 #Filename:
 dbpath=home+'/data/databases/db2013_test/db2013test_5sta.pckl'
+
+
+####################################################
+############Inversion Parameters####################
+####################################################
+
+#Coefficient file for ASK
+coeff_file=coeff_file=home+'/data/coeffs/ASK14_coeffs.m'
+
 #Path name:
 dbname=invrun
 
@@ -49,7 +56,7 @@ bmax=240
 ncoeff=5
 
 #Axis limits for plotting:
-axlims=[[0,6],[-10,-2]]
+axlims=[[0,6],[-8,-0.5]]
 
 #Number of distances to include in smoothing - there will be this many extra
 #equations added on at each range boundary
@@ -77,17 +84,10 @@ plotdist=np.array([0,20,40,60,160,300])
 ##########Run Inversion and plot:###################
 ####################################################
 
-##Open the database object;
-#datobj=open(dbpath,'r')
-#db=pickle.load(datobj)
-#datobj.close()
 
-
-#####################
-######Inversion######
-#####################
-
-
+#################
+######Setup######
+#################
 
 #Get the string for the filename, based on the ranges:
 for k in range(len(rng)):

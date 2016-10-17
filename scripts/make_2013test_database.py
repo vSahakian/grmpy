@@ -13,7 +13,7 @@ import gmpe as gm
 #0=desktop
 #1=mac
 
-what_home=1
+what_home=0
 
 if what_home==0:
     #Desktop:
@@ -34,9 +34,12 @@ vs30file=HOME+'/anza/data/vs30/California.xyz'
 vs30name='vs30_2013test.txt'
 vs30_outfile=HOME+'/anza/data/vs30/'+vs30name
 
-#Save the database object:
+#Save the database object paths:
 dbfname_raw=HOME+'/anza/data/databases/db2013_test/db2013test.pckl'
 dbfname=HOME+'/anza/data/databases/db2013_test/db2013test_5sta.pckl'
+
+#Figure paths:
+fig_dir=HOME+'/anza/data/databases/db2013_test/figs/'
 
 
 #############
@@ -135,3 +138,35 @@ dbpathout=dbfname
 dr.db_station_sample(dbpathin,min_stations,dbpathout)
 
 #######################End making database object############################
+
+
+####################################################
+#############Preliminary Plots######################
+####################################################
+
+print 'Making plots'
+
+###Make plots with the sampled database###
+#Open the database object;
+datobj=open(dbpathout,'r')
+db=pickle.load(datobj)
+datobj.close()
+
+#Plot against magintude, with distance colored:
+bm_min=10
+bm_max=140
+axlims_m=[[0,4.5],[-8,-1]]
+f_mpath=fig_dir+'db2013test_mag.pdf'
+
+f_mag=db.plot_rpga(bm_min,bm_max,axlims_m)
+f_mag.savefig(f_mpath)
+
+#Plot against distance, with magnitude colored:
+br_min=0
+br_max=3
+
+axlims_r=[[0,260],[-8,-1]]
+f_rpath=fig_dir+'db2013test_r.pdf'
+
+f_r=db.plot_mpga(br_min,br_max,axlims_r)
+f_r.savefig(f_rpath)

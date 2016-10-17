@@ -786,8 +786,6 @@ def interp_vs30(stlat,stlon,vs30ascii):
         vs30:       Array with vs30 values at those stations
     '''
     
-    from scipy.interpolate import interp2d
-    from scipy.interpolate import Rbf
     from numpy import genfromtxt,meshgrid,unique
     from numpy import genfromtxt,sqrt,zeros,argmin
        
@@ -799,31 +797,6 @@ def interp_vs30(stlat,stlon,vs30ascii):
     
     #Make the x and y meshgrid:
     X,Y=meshgrid(unique(x),unique(y))
-
-    #Make interpolator:
-    interpolator = Rbf(x,y,z,function='linear')
-    
-    #Interpolate:
-    vs30=interpolator(stlon,stlat)
-    
-    #Return:
-    return vs30
-    
-    ##Reshape the z so it fits the meshgrid dimensions:
-    #Z=z.reshape((len(unique(y)),len(unique(x))))
-    #
-    ###Make interpolant:
-    #
-    #
-    #f=interp2d(X,Y,Z)
-    ##Make the x and y meshgrid:
-    #X,Y=meshgrid(unique(x),unique(y))
-    #
-    ##Reshape the z so it fits the meshgrid dimensions:
-    #Z=z.reshape((len(unique(y)),len(unique(x))))
-    #
-    ##Make interpolant:
-    #f=interp2d(X,Y,Z)
     
     #Set vs30 array:
     vs30=zeros(len(stlon))

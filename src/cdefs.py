@@ -105,13 +105,14 @@ class db:
         plt.show()
         
         
-    def plot_mpga(self,bmin,bmax):
+    def plot_mpga(self,bmin,bmax,axlims):
         '''
         Plots log10 PGA, for various magnitude ranges specified by bmin, bmax,
         and step.
         Input:
             bmin:       Min value for bins
             bmax:       Max balue for bins
+            axlims:     [[xmin,xmax],[ymin,ymax]]
         '''
         
         from matplotlib import pyplot as plt
@@ -150,17 +151,22 @@ class db:
         plt.ylabel(r"$\log_{10} PGA$")
         plt.title(r"PGA vs. Distance, binned by $\mathbf{M}$")
         
+        #Axis labels:
+        plt.xlim(axlims[0][0],axlims[0][1])
+        plt.ylim(axlims[1][0],axlims[1][1])
+        
         plt.show()
         
         return f1
         
-    def plot_rpga(self,bmin,bmax):
+    def plot_rpga(self,bmin,bmax,axlims):
         '''
         Plots log10 PGA, for various distance ranges specified by bmin, bmax,
         and step.
         Input:
             bmin:       Min value for colorscale
             bmax:       Max balue for colorscale
+            axlims:     [[xmin,xmax],[ymin,ymax]]
         '''
         
         from matplotlib import pyplot as plt
@@ -203,6 +209,10 @@ class db:
         plt.xlabel(r"$\mathbf{M}$")
         plt.ylabel(r"$\log_{10} PGA$")
         plt.title(r"PGA vs. $\mathbf{M}$, binned by distance")
+        
+        #Axis labels:
+        plt.xlim(axlims[0][0],axlims[0][1])
+        plt.ylim(axlims[1][0],axlims[1][1])
         
         plt.show()
         
