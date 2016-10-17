@@ -13,7 +13,7 @@ import gmpe as gm
 #0=desktop
 #1=mac
 
-what_home=0
+what_home=1
 
 if what_home==0:
     #Desktop:
@@ -42,13 +42,16 @@ dbfname=HOME+'/anza/data/databases/db2013_test/db2013test_5sta.pckl'
 #############
 #############
 
+print 'Reading in data'
 #Read in the data:
-evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,pga_mgal,source_i,receiver_i=dr.read_jsbfile(flatfile)
+evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,pga_millig,source_i,receiver_i=dr.read_jsbfile(flatfile)
 
+print 'Computing Rrup'
 #Compute Rrup for the data:
 rrup=dr.compute_rrup(evlon,evlat,evdep,stlon,stlat,stelv)
 
 ######################
+print 'Acquiring Vs30 from grid file'
 #Get Vs30:
 #Find unique stations so it can be saved to a file later:
 unique_stations=np.unique(sta)
@@ -79,6 +82,8 @@ for sta_i in range(len(sta)):
 
 #######################
 ######Make database####
+print 'Starting to make database...'
+
 ##Make stnum
 #Make a list, of same length of the unique string station variable unique_stations,
 #   with the corresponding unique numbers:
@@ -94,14 +99,16 @@ for sta_i in range(len(sta)):
     #Now pull the station number that corresponds to this:
     stnum[sta_i]=unique_stnum[unique_sta_index]    
 
+print 'Converting PGA'
 ##   
-##Convert pga_mgal (milli * cm/s/s) to pga in m/s/s
-pga=pga_mgal*10e-5
+##Convert pga_milli g to pga in m/s/s
+pga=(pga_millig/1000)*9.81
 
 ##
 ##Set pgv to zeros, since it doesn't exist for now...
 pgv=np.zeros(len(pga))
 
+print 'Make database'
 ##
 ##Make database:
 db2013test=cdf.db(evnum,sta,stnum,ml,mw,pga,pgv,rrup,vs30,evlat,evlon,evdep,stlat,stlon,stelv,source_i,receiver_i)
@@ -111,11 +118,13 @@ datobj=open(dbfname_raw,'w')
 pickle.dump(db2013test,datobj)
 datobj.close()
 
+print 'Database saved'
 
 ########################
 ####Sample Database#####
 ########################
 
+print 'Sampling database'
 #Then, sample the database so that it includes only events recorded on a minimum
 #number of stations:
 min_stations=5

@@ -480,3 +480,9 @@ def plot_terms_colored(home,run_name,robj,term,index,axlims,color_by,cvals,mymap
     plt.savefig(pdfname)
     
     return f1
+    
+    
+def grid_path_term(home,run_name,robj,):
+    '''
+    Grid the path terms onto a 3d grid
+    '''
