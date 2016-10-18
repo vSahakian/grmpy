@@ -852,7 +852,7 @@ def get_path_resid_make_object(home,run_name,dbpath,axlims,axlims_dist):
     return f_mw,f_dist,allresiduals,pterm_mean,pterm_std
  
 ######
-def write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std):
+def write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std,station_path):
     '''
     Write out statistics to a file
     Input:
@@ -870,11 +870,26 @@ def write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std
         STatistics file to home/run_name/run_name_stats.txt 
     '''
     from os import path
-    from numpy import str
+    from numpy import str,unique
+    import cPickle as pickle
     
     #Make stats file:   
     statsdir=path.expanduser(home+run_name+'/')
     statsfile=statsdir+run_name+'_stats.txt'
+    
+    #Open the residuals object to get the site terms:
+    res_obj_path=path.expanduser(home+run_name+'/')+run_name+'_robj.pckl'
+    
+    #Open the station object:
+    rfile=open(res_obj_path,'r')
+    robj=pickle.load(rfile)
+    rfile.close()
+    
+    #G##et out the stations and site terms:
+    #Get unique station names:
+    stations,u_stations_ind=unique(robj.sta,return_index=True)
+    siteterms=robj.site_terms[u_stations_ind]
+    
     
     #Write out stats to a file:
     sfile=open(statsfile,'w')
