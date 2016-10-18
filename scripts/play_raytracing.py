@@ -168,3 +168,5 @@ b=(nlon,nlat,nz)
 
 stattype='mean'
 veltype=1
+
+gobjpath='/media/vsahakian/katmai/anza/models/residuals/abdb_5sta_0-6.5_topography/abdb_5sta_0-6.5_topography_pterm_grid.pckl'
