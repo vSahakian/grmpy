@@ -482,7 +482,7 @@ def plot_terms_colored(home,run_name,robj,term,index,axlims,color_by,cvals,mymap
     return f1
     
     
-def grid_path_term(home,run_name,rpath,bindims,raytype,stat_type):
+def grid_path_term(home,run_name,rpath,bindims,raytype,stat_type,gridobjpath):
     '''
     Average the path terms for every cell on a 3d grid
     Input:
@@ -493,11 +493,13 @@ def grid_path_term(home,run_name,rpath,bindims,raytype,stat_type):
         raytype:            Type of ray: 0=Vp, 1=Vs
         stat_type:          String, type of statistic for binning:
                                 'mean', 'median', 'count',or sum'
+        gridobjpath:        String with path to the output grid object
     '''
     
     from scipy.stats import binned_statistic_dd 
     import cPickle as pickle
-    from numpy import ones,r_
+    from numpy import ones,r_,c_
+    import cdefs as cdf
     
     #Open object:
     rfile=open(rpath,'r')
@@ -546,6 +548,17 @@ def grid_path_term(home,run_name,rpath,bindims,raytype,stat_type):
                 dep=r_[dep,robj.vs_depth[ray_i]]
                 path=r_[path,path_list[ray_i]]
                 
+    #Concatenate width wise to put in:
+    sample=c_[lon,lat,dep]
         
     ##Now bin...
-    statistic,bin_edges,binnumer=binned_statistic_dd(lon,lat,dep,path,statistic=stat_type,bins=bindims)
+    statistic,bin_edges,binnumber=binned_statistic_dd(sample,path,statistic=stat_type,bins=bindims)
+    
+    ###TEMPORARY...###
+    #Save as an object:
+    grid_object=cdf.pterm_3dgrid(statistic,bin_edges,binnumber)
+    #Save:
+    gfile=open(gridobjpath,'w')
+    pickle.dump(grid_object,gfile)
+    gfile.close()
+    

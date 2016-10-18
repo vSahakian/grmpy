@@ -1825,3 +1825,15 @@ class material_model:
         plt.ylabel(zlab)
 
         return f1        
+        
+        
+        
+#########PLACEHOLDER########
+##Object to hold the raypath path term grid
+class pterm_3dgrid:
+    def __init__(self,statistic,binedges,binnumber):
+        '''
+        '''
+        self.statistic=statistic
+        self.binedges=binedges
+        self.binnumber=binnumber
