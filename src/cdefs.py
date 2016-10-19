@@ -1833,7 +1833,70 @@ class material_model:
 class pterm_3dgrid:
     def __init__(self,statistic,binedges,binnumber):
         '''
+        Initiate the path term grid object.
+        Input: 
+            statistic:      Array (dims (nx, ny, nz)) with the path term statistic
+            binedges:       Array with three arrays, containing bin edges (lon, lat, depth)
+                            dims: (nx+1, ny+1, nz+1)
+            binnumber:      Array with indices of bin number
         '''
         self.statistic=statistic
         self.binedges=binedges
         self.binnumber=binnumber
+        
+    def plot_slice(self,slicecoord,coordtype,aspectr,vmin,vmax):
+        '''
+        Plot a slice of the path term grid model.
+        Input:
+            slicecoord:         Coordinate (lon, lat in degree, depth in km) of the slice to plot.
+                                If depth, it must be positive.
+            coordtype:          Type of coordinate: 'lon', 'lat', 'depth'
+            aspectr:            Aspect ratio to plot
+            vmin:               Minimum value for color scale
+            vmax:               Maximum value for color scale
+        Output:
+            pterm_ax:           Axis with path term grid slice plotted
+        '''
+        
+        from numpy import argmin
+        import matplotlib.pyplot as plt
+        
+        #Get the slice from the 3D array that corresponds to this lat/lon:
+        if coordtype=='lon':
+            binind=argmin(self.binedges[0]+slicecoord)
+            #If it's the right hand side or last edge of tha tdimension, use the bin to the inside:
+            if binind==len(self.binedges[0]):
+                binind=binind=1
+            #Get array to plot:
+            statistic=self.statistic[binind,:,:]
+            
+            #Get axes and extent information:
+            xmin=min(self.binedges[1])
+            xmax=miax(self.binedges[1])
+            
+        elif coordtype=='lat':
+            binind=argmin(self.binedges[1]-slicecoord)
+            #If it's the right hand side or last edge of tha tdimension, use the bin to the inside:
+            if binind==len(self.binedges[0]):
+                binind=binind=1
+            #Get array to plot:
+            statistic=self.statistic[:,binind,:]
+                
+        elif coordtype=='depth':
+            binind=argmin(self.binedges[2]+slicecoord)
+            #If it's the right hand side or last edge of tha tdimension, use the bin to the inside:
+            if binind==len(self.binedges[0]):
+                binind=binind=1
+            #Get array to plot:
+            statistic=self.statistic[:,:,binind]
+            
+            
+        
+        
+        #Start axes to plot on:
+        
+        
+        
+        
+        
+        

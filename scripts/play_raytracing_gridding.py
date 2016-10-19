@@ -9,6 +9,7 @@ import raytracing as rt
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
+import res_analysis as ra
 
 #Change this parameter depending on where you run:
 #0=desktop
@@ -166,16 +167,19 @@ nz=36
 nlat=218 
 nlon=278
 #bins:
-b=(nlon,nlat,nz)
+bindims=(nlon,nlat,nz)
 
 stattype='mean'
 veltype=1
 
+##Make grid object:
+gobj=ra.grid_path_term(home,run_name,bindims,veltype,stattype)
 
-gobjpath=home+run_name+'/'+'abdb_5sta_0-6.5_topography_pterm_grid.pckl'
-gfile=open(gobjpath,'r')
-gobj=pickle.load(gfile)
-gfile.close()
+
+#gobjpath=home+run_name+'/'+'abdb_5sta_0-6.5_topography_pterm_grid.pckl'
+#gfile=open(gobjpath,'r')
+#gobj=pickle.load(gfile)
+#gfile.close()
 
 #Mask the statistic matrix:
 statistic_ma=np.ma.array(gobj.statistic,mask=np.isnan(gobj.statistic))

@@ -482,24 +482,29 @@ def plot_terms_colored(home,run_name,robj,term,index,axlims,color_by,cvals,mymap
     return f1
     
     
-def grid_path_term(home,run_name,rpath,bindims,raytype,stat_type,gridobjpath):
+def grid_path_term(home,run_name,bindims,raytype,stat_type):
     '''
-    Average the path terms for every cell on a 3d grid
+    Average the path terms for every cell on a 3d grid.  Uses run_name_robj_raydat.pckl
     Input:
-        home:
-        run_name:
-        rpath:
+        home:               String with home directory (i.e., anza/models/residuals)
+        run_name:           String with run name, database/inversion combo
         bindims:            Bin dimensions (nx, ny, nz)
         raytype:            Type of ray: 0=Vp, 1=Vs
         stat_type:          String, type of statistic for binning:
                                 'mean', 'median', 'count',or sum'
-        gridobjpath:        String with path to the output grid object
+    Output:
+        grid_object:            Gridded object, also saves to /home/run_name/run_name_pterm_grid.pckl
     '''
     
     from scipy.stats import binned_statistic_dd 
     import cPickle as pickle
     from numpy import ones,r_,c_
     import cdefs as cdf
+    from os import path
+    
+    run_dir=path.expanduser(home+run_name+'/')
+    rpath=run_dir+run_name+'_robj_raydat.pckl'
+    gobjpath=run_dir+run_name+'_pterm_grid.pckl'
     
     #Open object:
     rfile=open(rpath,'r')
@@ -554,11 +559,12 @@ def grid_path_term(home,run_name,rpath,bindims,raytype,stat_type,gridobjpath):
     ##Now bin...
     statistic,bin_edges,binnumber=binned_statistic_dd(sample,path,statistic=stat_type,bins=bindims)
     
-    ###TEMPORARY...###
     #Save as an object:
     grid_object=cdf.pterm_3dgrid(statistic,bin_edges,binnumber)
     #Save:
-    gfile=open(gridobjpath,'w')
+    gfile=open(gobjpath,'w')
     pickle.dump(grid_object,gfile)
     gfile.close()
     
+    #And return:
+    return grid_object
