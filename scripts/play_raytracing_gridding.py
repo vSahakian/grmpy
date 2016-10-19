@@ -7,6 +7,8 @@ import dread
 import cPickle as pickle
 import raytracing as rt
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import numpy as np
 
 #Change this parameter depending on where you run:
 #0=desktop
@@ -175,4 +177,16 @@ gfile=open(gobjpath,'r')
 gobj=pickle.load(gfile)
 gfile.close()
 
+#Mask the statistic matrix:
+statistic_ma=np.ma.array(gobj.statistic,mask=np.isnan(gobj.statistic))
 
+##Set colorscale:
+#cmap=cm.jet
+#cmap.set_bad('white',1.)
+
+#Seems like statistic[i] is a two dimensional array of dimensions [ny,nz]:
+Y,Z=np.meshgrid(gobj.binedges[1][0:len(gobj.binedges[1])-1],gobj.binedges[2][0:len(gobj.binedges[2])-1])
+
+#Try plotting one:
+fgrid=plt.figure()
+plt.pcolormesh(Y,Z,statistic_ma[0].T)
