@@ -1844,7 +1844,7 @@ class pterm_3dgrid:
         self.binedges=binedges
         self.binnumber=binnumber
         
-    def plot_slice(self,slicecoord,coordtype,aspectr,vmin,vmax):
+    def plot_slice(self,slicecoord,coordtype,aspectr,cmap,climits,axlims):
         '''
         Plot a slice of the path term grid model.
         Input:
@@ -1852,8 +1852,9 @@ class pterm_3dgrid:
                                 If depth, it must be positive.
             coordtype:          Type of coordinate: 'lon', 'lat', 'depth'
             aspectr:            Aspect ratio to plot
-            vmin:               Minimum value for color scale
-            vmax:               Maximum value for color scale
+            cmap:               String with colormap, i.e., 'jet'
+            climits:            Value for colorscale [cmin,cmax]
+            axlims:             Axis limits for plot [[xmin,xmax],[ymin,ymax]]
         Output:
             pterm_ax:           Axis with path term grid slice plotted
         '''
@@ -1872,7 +1873,17 @@ class pterm_3dgrid:
             
             #Get axes and extent information:
             xmin=min(self.binedges[1])
-            xmax=miax(self.binedges[1])
+            xmax=max(self.binedges[1])
+            ymin=min(self.binedges[2])
+            ymax=max(self.binedges[2])
+            
+            #Labels:
+            xlabel='Latitude'
+            ylabel='Depth (km)'
+            ptitle='Path term slice at Longitude '+str(slicecoord)
+            
+            #Plot:
+            sliceaxis=plt.imshow(statistic.T,origin='lower',aspect=aspectr,extent=[xmin,xmax,ymin,ymax],interpolation='spline36',vmin=climits[0],vmax=climits[1])
             
         elif coordtype=='lat':
             binind=argmin(self.binedges[1]-slicecoord)
@@ -1881,6 +1892,19 @@ class pterm_3dgrid:
                 binind=binind=1
             #Get array to plot:
             statistic=self.statistic[:,binind,:]
+            
+            #Get axes and extent information:
+            xmin=min(self.binedges[0])
+            xmax=max(self.binedges[0])
+            ymin=min(self.binedges[2])
+            ymax=max(self.binedges[2])
+            
+            xlabel='Longitude'
+            ylabel='Depth (km)'
+            ptitle='Path term slice at Latitude '+str(slicecoord)
+            
+            #Plot:
+            sliceaxis=plt.imshow(statistic.T,origin='lower',aspect=aspectr,extent=[xmin,xmax,ymin,ymax],interpolation='spline36',vmin=climits[0],vmax=climits[1])
                 
         elif coordtype=='depth':
             binind=argmin(self.binedges[2]+slicecoord)
@@ -1890,10 +1914,21 @@ class pterm_3dgrid:
             #Get array to plot:
             statistic=self.statistic[:,:,binind]
             
+            #Get axes and extent information:
+            xmin=min(self.binedges[0])
+            xmax=max(self.binedges[0])
+            ymin=min(self.binedges[1])
+            ymax=max(self.binedges[1])
+            
+            xlabel='Longitude'
+            ylabel='Latitude'
+            ptitle='Path term slice at Depth '+str(slicecoord)
+            
+            #Plot:
+            sliceaxis=plt.imshow(statistic.T,origin='lower',aspect=aspectr,extent=[xmin,xmax,ymin,ymax],interpolation='spline36',vmin=climits[0],vmax=climits[1])
             
         
-        
-        #Start axes to plot on:
+
         
         
         
