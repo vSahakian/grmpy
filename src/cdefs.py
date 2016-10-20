@@ -1844,10 +1844,11 @@ class pterm_3dgrid:
         self.binedges=binedges
         self.binnumber=binnumber
         
-    def plot_slice(self,slicecoord,coordtype,aspectr,cmap,climits,axlims):
+    def plot_slice(self,sliceaxis,slicecoord,coordtype,aspectr,cmap,climits,axlims):
         '''
         Plot a slice of the path term grid model.
         Input:
+            sliceaxis:          Axes handle to plot on
             slicecoord:         Coordinate (lon, lat in degree, depth in km) of the slice to plot.
                                 If depth, it must be positive.
             coordtype:          Type of coordinate: 'lon', 'lat', 'depth'
@@ -1856,15 +1857,17 @@ class pterm_3dgrid:
             climits:            Value for colorscale [cmin,cmax]
             axlims:             Axis limits for plot [[xmin,xmax],[ymin,ymax]]
         Output:
-            pterm_ax:           Axis with path term grid slice plotted
+            pterm_ax:           Axis with path t            plt.show()erm grid slice plotted
         '''
         
         from numpy import argmin
         import matplotlib.pyplot as plt
+        from mpl_toolkits.axes_grid1 import make_axes_locatable
         
+       
         #Get the slice from the 3D array that corresponds to this lat/lon:
         if coordtype=='lon':
-            binind=argmin(self.binedges[0]+slicecoord)
+            binind=argmin(abs(self.binedges[0]+slicecoord))
             #If it's the right hand side or last edge of tha tdimension, use the bin to the inside:
             if binind==len(self.binedges[0]):
                 binind=binind=1
@@ -1883,10 +1886,12 @@ class pterm_3dgrid:
             ptitle='Path term slice at Longitude '+str(slicecoord)
             
             #Plot:
-            sliceaxis=plt.imshow(statistic.T,origin='lower',aspect=aspectr,extent=[xmin,xmax,ymin,ymax],interpolation='spline36',vmin=climits[0],vmax=climits[1])
+            sliceaxis.imshow(statistic.T,origin='lower',aspect=aspectr,extent=[xmin,xmax,ymin,ymax],interpolation='spline36',vmin=climits[0],vmax=climits[1])
+            cbar=plt.colorbar()
+            cbar.set_label('ln Residual')
             
         elif coordtype=='lat':
-            binind=argmin(self.binedges[1]-slicecoord)
+            binind=argmin(abs(self.binedges[1]-slicecoord))
             #If it's the right hand side or last edge of tha tdimension, use the bin to the inside:
             if binind==len(self.binedges[0]):
                 binind=binind=1
@@ -1904,10 +1909,14 @@ class pterm_3dgrid:
             ptitle='Path term slice at Latitude '+str(slicecoord)
             
             #Plot:
-            sliceaxis=plt.imshow(statistic.T,origin='lower',aspect=aspectr,extent=[xmin,xmax,ymin,ymax],interpolation='spline36',vmin=climits[0],vmax=climits[1])
-                
+            sliceaxis.imshow(statistic.T,origin='lower',aspect=aspectr,extent=[xmin,xmax,ymin,ymax],interpolation='spline36',vmin=climits[0],vmax=climits[1])
+            divider=make_axes_locatable(sliceaxis)
+            caxis=divider.append_axes('right',size='25%',pad=0.05)
+            cbar=plt.colorbar(sliceaxis,cax=caxis)
+            cbar.set_label('ln Residual')     
+                     
         elif coordtype=='depth':
-            binind=argmin(self.binedges[2]+slicecoord)
+            binind=argmin(abs(self.binedges[2]+slicecoord))
             #If it's the right hand side or last edge of tha tdimension, use the bin to the inside:
             if binind==len(self.binedges[0]):
                 binind=binind=1
@@ -1925,10 +1934,22 @@ class pterm_3dgrid:
             ptitle='Path term slice at Depth '+str(slicecoord)
             
             #Plot:
-            sliceaxis=plt.imshow(statistic.T,origin='lower',aspect=aspectr,extent=[xmin,xmax,ymin,ymax],interpolation='spline36',vmin=climits[0],vmax=climits[1])
+            sliceaxis.imshow(statistic.T,origin='lower',aspect=aspectr,extent=[xmin,xmax,ymin,ymax],interpolation='spline36',vmin=climits[0],vmax=climits[1])
+            cbar=plt.colorbar()
+            cbar.set_label('ln Residual')
             
-        
 
+        
+        #Titles and limits:
+        sliceaxis.set_xlabel(xlabel)
+        sliceaxis.set_ylabel(ylabel)
+        sliceaxis.set_title(ptitle)
+        
+        sliceaxis.set_xlim(axlims[0][0],axlims[0][1])
+        sliceaxis.set_ylim(axlims[1][0],axlims[1][1])
+        
+        #Return:
+        return sliceaxis
         
         
         
