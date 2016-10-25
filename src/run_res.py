@@ -559,7 +559,7 @@ def sta_list(home,run_name,dbfile):
         W_residual=np.array(W_residual)
         
         #Put into a station object...
-        station_i=cdf.station(station_name_i[0],station_num_i,vs30[0],evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,total_residual,E_residual,W_residual)
+        station_i=cdf.station(station_name_i,station_num_i,vs30[0],evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,total_residual,E_residual,W_residual)
         
         #Get the site residual:
         station_i.get_site_resid()
@@ -852,7 +852,7 @@ def get_path_resid_make_object(home,run_name,dbpath,axlims,axlims_dist):
     return f_mw,f_dist,allresiduals,pterm_mean,pterm_std
  
 ######
-def write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std,station_path):
+def write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std):
     '''
     Write out statistics to a file
     Input:
@@ -870,7 +870,7 @@ def write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std
         STatistics file to home/run_name/run_name_stats.txt 
     '''
     from os import path
-    from numpy import str,unique
+    from numpy import str,unique,array,around,mean,std
     import cPickle as pickle
     
     #Make stats file:   
@@ -888,8 +888,11 @@ def write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std
     #G##et out the stations and site terms:
     #Get unique station names:
     stations,u_stations_ind=unique(robj.sta,return_index=True)
-    siteterms=robj.site_terms[u_stations_ind]
+    siteterms=around(array(robj.site_terms)[u_stations_ind],decimals=2)
     
+    #Get standard deviation:
+    siteterm_mean=mean(siteterms)
+    siteterm_std=std(siteterms)
     
     #Write out stats to a file:
     sfile=open(statsfile,'w')
@@ -903,6 +906,17 @@ def write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std
     sfile.write('\n')
     sfile.write('Within-Event Residual Mean:         '+str(W_mean)+'\n')
     sfile.write('Within-Event Residual Std Dev:      '+str(W_std_dev)+'\n')
+    sfile.write('\n')
+    sfile.write('Site Term Residual Mean:            '+str(siteterm_mean)+'\n')
+    sfile.write('Site Term Residual Std Dev:         '+str(siteterm_std)+'\n')
+    sfile.write('\n')
     sfile.write('Path Term Residual Mean:            '+str(pterm_mean)+'\n')
     sfile.write('Path Term Residual Std Dev:         '+str(pterm_std)+'\n')
+    sfile.write('\n')
+    
+    #Site terms:
+    sfile.write('Site terms:\n')
+    for site_i in range(len(siteterms)):
+        sfile.write('\t'+stations[site_i]+':\t'+str(siteterms[site_i])+'\n')
+    
     sfile.close()

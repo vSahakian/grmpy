@@ -2,7 +2,7 @@
 #VJS 9/2016
 
 
-def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,smth,mdep_ffdf):
+def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,mdep_ffdf):
     '''
     Make the necessary matrices, invert, and save model output
     Input:
@@ -13,6 +13,7 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,smth,mdep_ffdf):
         rng:            Array of ranges to use in constraining the inversion
         sdist:          Number of distances to include in smoothing - there will be this many extra
                         equations added on at each range boundary
+        Mc:             M squared centering term (8.5 in ASK2014)
         smth:           Smoothing
         mdep_ffdf:      Flag to add mag dependent ffdf (0/1=no/yes)
     Output: 
@@ -36,7 +37,7 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,smth,mdep_ffdf):
                 
     #Invert:
     #Make matrices
-    G,d=inv.iinit_pga(db,ncoeff,rng,sdist,smth,mdep_ffdf)
+    G,d=inv.iinit_pga(db,ncoeff,rng,sdist,Mc,smth,mdep_ffdf)
     #Invert
     m, resid, L2norm, VR, rank, svals=inv.invert(G,d)
     
@@ -52,7 +53,7 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,smth,mdep_ffdf):
         else:
             strname=strname+'_'+np.str(rng[k])
         
-    basename='regr_'+strname+'_VR_'+np.str(np.around(VR,decimals=1))
+    basename='regr_Mc'+str(Mc)+'_'+strname+'_VR_'+np.str(np.around(VR,decimals=1))
     
     #Put into an inversion object:
     invdat=cdf.invinfo(G,d,m,resid,L2norm,VR,rank,svals,rng,sdist,smth)
@@ -66,7 +67,7 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,smth,mdep_ffdf):
     
     
 ############
-def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,axlims,bmin,bmax,vref):
+def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,Mc,axlims,bmin,bmax,vref):
     '''
     Plot the data with the model, and ASK 2014
     Input:
@@ -77,6 +78,7 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,axli
         coeff_file:     String with path to the coefficient file
         mdep_ffdf:      Flag for using mag dependent ffdf (0/1=off/on)
         sdist:          Array with distances to plot in model
+        Mc:             M squared centering term (8.5 in ASK 2014)
         axlims:         Axis limits for plotting [[xmin,xmax],[ymin,ymax]]
         bmin:           Minimum value for distance bins
         bmax:           Maximum value for distance bins
@@ -110,7 +112,7 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,axli
             strname=strname+'_'+str(model.rng[k])
             
     #Get basenae for figure file:        
-    basename='regr_'+strname+'_VR_'+str(around(model.VR,decimals=1))
+    basename='regr_Mc'+str(Mc)+'_'+strname+'_VR_'+str(around(model.VR,decimals=1))
 
 
     ############################################

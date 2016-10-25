@@ -3,7 +3,7 @@
 
 #Make the d and G matrices.....
 
-def iinit_pga(db,ncoeff,rng,sdist,smth,mdep_ffdf):
+def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,mdep_ffdf):
     '''
     Make the d and G matrices for the inversion.  Can use ranges, where the 
     coefficients from teh inversion must be smooth at the edges of the ranges.
@@ -23,6 +23,7 @@ def iinit_pga(db,ncoeff,rng,sdist,smth,mdep_ffdf):
         rng:        Array with limits of M ranges, 
                     i.e.: [0, 2, 5] means two ranges: M0 - M2, M2 - M5.
         sdist:      Array with distances to include for smoothing (i.e, [1,5,10]
+        Mc:         M squared centering term (8.5 in ASK2014)
         smth:       Smoothing value
         mdep_ffdf:  Magnitude-dependent fictitious depth param: 0=off, 1=on
         
@@ -139,7 +140,7 @@ def iinit_pga(db,ncoeff,rng,sdist,smth,mdep_ffdf):
         #Parts of G:
         a1=np.ones((numinbin[j]))
         a2=imw
-        a3=(8.5-imw)**2
+        a3=(Mc-imw)**2
         a4=np.log(iffdf)
         a5=ir
         
@@ -150,7 +151,9 @@ def iinit_pga(db,ncoeff,rng,sdist,smth,mdep_ffdf):
         #SMOOTHING:
         #If there are still more ranges after this one, add smoothing so that 
         #the line is continuous between ranges...otherwise, don't add anything.
-        if j<(len(rng)-2):    
+        if j<(len(rng)-2):  
+            print 'Adding smoothing ranges with smoothing %.2f' % (smth)  
+            
             #Now fill it with the smoothing info, at the bottom of each range, 
             #except the last range:
             #First, row and column ranges:
@@ -162,7 +165,7 @@ def iinit_pga(db,ncoeff,rng,sdist,smth,mdep_ffdf):
             #Parts of G:
             a1=np.ones((numsmooth))
             a2=np.ones((numsmooth))*rng[j+1]
-            a3=np.ones((numsmooth))*(8.5 - rng[j+1])**2
+            a3=np.ones((numsmooth))*(Mc - rng[j+1])**2
             #Add magnitude-dependent fictitious depth:
             if mdep_ffdf==0:
                 a4=np.log(Rsdist)
@@ -174,6 +177,9 @@ def iinit_pga(db,ncoeff,rng,sdist,smth,mdep_ffdf):
             G[r_beg:r_end, c_beg:c_end]=smth*(np.c_[a1, a2, a3, a4, a5, 
                 -1*a1, -1*a2, -1*a3, -1*a4, -1*a5]) 
             d[r_beg:r_end]=np.zeros((numsmooth))
+            
+        else:
+            print 'No smoothing ranges; smoothing not applied'
             
         #To the counter indices, add on:
         #To the rows, add what we are past - so the number of recordings in this
@@ -243,7 +249,7 @@ def invert(G,d):
     VR=(1 - (np.sum(residual)/np.sum(d**2)))*100
     
     print 'L2 norm is %.2f, residual (square) is %.2f, Variance Reduction is \
-        %i percent' % (L2norm,residual,VR)
+        %.2f percent' % (L2norm,residual,VR)
     
     
     return m, residual, L2norm, VR, rank, singular_vals

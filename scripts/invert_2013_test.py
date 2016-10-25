@@ -62,8 +62,11 @@ axlims=[[0,6],[-8,-0.5]]
 #equations added on at each range boundary
 smin=0
 smax=280
-sstep=10
+sstep=1
 sdist=np.array(range(smin,smax,sstep))
+
+##Centering Magnitude for x**2 term
+Mc=8.1
 
 #Smoothing factor
 smth=500
@@ -100,16 +103,17 @@ for k in range(len(rng)):
 #Invert#
 ########
 
-inv_dat=run_inv.setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,smth,mdep_ffdf)
+inv_dat=run_inv.setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,mdep_ffdf)
 
 print inv_dat
 
 #Get basename for model:
-basename='regr_'+strname+'_VR_'+np.str(np.around(inv_dat.VR,decimals=1))
+basename='regr_Mc'+str(Mc)+'_'+strname+'_VR_'+str(np.around(inv_dat.VR,decimals=1))
+#basename='regr_'+strname+'_VR_'+np.str(np.around(inv_dat.VR,decimals=1))
 modelpath=model_dir+basename+'.pckl'
 
 #Plot:
-fig1=run_inv.plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,plotdist,axlims,bmin,bmax,vref)
+fig1=run_inv.plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,plotdist,Mc,axlims,bmin,bmax,vref)
 
 
 

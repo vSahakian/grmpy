@@ -18,10 +18,42 @@ elif what_home==1:
     HOME='/Users/vsahakian'
     
 
+##Centered at M 8.5 
+#home=HOME+'/anza/models/residuals/'
+#run_name='db2013test_0-6.5'
+#dbpath=HOME+'/anza/data/databases/db2013_test/db2013test_5sta.pckl'
+#modelpath=HOME+'/anza/models/pckl/test2013/regr_0.0_6.5_VR_99.2.pckl'
+
+##Centered at M 3.0
+#home=HOME+'/anza/models/residuals/'
+#run_name='db2013test_0-6.5_Mc3'
+#dbpath=HOME+'/anza/data/databases/db2013_test/db2013test_5sta.pckl'
+#modelpath=HOME+'/anza/models/pckl/test2013/regr_Mc3_0.0_6.5_VR_99.2.pckl'
+
+##Centered at M 7.0
+#home=HOME+'/anza/models/residuals/'
+#run_name='db2013test_0-6.5_Mc7'
+#dbpath=HOME+'/anza/data/databases/db2013_test/db2013test_5sta.pckl'
+#modelpath=HOME+'/anza/models/pckl/test2013/regr_Mc7_0.0_6.5_VR_99.2.pckl'
+
+##Centered at M 9.0
+#home=HOME+'/anza/models/residuals/'
+#run_name='db2013test_0-6.5_Mc9'
+#dbpath=HOME+'/anza/data/databases/db2013_test/db2013test_5sta.pckl'
+#modelpath=HOME+'/anza/models/pckl/test2013/regr_Mc9_0.0_6.5_VR_99.2.pckl'
+
+##Centered at M 8.0
+#home=HOME+'/anza/models/residuals/'
+#run_name='db2013test_0-6.5_Mc8'
+#dbpath=HOME+'/anza/data/databases/db2013_test/db2013test_5sta.pckl'
+#modelpath=HOME+'/anza/models/pckl/test2013/regr_Mc8_0.0_6.5_VR_99.2.pckl'
+
+#Centered at M 8.1
 home=HOME+'/anza/models/residuals/'
-run_name='db2013test_0-6.5'
+run_name='db2013test_0-6.5_Mc8.1'
 dbpath=HOME+'/anza/data/databases/db2013_test/db2013test_5sta.pckl'
-modelpath=HOME+'/anza/models/pckl/test2013/regr_0.0_6.5_VR_99.2.pckl'
+modelpath=HOME+'/anza/models/pckl/test2013/regr_Mc8.1_0.0_6.5_VR_99.2.pckl'
+
 #rayfile_vp='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vp/rays.dat'
 #rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
 
