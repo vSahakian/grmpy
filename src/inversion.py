@@ -255,3 +255,8 @@ def invert(G,d):
     return m, residual, L2norm, VR, rank, singular_vals
     
         
+        
+##################################
+###Run Mixed Effects Model in R###
+##################################
+
