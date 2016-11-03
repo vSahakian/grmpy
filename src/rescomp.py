@@ -38,9 +38,9 @@ def event_residual(eventdb,d_predicted_log10):
     '''
     Compute the event residual
     Input:
-        eventdb:            Event object
-        d_predicted_log10:        Array with model predictions for each recording in 
-                            event object
+        eventdb:              Event object
+        d_predicted_log10:    Array with model predictions for each recording in 
+                                  event object
     Output: 
         E_residual:         Event residual
         E_std_dev:          Standard deviation in the event residual

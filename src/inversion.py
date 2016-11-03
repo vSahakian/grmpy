@@ -260,3 +260,84 @@ def invert(G,d):
 ###Run Mixed Effects Model in R###
 ##################################
 
+def mixed_effects(pga,m,rrup,ss30,evnum,sta,Mc):
+    '''
+    Run a Mixed effects model to compute the model coefficients (a1 - a5), 
+    as well as the event and station terms.  The remaining residual can 
+    be classified as the path term plus some aleatory residual.
+    
+    Input:
+        pga:           Array with values of PGA for each recording, in g
+        m:             Array with values of moment magnitude per recording
+        rrup:          Array with values of Rrup per recording
+        vs30:          Array with values of Vs30 per recoridng
+        evnum:         Array with values of the event number per recording
+        sta:           Array with strings of station names
+        Mc:            Magnitude to center around for M squared functional form component (Mc - M)**2
+    Output:
+             
+    '''
+    
+    import rpy2.robjects as ro
+    from rpy2.robjects.packages import importr
+    
+    #Set r name:
+    stats=importr('stats')
+    lme4=importr('lme4')
+
+    #Set database information:
+    
+    
+    ######HISTORY####
+    from rpy2.robjects.package import importr
+from rpy2.robjects.packages import importr
+lme4=importr('lme4')
+import rpy2.robjects as ro
+stats=importr('stats')
+what_home=0
+
+if what_home==0:
+    #Desktop:
+    HOME='/media/vsahakian/katmai'
+elif what_home==1:
+    #Mac:
+    HOME='/Users/vsahakian'
+dbfname=HOME+'/anza/data/databases/db2013_test/db2013test_5sta.pckl'
+dbfname
+import cPickle as pickle
+dbfile=open(dbfname,'r')
+dbfile=open(dbfname,'r')
+db=pickle.load(dbfile)
+dbfile.close()
+M=db.mw
+evnum=db.evnum
+vs30=db.vs30
+sta=db.sta
+Mc=8.1
+pga=db.pga_pg
+rrup=db.r
+
+base=importr('base')
+print(base.R_home())
+print(base._libPaths())
+
+
+
+rpga=ro.FloatVector(pga)
+rm=ro.FloatVector(M)
+
+
+rrup=ro.FloatVector(rrup)
+revnum=ro.FloatVector(evnum)
+
+ro.globalenv["pga"]=pga
+ro.globalenv["pga"]=rpga
+ro.globalenv["m"]=rm
+ro.globalenv["rrup"]=rrup
+ro.globalenv["evnum"]=revnum
+
+testmodel=lme4.lmer("pga ~ m + rrup + (1|evnum)")
+
+
+print(base.summary(testmodel))
+from statsmodels.regression.mixed_linear_model import MixedLMParams
