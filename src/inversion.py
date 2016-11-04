@@ -260,7 +260,7 @@ def invert(G,d):
 ###Run Mixed Effects Model in R###
 ##################################
 
-def mixed_effects(pga,m,rrup,vs30,evnum,sta,vref,Mc):
+def mixed_effects(pga,m,rrup,vs30,evnum,sta,vref,c,Mc):
     '''
     Run a Mixed effects model to compute the model coefficients (a1 - a5), 
     as well as the event and station terms.  The remaining residual can 
@@ -274,31 +274,33 @@ def mixed_effects(pga,m,rrup,vs30,evnum,sta,vref,Mc):
         evnum:         Array with values of the event number per recording
         sta:           Array with strings of station names
         vref:          Scalar with value of reference vs30 velocity
+        c:             Scalar with fictitious depth parameter (usually 4.5)
         Mc:            Magnitude to center around for M squared functional form component (Mc - M)**2
     Output:
              
     '''
     
-    import rpy2.robjects as ro
-    from rpy2.robjects.packages import importr
     import pandas as pd
     import statsmodels.api as sm
+    import numpy as np
     
-    #Set r name:
-    stats=importr('stats')
-    lme4=importr('lme4')
-
     ## Set database information
+    # Set input for model, that is not "raw" (i.e., M):
+    pga_corrected=np.log10(pga) - 0.6*(np.log(vs30/vref))
+    m2=(Mc - m)**2
+    R=np.sqrt(rrup**2 + c**2)
+    lnR=np.log(R)
+    
+    
     #  First make a dictionary:
-    dbdict = {'pga' : pga, 'm' : m, 'rrup' : rrup, 'vs30' : vs30, 'evnum' : evnum, 'sta' : sta}
+    dbdict = {'pga' : pga, 'm' : m, 'm2' : m2, 'lnR' : lnR, 'rrup' : rrup, 'evnum' : evnum, 'sta' : sta}
     
     # Make datafram ewith Pandas
     data = pd.DataFrame(dbdict)
-    data['pga_vs30_corrected'] = data['pga'] - 0.6*log(data['vs30']/780)
     
-    
-    # Make Model:
-    model = sm.MixedLM.from_formula("pga_vs30_corrected ~ m + rrup", data=data, groups="evnum","sta")
+    #Output data to csv:
+    data.to_csv('tmp_mixed.csv')
+
     
     
     
