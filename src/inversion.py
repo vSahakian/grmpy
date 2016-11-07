@@ -293,7 +293,7 @@ def mixed_effects(pga,m,rrup,vs30,evnum,sta,vref,c,Mc):
     
     
     #  First make a dictionary:
-    dbdict = {'pga' : pga, 'm' : m, 'm2' : m2, 'lnR' : lnR, 'rrup' : rrup, 'evnum' : evnum, 'sta' : sta}
+    dbdict = {'pga' : pga_corrected, 'm' : m, 'm2' : m2, 'lnR' : lnR, 'rrup' : rrup, 'evnum' : evnum, 'sta' : sta}
     
     # Make datafram ewith Pandas
     data = pd.DataFrame(dbdict)
@@ -301,6 +301,13 @@ def mixed_effects(pga,m,rrup,vs30,evnum,sta,vref,c,Mc):
     #Output data to csv:
     data.to_csv('tmp_mixed.csv')
 
+    
+    
+    #### MAKE SYSTEM CALL TO R ####
+    
+    
+    
+    ## Read R results back in
     
     
     
