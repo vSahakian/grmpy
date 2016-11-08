@@ -289,6 +289,7 @@ def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,M
     import statsmodels.api as sm
     import numpy as np
     import subprocess
+    from shlex import split
     
     ## Set database information
     # Set input for model, that is not "raw" (i.e., M):
@@ -305,7 +306,7 @@ def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,M
     data = pd.DataFrame(dbdict)
     
     # Output data to csv:
-    csvfile=workinghome+'/anza/models/pckl/r/tmp_mixed.csv'
+    csvfile=workinghome+'/anza/models/pckl/'+dbname+'/r/tmp_mixed.csv'
     
     data.to_csv(csvfile)
 
@@ -314,13 +315,15 @@ def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,M
     
     #### MAKE SYSTEM CALL TO R ####
     r_script_path=codehome+'/software/py/grmpy/src/mixed_effects.r'
-    logfile = workinghome+'/anza/models/pckl/r/mixedeffects.log'
-    calltext='R CMD BATCH --no-save --no-restore \'--args \"' + workinghome + '\" \"'+ dbname + '\"\' ' + r_script_path + ' ' + logfile
+    logfile = workinghome+'/anza/models/pckl/'+dbname+'/r/mixedeffects.log'
+    #calltext='R CMD BATCH --no-save --no-restore '''--args "' + workinghome + '\" \"'+ dbname + '\"\' ' + r_script_path + ' ' + logfile
+    calltext="""R CMD BATCH --no-save --no-restore '--args "%s" "%s"' %s %s""" %(workinghome,dbname,r_script_path,logfile)
     
     print 'Calling: ' + calltext
     
     # Make system call
-    p = subprocess.Popen(calltext,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    command=split(calltext)
+    p = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     out,err = p.communicate()
     
     # Print output
