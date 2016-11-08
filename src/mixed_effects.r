@@ -44,7 +44,7 @@ get_site.merMod <- function(model, ...){
 	
 	coefs <- .add_stderr(modran[['sta']])
 	return(coefs)
-	}
+}
 	
 ####################################################################
 
@@ -67,7 +67,7 @@ get_event.merMod <- function(model, ...){
 	
 	coefs <- .add_stderr(modran[['evnum']])
 	return(coefs)
-	}
+}
 
 	
 
@@ -76,11 +76,11 @@ get_event.merMod <- function(model, ...){
 
 
 ### Run Mixed Effects ###
-r_mixedeffects <- function(datacsv, home, database...) {
+r_mixedeffects <- function(datacsv, home, database, ...) {
 	
 	# Input:
 	#		datacsv: 		Full path to the csv file written by python
-	#		home: 			String with path to home (i.e., /Users/vsahakian/ or /home/vsahakian/katmai)
+	#		home: 			String with path to home, no slash at end (i.e., /Users/vsahakian or /home/vsahakian/katmai)
 	# 		database: 		String with database name (i.e., "test2013", or "abdb"
 	#
 	
@@ -88,14 +88,19 @@ r_mixedeffects <- function(datacsv, home, database...) {
 	require(lme4)
 
 	## Read in file:
-	db <- read.table(datacsv)
+	print(datacsv)
+	db <- read.csv(datacsv)
+	
+	print("read in data")
 	
 	## Set the evnum and sta columns, columns of station names and event numbers, as a factor
 	db$evnum <- as.factor(db$evnum)
 	db$sta <- as.factor(db$sta)
 	
+	print("factored evnum and sta")
+	
 	## Subset the data so no 0 or negative PGA:
-	db <- subset(db, pga>0)
+	#db <- subset(db, pga>0)
 	
 	##			  ##
 	## Run Models ##
@@ -107,27 +112,38 @@ r_mixedeffects <- function(datacsv, home, database...) {
 	print(model)
 	
 	## Also save coefficients to a csv file, ##NAME##
-	fixed_coefs <- get_coefs(model)
-    filename <- file.path(home,"anza/models/pckl",database,"results_fixed.csv")
+	fixed_coefs <- get_fixed(model)
+    filename <- file.path(home,"anza/models/pckl",database,"r/results_fixed.csv")
 	readr::write_csv(fixed_coefs, path=filename)
 	message("Fixed coefficients saved to: ", filename)
 	
 	
 	site_coefs <- get_site(model)
-	filename <- file.path(home,"anza/models/pckl",database,"results_site.csv")
+	filename <- file.path(home,"anza/models/pckl",database,"r/results_site.csv")
 	readr::write_csv(site_coefs, path=filename)
 	message("Site effects saved to: ", filename)
 	
 	
 	event_coefs <- get_event(model)
-	filename <- file.path(home,"anza/models/pckl",database,"results_event.csv")
+	filename <- file.path(home,"anza/models/pckl",database,"r/results_event.csv")
 	readr::write_csv(event_coefs, path=filename)
 	message("Event effects saved to: ", filename)
-	
+}	
 	
 	
 ### Call Function ###
 
+# Echo...
 print("Running mixed effects model...")
 
-r_mixedeffects(
+# Read in arguments:
+args <- commandArgs(TRUE)
+
+home_path <- eval(parse(text=args[1]))
+database_name <- eval(parse(text=args[2]))
+
+csvfile <- file.path(home_path,"anza/models/pckl",database_name,"r","tmp_mixed.csv")
+
+r_mixedeffects(csvfile,home_path,database_name)
+
+
