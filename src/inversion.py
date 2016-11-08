@@ -260,13 +260,16 @@ def invert(G,d):
 ###Run Mixed Effects Model in R###
 ##################################
 
-def mixed_effects(pga,m,rrup,vs30,evnum,sta,vref,c,Mc):
+def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,Mc):
     '''
     Run a Mixed effects model to compute the model coefficients (a1 - a5), 
     as well as the event and station terms.  The remaining residual can 
     be classified as the path term plus some aleatory residual.
     
     Input:
+        codehome:      String with full path to code home (i.e.,'/home/vsahakian')
+        workinghome:   String with full path to working dir home, no slash at end (i.e., /Users/vsahakian or /home/vsahakian/katmai)
+        dbname:        String with name to database, for path in pckl dir (i.e., 'test2013')
         pga:           Array with values of PGA for each recording, in g
         m:             Array with values of moment magnitude per recording
         rrup:          Array with values of Rrup per recording
@@ -277,12 +280,15 @@ def mixed_effects(pga,m,rrup,vs30,evnum,sta,vref,c,Mc):
         c:             Scalar with fictitious depth parameter (usually 4.5)
         Mc:            Magnitude to center around for M squared functional form component (Mc - M)**2
     Output:
+        log:           Log of system call
+        
              
     '''
     
     import pandas as pd
     import statsmodels.api as sm
     import numpy as np
+    import subprocess
     
     ## Set database information
     # Set input for model, that is not "raw" (i.e., M):
@@ -298,72 +304,47 @@ def mixed_effects(pga,m,rrup,vs30,evnum,sta,vref,c,Mc):
     # Make datafram ewith Pandas
     data = pd.DataFrame(dbdict)
     
-    #Output data to csv:
-    data.to_csv('tmp_mixed.csv')
+    # Output data to csv:
+    csvfile=workinghome+'/anza/models/pckl/r/tmp_mixed.csv'
+    
+    data.to_csv(csvfile)
 
+    # Get variables for argin to R:
     
     
     #### MAKE SYSTEM CALL TO R ####
+    r_script_path=codehome+'/software/py/grmpy/src/mixed_effects.r'
+    logfile = workinghome+'/anza/models/pckl/r/mixedeffects.log'
+    calltext='R CMD BATCH --no-save --no-restore \'--args \"' + workinghome + '\" \"'+ dbname + '\"\' ' + r_script_path + ' ' + logfile
+    
+    print 'Calling: ' + calltext
+    
+    # Make system call
+    p = subprocess.Popen(calltext,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    out,err = p.communicate()
+    
+    # Print output
+    print out
+    print err
+    log=str(out) + str(err)
+    
+    return log
+    
+    
+    ##### Read R results back in ######
+    
+    # Output file names
+    r_fixed = workinghome + '/anza/models/pckl/r/results_fixed.csv'
+    r_site = workinghome + '/anza/models/pckl/r/results_site.csv'
+    r_event = workinghome + '/anza/models/pckl/r/results_event.csv'
+    
+    # Import:
+    fixed_data = np.genfromtxt(r_fixed, delimiter=",")
+    site_data = np.genfromtxt(r_site, delimiter=",")
+    event_data = np.genfromtxt(r_event, delimiter=",")
     
     
     
-    ## Read R results back in
     
     
     
-    
-    
-    
-#    ######HISTORY####
-#    from rpy2.robjects.package import importr
-#from rpy2.robjects.packages import importr
-#lme4=importr('lme4')
-#import rpy2.robjects as ro
-#stats=importr('stats')
-#what_home=0
-#
-#if what_home==0:
-#    #Desktop:
-#    HOME='/media/vsahakian/katmai'
-#elif what_home==1:
-#    #Mac:
-#    HOME='/Users/vsahakian'
-#dbfname=HOME+'/anza/data/databases/db2013_test/db2013test_5sta.pckl'
-#dbfname
-#import cPickle as pickle
-#dbfile=open(dbfname,'r')
-#dbfile=open(dbfname,'r')
-#db=pickle.load(dbfile)
-#dbfile.close()
-#M=db.mw
-#evnum=db.evnum
-#vs30=db.vs30
-#sta=db.sta
-#Mc=8.1
-#pga=db.pga_pg
-#rrup=db.r
-#
-#base=importr('base')
-#print(base.R_home())
-#print(base._libPaths())
-#
-#
-#
-#rpga=ro.FloatVector(pga)
-#rm=ro.FloatVector(M)
-#
-#
-#rrup=ro.FloatVector(rrup)
-#revnum=ro.FloatVector(evnum)
-#
-#ro.globalenv["pga"]=pga
-#ro.globalenv["pga"]=rpga
-#ro.globalenv["m"]=rm
-#ro.globalenv["rrup"]=rrup
-#ro.globalenv["evnum"]=revnum
-#
-#testmodel=lme4.lmer("pga ~ m + rrup + (1|evnum)")
-#
-#
-#print(base.summary(testmodel))
-#from statsmodels.regression.mixed_linear_model import MixedLMParams
