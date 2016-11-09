@@ -281,8 +281,9 @@ def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,M
         Mc:            Magnitude to center around for M squared functional form component (Mc - M)**2
     Output:
         log:           Log of system call
-        
-             
+        event_terms:   Array of event terms (2 columns: Bias, Std.error)
+        site_terms:    Array of site terms (2 columns: Bias, std.error)
+        fixed_effects: Array with coefficients (5 rows (a1 - a5), 3 columns(coefficient, std. error, t.value))
     '''
     
     import pandas as pd
@@ -310,8 +311,6 @@ def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,M
     
     data.to_csv(csvfile)
 
-    # Get variables for argin to R:
-    
     
     #### MAKE SYSTEM CALL TO R ####
     r_script_path=codehome+'/software/py/grmpy/src/mixed_effects.r'
@@ -326,28 +325,60 @@ def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,M
     p = subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     out,err = p.communicate()
     
+    print 'Wrote logfile to ' + logfile
+    
     # Print output
     print out
     print err
     log=str(out) + str(err)
     
-    return log
-    
     
     ##### Read R results back in ######
     
     # Output file names
-    r_fixed = workinghome + '/anza/models/pckl/r/results_fixed.csv'
-    r_site = workinghome + '/anza/models/pckl/r/results_site.csv'
-    r_event = workinghome + '/anza/models/pckl/r/results_event.csv'
+    r_fixed = workinghome + '/anza/models/pckl/' + dbname +'/r/results_fixed.csv'
+    r_site = workinghome + '/anza/models/pckl/' + dbname +'/r/results_site.csv'
+    r_event = workinghome + '/anza/models/pckl/' + dbname +'/r/results_event.csv'
     
     # Import:
-    fixed_data = np.genfromtxt(r_fixed, delimiter=",")
-    site_data = np.genfromtxt(r_site, delimiter=",")
-    event_data = np.genfromtxt(r_event, delimiter=",")
+    # Fixed data - reads in Coefficient, std. error, t.value.  Rows:  a1, a3, a3, a4, a5
+    fixed_data = np.genfromtxt(r_fixed, delimiter=",",skip_header=1,usecols=(1,2,3))
+    
+    # Site data:
+    # Load in bias (site term), and standard error first:
+    site_data = np.genfromtxt(r_site, delimiter=",",skip_header=1,usecols=(1,2))
+    # Then load in the station name separately:
+    sta_data = np.genfromtxt(r_site, delimiter=",",skip_header=1,usecols=(0),dtype="S")
+    
+    # Then event data:
+    # evnum, bias (event term), std.error
+    event_data = np.genfromtxt(r_event, delimiter=",",skip_header=1)
+    
+    
+    
+    ### Reincorporate site and event terms into the list of recordings ###
+    
+    # Initiate arrays with length of number of recordings for site and event terms and bias:
+    event_terms = np.zeros((len(pga),2))
+    site_terms = np.zeros((len(pga),2))
+    
+    for recording_i in range(len(pga)):
+        # This recording is which event and station name?
+        event_i=evnum[recording_i]
+        sta_i=sta[recording_i]
+        
+        # Find the evet number from R results that matches:
+        eterm_ind = np.where(event_data[:,0]==event_i)[0]
+        # Collect this data into the event terms:
+        event_terms[recording_i,:] = event_data[eterm_ind,1:]
+        
+        # Now the station:
+        sterm_ind = np.where(sta_data==sta_i)[0]
+        # Collect the data:
+        site_terms[recording_i,:] = site_data[sterm_ind,:]
     
     
     
     
-    
-    
+    ### Print fixed effects out into something... ###
+    return log, fixed_data, event_terms, site_terms

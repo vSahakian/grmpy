@@ -150,3 +150,10 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,Mc,a
     #Show and return the figure:
     fig1.show()
     return fig1
+
+
+##########
+def run_mixedeffects(home,codehome,dbpath,dbname,modelpath,Mc):
+    '''
+    '''
+    
