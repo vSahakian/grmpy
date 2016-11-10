@@ -335,17 +335,19 @@ class db:
 class invinfo:
     '''
     Save paramters from an inversion.
-       G:       Left hand side matrix
-       d:       Data vector
-       m:       Resulting model vector
-       resid:   Residuals from inversion
-       rank:    rank from inversion
-       svals:   Singular values from inversion
-       rng:     Magnitude ranges used in inversion
-       sdist:   Distances used in smoothing for inversion
-       smth:    Smoothing value used in inversion 
+       G:        Left hand side matrix
+       d:        Data vector
+       m:        Resulting model vector
+       resid:    Residuals from inversion
+       rank:     rank from inversion
+       svals:    Singular values from inversion
+       rng:      Magnitude ranges used in inversion
+       sdist:    Distances used in smoothing for inversion
+       smth:     Smoothing value used in inversion 
+       stderror: Standard error if running mixed effects
+       tvalue:   T value if running mixed effects
     '''
-    def __init__(self,G,d,m,resid,L2norm,VR,rank,svals,rng,sdist,smth):
+    def __init__(self,G,d,m,resid,L2norm,VR,rank,svals,rng,sdist,smth,stderror,tvalue):
         self.G=G
         self.d=d
         self.m=m
@@ -357,6 +359,8 @@ class invinfo:
         self.rng=rng
         self.sdist=sdist
         self.smth=smth
+        self.stderror=stderror
+        self.tvalue=tvalue
    
 class total_residuals:
     '''

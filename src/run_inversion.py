@@ -55,8 +55,12 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,mdep_ffdf):
         
     basename='regr_Mc'+str(Mc)+'_'+strname+'_VR_'+np.str(np.around(VR,decimals=1))
     
+    # This is a normal inversion, so set stderror and tvalue to "NaN", since they do not apply:
+    stderror = float('NaN')
+    tvalue = float('NaN')
+    
     #Put into an inversion object:
-    invdat=cdf.invinfo(G,d,m,resid,L2norm,VR,rank,svals,rng,sdist,smth)
+    invdat=cdf.invinfo(G,d,m,resid,L2norm,VR,rank,svals,rng,sdist,smth,stderror,tvalue)
     fname=obj_dir+basename+'.pckl'
     datobj=open(fname,'w')
     pickle.dump(invdat,datobj)
@@ -153,7 +157,52 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,Mc,a
 
 
 ##########
-def run_mixedeffects(home,codehome,dbpath,dbname,modelpath,Mc):
+def run_mixedeffects(home,codehome,dbpath,dbname,modelpath,Mc,vref,c):
     '''
+    Run a mixed effects model for a given database, and certain parameters.
+    Input:
+        home:       Working home (i.e., /media/vsahakian/
     '''
     
+    import cPickle as pickle
+    import inversion as inv
+    import cdefs as cdf
+    
+    
+    #Open database:
+    dbfile=open(dbpath,'r')
+    db=pickle.load(dbfile)
+    dbfile.close()
+    
+    # Get information that is needed to run inversion:
+    
+    pga = db.pga_pg
+    m = db.mw
+    rrup = db.r
+    vs30 = db.vs30
+    evnum = db.evnum
+    sta = db.sta
+    
+    # Run Model
+    log, fixed, event, site = inv.mixed_effects(codehome,home,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,Mc)
+    
+    # Add these to an inversion object....set unused values to nan:
+    d = pga
+    rng = [min(m),max(m)]
+    
+    G = float('NaN')
+    resid = float('NaN')
+    norm = float('NaN')
+    VR = float('NaN')
+    rank = float('NaN')
+    svals = float('NaN')
+    sdist = float('NaN')
+    smth = float('NaN')
+
+    # Now get the ones that were included:
+    m = fixed[:,0]
+    stderror = fixed[:,1]
+    tvalue = fixed[:,2]
+
+    # Make object:
+    invdat = invdat=cdf.invinfo(G,d,m,resid,norm,VR,rank,svals,rng,sdist,smth,stderror,tvalue)
