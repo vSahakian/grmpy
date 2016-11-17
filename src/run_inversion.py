@@ -167,7 +167,7 @@ def run_mixedeffects(home,codehome,dbpath,dbname,modelpath,Mc,vref,c):
     import cPickle as pickle
     import inversion as inv
     import cdefs as cdf
-    
+    import numpy as np
     
     #Open database:
     dbfile=open(dbpath,'r')
@@ -177,32 +177,77 @@ def run_mixedeffects(home,codehome,dbpath,dbname,modelpath,Mc,vref,c):
     # Get information that is needed to run inversion:
     
     pga = db.pga_pg
-    m = db.mw
+    mw = db.mw
     rrup = db.r
     vs30 = db.vs30
     evnum = db.evnum
     sta = db.sta
     
     # Run Model
-    log, fixed, event, site = inv.mixed_effects(codehome,home,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,Mc)
+    log, fixed, event, site = inv.mixed_effects(codehome,home,dbname,pga,mw,rrup,vs30,evnum,sta,vref,c,Mc)
     
     # Add these to an inversion object....set unused values to nan:
-    d = pga
-    rng = [min(m),max(m)]
+    d = np.log10(pga) - 0.6*np.log(vs30/vref)
+    rng = [min(mw),max(mw)]
     
     G = float('NaN')
     resid = float('NaN')
-    norm = float('NaN')
-    VR = float('NaN')
     rank = float('NaN')
     svals = float('NaN')
     sdist = float('NaN')
     smth = float('NaN')
 
     # Now get the ones that were included:
-    m = fixed[:,0]
+    model = fixed[:,0]
     stderror = fixed[:,1]
     tvalue = fixed[:,2]
 
-    # Make object:
-    invdat = invdat=cdf.invinfo(G,d,m,resid,norm,VR,rank,svals,rng,sdist,smth,stderror,tvalue)
+
+    # Get L2norm and VR #
+    # Basic stuff:
+    ffdf_factor = np.sqrt(c**2 + rrup**2)
+    prediction = model[0] + (model[1]*mw) + model[2]*((Mc - mw)**2) + model[3]*np.log(ffdf_factor) + model[4]*rrup
+    modelresid = d - prediction
+    
+    # L2norm:
+    # Square these, sum them, get the square root:
+    L2norm = np.sqrt(np.sum(modelresid**2))
+    
+    # Variance reduction:
+    # Get numerator and denominator first
+    VR_top = np.sum(modelresid**2)
+    VR_bot = np.sum(d**2)
+    VR = (1 - (VR_top/VR_bot))*100
+    
+    
+    # Make inversion object to store later:
+    invdat = cdf.invinfo(G,d,model,resid,L2norm,VR,rank,svals,rng,sdist,smth,stderror,tvalue)
+    
+    
+    # Now also get residuals object to store later per recording:
+    totalresid = modelresid
+    total_mean = np.mean(modelresid)
+    total_std = np.std(modelresid)
+    
+    # Event
+    eventterm = event[:,0]
+    eventmean = np.mean(eventterm)
+    eventstd = np.std(eventterm)
+    
+    # Within Event:
+    weterm = totalresid - eventterm
+    wemean = np.mean(weterm)
+    westd = np.std(weterm)
+    
+    # Site/Station term:
+    siteterm = site[:,0]
+    sitemean = np.mean(siteterm)
+    sitestd = np.std(siteterm)
+    
+    # Path term plus aleatory per recording:
+    pathterm = totalresid - (eventterm + siteterm)
+    pathmean = np.mean(pathterm)
+    pathstd = np.std(pathterm)
+    
+    
+    

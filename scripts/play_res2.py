@@ -61,6 +61,7 @@ rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
 ########
 
 ffdf_flag=0
+Mc=8.1
 resaxlim=[[1,4],[-4,4]]
 resaxlim_dist=[[0,22],[-4,4]]
 
@@ -77,7 +78,7 @@ elif runall==1:
     print 'Continuing...'
     
     #Get total residuals and plots:
-    tr_mw,tot_resid,mean_tot,std_dev_tot=run_res.get_total_res(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim)
+    tr_mw,tot_resid,mean_tot,std_dev_tot=run_res.get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim)
     
     #Get event/within-event residuals:
     E_evnum,E_mw,E_residual,E_mean,E_std_dev=run_res.getEW_makeEvents(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim)

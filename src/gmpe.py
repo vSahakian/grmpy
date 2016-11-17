@@ -3,7 +3,7 @@
 #VJS 6/2016
 
 
-def compute_model(m,rng,mw,r,ffdf,vs30,vref,mdep_ffdf):
+def compute_model(m,rng,mw,r,ffdf,vs30,Mc,vref,mdep_ffdf):
     '''
     Compute the predicted value for a certain mw and Rrup 
     Input:
@@ -13,6 +13,7 @@ def compute_model(m,rng,mw,r,ffdf,vs30,vref,mdep_ffdf):
         r:              Array of distances associated with the mw
         ffdf:           Array with the fictitious depth R - see flag
         vs30:           Array with vs30 values
+        Mc:             Value to center squared magnitude term around (i.e., 8.5 or 8.1, etc.)
         vref:           Vref value
         mdep_ffdf:      Magnitude dependent fictitious depth flag
     Output:
@@ -47,7 +48,7 @@ def compute_model(m,rng,mw,r,ffdf,vs30,vref,mdep_ffdf):
         vs30_rangei=vs30[bin_i]
         
         #Now compute the predicted value:
-        d_predicted_i=a1+a2*mw_rangei + a3*(8.5-mw_rangei)**2 + a4*np.log(ffdf_rangei) + \
+        d_predicted_i=a1+a2*mw_rangei + a3*(Mc-mw_rangei)**2 + a4*np.log(ffdf_rangei) + \
                 a5*r_rangei + 0.6*np.log(vs30_rangei/vref) 
         
         #And append to the final output value:

@@ -59,7 +59,7 @@ def init(home,run_name):
     return runall
         
         
-def get_total_res(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
+def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
     '''
     Get the total residuals for a database.
     Input:
@@ -67,6 +67,7 @@ def get_total_res(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
         run_name:        String with name of the run
         dbpath:          String with path to a pickle database object
         modelpath:       String with path to a gmpe model pickle object
+        Mc:              Value aroudn which to center the magnitude squred term (like 8.1 or 8.5, etc.)
         ffdf_flag:       Flag for mag dependent ffdf.  0=off, 1=on
         resaxlim:        Array with axis limits for the resid plot: [[xmin,xmax],[ymin,ymax]]
         
@@ -117,7 +118,7 @@ def get_total_res(home,run_name,dbpath,modelpath,ffdf_flag,resaxlim):
     #####Get Total Residuals######
     
     #Now compute the predicted value of PGA...
-    d_predicted=gm.compute_model(model.m,model.rng,db.mw,db.r,db.ffdf,vs30,vref,mdep_ffdf)
+    d_predicted=gm.compute_model(model.m,model.rng,db.mw,db.r,db.ffdf,vs30,Mc,vref,mdep_ffdf)
     
     #Get residuals:
     total_residuals,mean_residual,std_dev=rcomp.total_residual(db,d_predicted)
