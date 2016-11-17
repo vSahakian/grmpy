@@ -250,4 +250,15 @@ def run_mixedeffects(home,codehome,dbpath,dbname,modelpath,Mc,vref,c):
     pathstd = np.std(pathterm)
     
     
+    ## Make the total residuals object:
+    tresid = cdf.total_residuals(mw,totalresid,total_mean,total_std)
+    
+    ## Make all residuals object:
+    mixedresid = cdf.mixed_residuals(db,totalresid,total_mean,total_std,eventterm,eventmean,eventstd,weterm,wemean,westd,siteterm,sitemean,sitestd,pathterm,pathmean,pathstd)
+    
+    
+    ## Save Total residuals object:
+    
+    
+    ## Save Mixed residuals object:
     

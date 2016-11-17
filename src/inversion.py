@@ -268,7 +268,7 @@ def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,M
     
     Input:
         codehome:      String with full path to code home (i.e.,'/home/vsahakian')
-        workinghome:   String with full path to working dir home, no slash at end (i.e., /Users/vsahakian or /home/vsahakian/katmai)
+        workinghome:   String with full path to working dir home, no slash at end (i.e., /Users/vsahakian/anza or /home/vsahakian/katmai/anza)
         dbname:        String with name to database, for path in pckl dir (i.e., 'test2013')
         pga:           Array with values of PGA for each recording, in g
         m:             Array with values of moment magnitude per recording
@@ -307,14 +307,14 @@ def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,M
     data = pd.DataFrame(dbdict)
     
     # Output data to csv:
-    csvfile=workinghome+'/anza/models/pckl/'+dbname+'/r/tmp_mixed.csv'
+    csvfile=workinghome+'/models/pckl/'+dbname+'/r/tmp_mixed.csv'
     
     data.to_csv(csvfile)
 
     
     #### MAKE SYSTEM CALL TO R ####
     r_script_path=codehome+'/software/py/grmpy/src/mixed_effects.r'
-    logfile = workinghome+'/anza/models/pckl/'+dbname+'/r/mixedeffects.log'
+    logfile = workinghome+'/models/pckl/'+dbname+'/r/mixedeffects.log'
     #calltext='R CMD BATCH --no-save --no-restore '''--args "' + workinghome + '\" \"'+ dbname + '\"\' ' + r_script_path + ' ' + logfile
     calltext="""R CMD BATCH --no-save --no-restore '--args "%s" "%s"' %s %s""" %(workinghome,dbname,r_script_path,logfile)
     
@@ -336,9 +336,9 @@ def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,M
     ##### Read R results back in ######
     
     # Output file names
-    r_fixed = workinghome + '/anza/models/pckl/' + dbname +'/r/results_fixed.csv'
-    r_site = workinghome + '/anza/models/pckl/' + dbname +'/r/results_site.csv'
-    r_event = workinghome + '/anza/models/pckl/' + dbname +'/r/results_event.csv'
+    r_fixed = workinghome + '/models/pckl/' + dbname +'/r/results_fixed.csv'
+    r_site = workinghome + '/models/pckl/' + dbname +'/r/results_site.csv'
+    r_event = workinghome + '/models/pckl/' + dbname +'/r/results_event.csv'
     
     # Import:
     # Fixed data - reads in Coefficient, std. error, t.value.  Rows:  a1, a3, a3, a4, a5

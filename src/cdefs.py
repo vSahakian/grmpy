@@ -599,7 +599,7 @@ class residuals:
         
         import cPickle as pickle
         import dread
-        from numpy import where
+        from numpy import where,mean,std
         
         #Load in database object:
         dname=open(dbpath,'r')
@@ -729,12 +729,17 @@ class residuals:
         #Save new 
         self.total_residual=total_residual
         self.E_residual=E_residual
+        self.E_mean=mean(E_residual)
         self.E_std=E_std    
         self.W_residual=W_residual
         self.W_mean=W_mean
         self.W_std=W_std
         self.site_terms=site_terms
+        self.site_mean=mean(site_terms)
+        self.site_std=std(site_terms)
         self.path_terms=path_terms
+        self.path_mean=mean(path_terms)
+        self.path_std=std(path_terms)
         
     
 ##########
@@ -1643,6 +1648,991 @@ class residuals:
         #Return:
         return ax
         
+        
+        
+
+###########
+##########
+## Mixed effects residuals class - different from above only in that the residuals are already computed, 
+##   don't need event and station terms to make the initial object...
+
+class mixed_residuals:
+    '''
+    Save database info plus residuals into one object for analysis
+    '''
+    
+    def __init__(self,db,total_resid,tresidmean,tresidstd,evresid,evmean,evstd,weresid,wemean,westd,siteresid,sitemean,sitestd,pathresid,pathmean,pathstd):
+        '''
+        Initialize database - pull necessary information and save to the object
+        Input:
+            db:                 Database object
+            total_resid:        Array of total residuals
+            tresidmean:         Mean of total residuals
+            tresidstd:          Standard deviation of total residuals
+            evresid:            Array of event terms
+            evmean:             Mean of event terms
+            evstd:              Standard deviation of event terms
+            weresid:            Array of within-event terms
+            wemean:             Mean of within-event terms
+            westd:              Standard deviation of within-event terms
+            siteresid:          Array of site terms
+            sitemean:           Mean of site terms
+            sitestd:            Standard deviation of site terms
+            pathresid:          Array of path terms
+            pathmean:           Mean of path terms
+            pathstd:            Standard deviation of path terms
+        Output:
+            residual:           Object holding all data and residuals for a database
+        '''
+        
+        import numpy as np
+    
+        
+        #First, save the database info per recording:
+        self.evnum=db.evnum
+        self.elat=db.elat
+        self.elon=db.elon
+        self.edepth=db.edepth
+        self.sta=db.sta
+        self.stnum=db.stnum
+        self.ml=db.ml
+        self.mw=db.mw
+        self.pga=db.pga
+        self.pgv=db.pgv
+        self.pga_pg=db.pga_pg
+        self.r=db.r
+        self.vs30=db.vs30
+        self.ffdf=db.ffdf
+        self.md_ffdf=db.md_ffdf
+        self.stlat=db.stlat
+        self.stlon=db.stlon
+        self.stelv=db.stelv
+        self.source_i=db.source_i
+        self.receiver_i=db.receiver_i
+
+        self.total_residual=total_resid
+        self.E_residual=evresid
+        self.E_mean=evmean
+        self.E_std=evstd    
+        self.W_residual=weresid
+        self.W_mean=wemean
+        self.W_std=westd
+        self.site_terms = siteresid
+        self.site_mean = sitemean
+        self.site_std = sitestd
+        self.path_terms = pathresid
+        self.path_mean = pathmean
+        self.path_std = pathstd
+        
+    
+##########
+    def plot_path_term_mw(self,run_name,axlims):
+        '''
+        VJS 9/2016
+        Plot the path terms vs. Mw
+        Input:  
+            run_name:           String with the database/inversion combo run name
+            axlims:             Axis limits [[xmin,xmax],[ymin,ymax]]
+        Output:
+            fig1:               Figure with path terms 
+        '''
+        
+        from matplotlib import pyplot as plt
+        from matplotlib.ticker import MultipleLocator
+        from numpy import str,array,ones,around,mean,std
+        
+        #Stats:
+        mean_pterm=mean(self.path_terms)
+        std_pterm=std(self.path_terms)
+        
+        #Color:
+        rgb=array([111,168,163])/255.0
+        rgb.astype(float)
+        color=rgb*ones((len(self.mw),3))
+        
+        #definitions for axes
+        fudge_factor=0.02
+        left, width=0.1, 0.70
+        bottom, height=0.1,0.81
+        left_h=left+width+fudge_factor
+        width_h=0.15
+        
+        #define axis limits for scatter, and histogram:
+        rect_scatter=[left,bottom,width,height]
+        rect_histy=[left_h,bottom,width_h,height]
+        
+        #define axis tick locations for histogram:
+        hist_xLocator=MultipleLocator(500) 
+        
+        #Start figure:
+        f1=plt.figure()
+        
+        #define axes:
+        axScatter=plt.axes(rect_scatter)
+        axHisty=plt.axes(rect_histy)
+        
+        #Scatter:
+        axScatter.scatter(self.mw,self.path_terms,edgecolors=color,facecolors='none',lw=0.9)
+        
+        #Histogram:
+        #want 4x as many bins as main plot y-axis limit units:
+        nbins=(axlims[1][1]-axlims[1][0])*4
+        
+        #set the number of bins, adn the range to be the x axis limits (same as y axis, ln residuals):
+        axHisty.hist(self.path_terms,bins=nbins,range=[axlims[1][0],axlims[1][1]],orientation='horizontal',color=rgb)
+        
+        #Also plot a dashed line at 0:
+        axScatter.plot(axlims[0],[0,0],linestyle='--',color='0.75')
+        
+        #set axis limits:
+        #scatter
+        axScatter.set_xlim(axlims[0])
+        axScatter.set_ylim(axlims[1])
+        #histogram
+        axHisty.set_ylim(axlims[1])
+        #set axis ticks:
+        axHisty.xaxis.set_major_locator(hist_xLocator)
+        #set no labels on the y axis:
+        axHisty.yaxis.set_ticklabels('')
+        
+        #Labels
+        axScatter.set_xlabel(r"$\mathbf{M}$")
+        axScatter.set_ylabel('ln Residuals')
+        axScatter.set_title('Path Terms for run '+run_name+'\n'+'Mean: '+str(around(mean_pterm,decimals=2))+' Std Dev: '+str(around(std_pterm,decimals=2)))
+
+        #Show
+        f1.show()        
+        
+        return f1
+
+##########
+    def plot_path_term_r(self,run_name,axlims):
+        '''
+        VJS 9/2016
+        Plot the path terms vs. distances
+        Input:  
+            run_name:           String with the database/inversion combo run name
+            axlims:             Axis limits [[xmin,xmax],[ymin,ymax]]
+        Output:
+            fig1:               Figure with path terms 
+        '''
+        
+        from matplotlib import pyplot as plt
+        from matplotlib.ticker import MultipleLocator
+        from numpy import str,array,ones,around,mean,std
+        
+        #Stats:
+        mean_pterm=mean(self.path_terms)
+        std_pterm=std(self.path_terms)
+        
+        #Color:
+        rgb=array([111,168,163])/255.0
+        rgb.astype(float)
+        color=rgb*ones((len(self.r),3))
+        
+        #definitions for axes
+        fudge_factor=0.02
+        left, width=0.1, 0.70
+        bottom, height=0.1,0.81
+        left_h=left+width+fudge_factor
+        width_h=0.15
+        
+        #define axis limits for scatter, and histogram:
+        rect_scatter=[left,bottom,width,height]
+        rect_histy=[left_h,bottom,width_h,height]
+        
+        #define axis tick locations for histogram:
+        hist_xLocator=MultipleLocator(500) 
+        
+        #Start figure:
+        f1=plt.figure()
+        
+        #define axes:
+        axScatter=plt.axes(rect_scatter)
+        axHisty=plt.axes(rect_histy)
+        
+        #Scatter:
+        axScatter.scatter(self.r,self.path_terms,edgecolors=color,facecolors='none',lw=0.9)
+        
+        #Histogram:
+        #want 4x as many bins as main plot y-axis limit units:
+        nbins=(axlims[1][1]-axlims[1][0])*4
+        
+        #set the number of bins, adn the range to be the x axis limits (same as y axis, ln residuals):
+        axHisty.hist(self.path_terms,bins=nbins,range=[axlims[1][0],axlims[1][1]],orientation='horizontal',color=rgb)
+        
+        #Also plot a dashed line at 0:
+        axScatter.plot(axlims[0],[0,0],linestyle='--',color='0.75')
+        
+        #set axis limits:
+        #scatter
+        axScatter.set_xlim(axlims[0])
+        axScatter.set_ylim(axlims[1])
+        #histogram
+        axHisty.set_ylim(axlims[1])
+        #set axis ticks:
+        axHisty.xaxis.set_major_locator(hist_xLocator)
+        #set no labels on the y axis:
+        axHisty.yaxis.set_ticklabels('')
+        
+        #Labels
+        axScatter.set_xlabel('Distance (km)')
+        axScatter.set_ylabel('ln Residuals')
+        axScatter.set_title('Path Terms for run '+run_name+'\n'+'Mean: '+str(around(mean_pterm,decimals=2))+' Std Dev: '+str(around(std_pterm,decimals=2)))
+
+        #Show
+        f1.show()        
+        
+        return f1
+            
+    
+    ######
+    def add_vp_paths(self,ray_depth,ray_lat,ray_lon):
+        '''
+        Add Vp raypath locations to the residuals object
+        Input:
+            ray_depth:      List of arrays with the depth in km for each vp ray
+            ray_lat:        List of arrays with the lat in deg for each vp ray
+            ray_lon:        List of arrays with the lon in deg for each vp ray
+        '''
+        
+        self.vp_depth=ray_depth
+        self.vp_lat=ray_lat
+        self.vp_lon=ray_lon
+        
+    ######
+    def add_vs_paths(self,ray_depth,ray_lat,ray_lon):
+        '''
+        Add Vs raypath locations to the residuals object
+        Input:
+            ray_depth:      List of arrays with the depth in km for each vs ray
+            ray_lat:        List of arrays with the lat in deg for each vs ray
+            ray_lon:        List of arrays with the lon in deg for each vs ray
+        '''
+        
+        self.vs_depth=ray_depth
+        self.vs_lat=ray_lat
+        self.vs_lon=ray_lon
+        
+    def add_material_values(self,value_list,value_flag,ray_type):
+        '''
+        Add information about the material values to a residuals object
+        Input:
+            value_list:         List of arrays of values of a particular material model.
+                                The length of each array in the list should be the same as
+                                the number of points along the correspoinding ray.
+            value_flag:         Flag for what type of value is being added:
+                                0=Vp, 1=Vs, 2=Vp/Vs, 3=Qp, 4=Qs, 5=Qp/Qs
+            ray_type:           0=p-wave, 1=s-wave
+        '''
+        
+        #Save for p-waves?
+        if ray_type==0:
+            print 'Adding values for p-rays into object'
+            if value_flag==0:
+                self.rayval_p_vp=value_list
+            elif value_flag==1:
+                self.rayval_p_vs=value_list
+            elif value_flag==2:
+                self.rayval_p_vpvs=value_list
+            elif value_flag==3:
+                self.rayval_p_qp=value_list
+            elif value_flag==4:
+                self.rayval_p_qs=value_list
+            elif value_flag==5:
+                self.rayval_p_qpqs=value_list            
+        
+        #S- rays?
+        elif ray_type==1:
+            print 'Adding values for s-rays into object'
+            if value_flag==0:
+                self.rayval_s_vp=value_list
+            elif value_flag==1:
+                self.rayval_s_vs=value_list
+            elif value_flag==2:
+                self.rayval_s_vpvs=value_list
+            elif value_flag==3:
+                self.rayval_s_qp=value_list
+            elif value_flag==4:
+                self.rayval_s_qs=value_list
+            elif value_flag==5:
+                self.rayval_s_qpqs=value_list  
+                
+    #######
+    def add_indices(self,indices,indextype,ray_type,value_flag):
+        '''
+        Add indices to the residuals object.
+        Input:
+            indices:            Array with index values for every ray
+            indextype:          Flag for type of index: 
+                                    0=path integral,1=normalized path integral, 
+                                    2=gradient path integral
+            ray_type:           0=P-wave, 1=S-wave
+            value_flag:         Type of material model.  
+                                    0=Vp, 1=Vs, 2=Vp/Vs, 3=Qp, 4=Qs, 5=Qp/Qs
+        '''
+        
+        #P-rays?
+        if ray_type==0:
+            #material model?
+            #Vp
+            if value_flag==0:
+                if indextype==0:
+                    self.ind_p_vp_pathint=indices
+                elif indextype==1:
+                    self.ind_p_vp_normpathint=indices
+                elif indextype==2:
+                    self.ind_p_vp_gradpathint=indices
+             #Vs       
+            elif value_flag==1:
+                if indextype==0:
+                    self.ind_p_vs_pathint=indices
+                elif indextype==1:
+                    self.ind_p_vs_normpathint=indices
+                elif indextype==2:
+                    self.ind_p_vs_gradpathint=indices      
+            #Vp/Vs        
+            elif value_flag==2:
+                if indextype==0:
+                    self.ind_p_vpvs_pathint=indices
+                elif indextype==1:
+                    self.ind_p_vpvs_normpathint=indices
+                elif indextype==2:
+                    self.ind_p_vpvs_gradpathint=indices  
+            #Qp        
+            elif value_flag==3:
+                if indextype==0:
+                    self.ind_p_qp_pathint=indices
+                elif indextype==1:
+                    self.ind_p_qp_normpathint=indices
+                elif indextype==2:
+                    self.ind_p_qp_gradpathint=indices         
+            #Qs        
+            elif value_flag==4:
+                if indextype==0:
+                    self.ind_p_qs_pathint=indices
+                elif indextype==1:
+                    self.ind_p_qs_normpathint=indices
+                elif indextype==2:
+                    self.ind_p_qs_gradpathint=indices   
+            #Qp /Qs       
+            elif value_flag==5:
+                if indextype==0:
+                    self.ind_p_qpqs_pathint=indices
+                elif indextype==1:
+                    self.ind_p_qpqs_normpathint=indices
+                elif indextype==2:
+                    self.ind_p_qpqs_gradpathint=indices      
+                    
+        #S-rays?
+        if ray_type==1:
+            #material model?
+            #Vp
+            if value_flag==0:
+                if indextype==0:
+                    self.ind_s_vp_pathint=indices
+                elif indextype==1:
+                    self.ind_s_vp_normpathint=indices
+                elif indextype==2:
+                    self.ind_s_vp_gradpathint=indices
+             #Vs       
+            elif value_flag==1:
+                if indextype==0:
+                    self.ind_s_vs_pathint=indices
+                elif indextype==1:
+                    self.ind_s_vs_normpathint=indices
+                elif indextype==2:
+                    self.ind_s_vs_gradpathint=indices      
+            #Vp/Vs        
+            elif value_flag==2:
+                if indextype==0:
+                    self.ind_s_vpvs_pathint=indices
+                elif indextype==1:
+                    self.ind_s_vpvs_normpathint=indices
+                elif indextype==2:
+                    self.ind_s_vpvs_gradpathint=indices  
+            #Qp        
+            elif value_flag==3:
+                if indextype==0:
+                    self.ind_s_qp_pathint=indices
+                elif indextype==1:
+                    self.ind_s_qp_normpathint=indices
+                elif indextype==2:
+                    self.ind_s_qp_gradpathint=indices         
+            #Qs        
+            elif value_flag==4:
+                if indextype==0:
+                    self.ind_s_qs_pathint=indices
+                elif indextype==1:
+                    self.ind_s_qs_normpathint=indices
+                elif indextype==2:
+                    self.ind_s_qs_gradpathint=indices   
+            #Qp /Qs       
+            elif value_flag==5:
+                if indextype==0:
+                    self.ind_s_qpqs_pathint=indices
+                elif indextype==1:
+                    self.ind_s_qpqs_normpathint=indices
+                elif indextype==2:
+                    self.ind_s_qpqs_gradpathint=indices        
+                
+    #######
+    def plot_raypaths(self,veltype,view,axlims,stations,events,by_path,mymap,faultfile):
+        '''
+        Plot the path terms
+        Input:
+            veltype:                 Velocity type to plot (vp/vs = 1/2)
+            view:                    View of the plot (map=0, lat vs depth=1, lon vs depth=2)  
+            axlims:                  Axis limits [[xmin, xmax], [ymin, ymax]]
+            stations:                Plot stations on figure? no=0, yes=1
+            events:                  Plot events on figure?  no=0, yes=1             
+            by_path:                 Color black/by path term (0/1) 
+            mymap:                   String with python colormap (i.e. 'jet')
+            faultfile:               String to path of the pckl file with fault segments
+        '''
+    
+        
+        import matplotlib.pyplot as plt
+        from matplotlib import ticker
+        from numpy import zeros,unique,where,array,mean,std,c_,arange
+        from matplotlib.collections import LineCollection
+        import matplotlib.colors as colors
+        import matplotlib.cm as cm
+        import dread
+        
+        #Read fault file and store data - list of arrays, with each array being a segment of the fault (lon, lat):
+        fault_segments=dread.read_obj_list(faultfile)
+        
+        #Which velocity data is being plotted, Vp or Vs?
+        #Depending on what it is, specify the depth, lat and lon separately
+        if veltype==1:
+            depth=self.vp_depth
+            lat=self.vp_lat
+            lon=self.vp_lon
+            
+            #Plot titles:
+            ptitle='Plot of raypaths for Vp'
+            
+        elif veltype==2:
+            depth=self.vs_depth
+            lat=self.vs_lat
+            lon=self.vs_lon
+            
+            #Plot titles:
+            ptitle='Plot of raypaths for Vs'
+        
+        #Get color for plotting:
+        if by_path==0:
+            pcolor='k'
+        elif by_path==1:
+            #Get mean and std of dataset:
+            mean_pterm=mean(self.path_terms)
+            std_pterm=std(self.path_terms)
+            #Set hte colorscale to cover 97% of the data:
+            cmin=-3*std_pterm
+            cmax=3*std_pterm 
+        
+        #Get unique event indices for plotting events:
+        unique_events=unique(self.evnum)
+        #Zero out the lat, lon, and depth arrays:
+        uedepth=[]
+        uelat=[]
+        uelon=[]
+        
+        for event_c in range(len(unique_events)):
+            #Get the event number for each event:
+            evnum_i=unique_events[event_c]
+            #Get the index of the first occurrence of this event:
+            unique_event_ind=where(self.evnum==evnum_i)[0][0]
+            #Pull out the info from here, as it should all be the same for all instances:
+            uedepth_i=self.edepth[unique_event_ind]
+            uelat_i=self.elat[unique_event_ind]
+            uelon_i=self.elon[unique_event_ind]
+            
+            #Append to arrays:
+            uedepth.append(uedepth_i)
+            uelat.append(uelat_i)
+            uelon.append(uelon_i) 
+        
+        #Make them arrays:
+        uedepth=array(uedepth)
+        uelat=array(uelat)
+        uelon=array(uelon)  
+            
+        
+        #Define the x and y to plot based on the view:
+        #Map view:   
+        if view==0:
+            x=lon
+            y=lat
+            #Stations:
+            stx=self.stlon
+            sty=self.stlat
+            #Events:
+            evx=uelon
+            evy=uelat
+            
+            #Labels:
+            xlab='Longitude (degrees)'
+            ylab='Latitude (degrees)'
+            
+        #cross section with latitude and depth:
+        elif view==1:
+            x=lat
+            y=depth
+            #Stations:
+            stx=self.stlat
+            sty=self.stelv
+            #Events:
+            evx=uelat
+            evy=-1*uedepth
+            
+            #Labels:
+            xlab='Latitude (degrees)'
+            ylab='Depth (km)'
+            
+        #cross section with longitude and depth
+        elif view==2:
+            x=lon
+            y=depth
+            #Stations:
+            stx=self.stlon
+            sty=self.stelv
+            #Events:
+            evx=uelon
+            evy=-1*uedepth
+            
+            #Labels:
+            xlab='Longitude (deg)'
+            ylab='Depth (km)'
+          
+        
+        ##Plot:
+        #Get colormap
+        #Make colormap:
+        colormap_pterm=plt.get_cmap(mymap)
+        #Make a normalized colorscale
+        cNorm=colors.Normalize(vmin=cmin, vmax=cmax)
+        #Apply normalization to colormap:
+        scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap_pterm)
+        
+        #Make a fake contour plot for the colorbar:
+        Z=[[0,0],[0,0]]
+        levels=arange(cmin,cmax,0.01)
+        c=plt.contourf(Z, levels, cmap=colormap_pterm)
+ 
+        
+        #Initiate plot
+        figure=plt.figure()
+        #Set axis format:
+        x_formatter=ticker.ScalarFormatter(useOffset=False)
+        
+        #Plot the dem
+        
+        #Plot the raypaths 
+        for path_i in range(len(depth)):
+            #Assign color to path term:
+            colorVal = scalarMap.to_rgba(self.path_terms[path_i])
+            #Get x and y
+            x_i=x[path_i]
+            y_i=y[path_i]
+            
+            plt.plot(x_i,y_i,color=colorVal)
+            
+        #Add colorbar:
+        cb=plt.colorbar(c)
+        cb.set_label('Path term (ln residual)')
+            
+        
+        #If stations are to be plotted:    
+        if stations==1:
+            #Hold on:
+            #plt.hold(True)
+            #Scatter:
+            plt.scatter(stx,sty,color='black',s=100,marker='^',zorder=len(self.mw)+5)
+            
+        if events==1:
+            #Hold on
+            #plt.hold(True)
+            #Scatter events:
+            plt.scatter(evx,evy,edgecolors='g',facecolors='none',s=15,linewidths=2,zorder=len(self.mw)+7)
+            
+        #Plot faults, if it's map view:
+        if view==0:
+            for segment_i in range(len(fault_segments)):
+                fault=fault_segments[segment_i]
+                plt.plot(fault[:,0],fault[:,1],color='k',zorder=len(self.mw)+9)
+            
+        #Axis limits:
+        plt.xlim(axlims[0])
+        plt.ylim(axlims[1])
+        
+        #Axis labels, etc.:
+        plt.xlabel(xlab)
+        plt.ylabel(ylab)
+        plt.title(ptitle)
+        
+        #Set format of axis:
+        ax=plt.gca()
+        ax.xaxis.set_major_formatter(x_formatter)
+        
+        #Show plot:
+        plt.show()
+        
+        #Return :
+        
+        return figure
+        
+    def plot_raypaths_cutoffval(self,veltype,view,axlims,stations,events,mymap,faultfile,cutoff_val):
+        '''
+        Plot the path terms above a certain cutoff value.  Plot the rest as gray.
+        Input:
+            veltype:                 Velocity type to plot (vp/vs = 1/2)
+            view:                    View of the plot (map=0, lat vs depth=1, lon vs depth=2)  
+            axlims:                  Axis limits [[xmin, xmax], [ymin, ymax]]
+            stations:                Plot stations on figure? no=0, yes=1
+            events:                  Plot events on figure?  no=0, yes=1 
+            mymap:                   String with python colormap (i.e. 'jet')
+            fautlfile:               String to path of the pckl file with fault segments
+            cutoff_val:              Cutoff value to plot (i.e., only plot path term if abs(path term) >= cutoff_val) 
+        '''
+    
+        
+        import matplotlib.pyplot as plt
+        from matplotlib import ticker
+        from numpy import zeros,unique,where,array,std,arange
+        import matplotlib.colors as colors
+        import matplotlib.cm as cm
+        import dread
+        
+        #Read fault file and store data - list of arrays, with each array being a segment of the fault (lon, lat):
+        fault_segments=dread.read_obj_list(faultfile)
+        
+        #Which velocity data is being plotted, Vp or Vs?
+        #Depending on what it is, specify the depth, lat and lon separately
+        if veltype==1:
+            depth=self.vp_depth
+            lat=self.vp_lat
+            lon=self.vp_lon
+            
+            #Plot titles:
+            ptitle='Plot of raypaths for Vp'
+            
+        elif veltype==2:
+            depth=self.vs_depth
+            lat=self.vs_lat
+            lon=self.vs_lon
+            
+            #Plot titles:
+            ptitle='Plot of raypaths for Vs'
+        
+        #Get color for plotting:
+        #Get mean and std of dataset:
+        std_pterm=std(self.path_terms)
+        #Set hte colorscale to cover 97% of the data:
+        cmin=-3*std_pterm
+        cmax=3*std_pterm 
+        
+        #Get unique event indices for plotting events:
+        unique_events=unique(self.evnum)
+        #Zero out the lat, lon, and depth arrays:
+        uedepth=[]
+        uelat=[]
+        uelon=[]
+        
+        for event_c in range(len(unique_events)):
+            #Get the event number for each event:
+            evnum_i=unique_events[event_c]
+            #Get the index of the first occurrence of this event:
+            unique_event_ind=where(self.evnum==evnum_i)[0][0]
+            #Pull out the info from here, as it should all be the same for all instances:
+            uedepth_i=self.edepth[unique_event_ind]
+            uelat_i=self.elat[unique_event_ind]
+            uelon_i=self.elon[unique_event_ind]
+            
+            #Append to arrays:
+            uedepth.append(uedepth_i)
+            uelat.append(uelat_i)
+            uelon.append(uelon_i) 
+        
+        #Make them arrays:
+        uedepth=array(uedepth)
+        uelat=array(uelat)
+        uelon=array(uelon)  
+            
+        
+        #Define the x and y to plot based on the view:
+        #Map view:   
+        if view==0:
+            x=lon
+            y=lat
+            #Stations:
+            stx=self.stlon
+            sty=self.stlat
+            #Events:
+            evx=uelon
+            evy=uelat
+            
+            #Labels:
+            xlab='Longitude (degrees)'
+            ylab='Latitude (degrees)'
+            
+        #cross section with latitude and depth:
+        elif view==1:
+            x=lat
+            y=depth
+            #Stations:
+            stx=self.stlat
+            sty=self.stelv
+            #Events:
+            evx=uelat
+            evy=-1*uedepth
+            
+            #Labels:
+            xlab='Latitude (degrees)'
+            ylab='Depth (km)'
+            
+        #cross section with longitude and depth
+        elif view==2:
+            x=lon
+            y=depth
+            #Stations:
+            stx=self.stlon
+            sty=self.stelv
+            #Events:
+            evx=uelon
+            evy=-1*uedepth
+            
+            #Labels:
+            xlab='Longitude (deg)'
+            ylab='Depth (km)'
+          
+        
+        ##Plot:
+        #Get colormap
+        #Make colormap:
+        colormap_pterm=plt.get_cmap(mymap)
+        #Make a normalized colorscale
+        cNorm=colors.Normalize(vmin=cmin, vmax=cmax)
+        #Apply normalization to colormap:
+        scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap_pterm)
+        
+        #Make a fake contour plot for the colorbar:
+        Z=[[0,0],[0,0]]
+        levels=arange(cmin,cmax,0.01)
+        c=plt.contourf(Z, levels, cmap=colormap_pterm)
+ 
+        
+        #Initiate plot
+        figure=plt.figure()
+        #Set axis format:
+        x_formatter=ticker.ScalarFormatter(useOffset=False)
+        
+        #Plot the raypaths 
+        for path_i in range(len(depth)):
+            #Assign color to path term:
+            #If the absolute value of the path term is below the cutoff value, 
+            #color it gray:
+            if abs(self.path_terms[path_i])<cutoff_val:
+                colorVal=scalarMap.to_rgba(self.path_terms[path_i])
+                #Make the gray tuple rgb value, completely opaque (255 at end):
+                colorVal=tuple(array([184,186,186,255])/255.)
+                
+                #Get x and y
+                x_i=x[path_i]
+                y_i=y[path_i]
+            
+                plt.plot(x_i,y_i,color=colorVal)
+            
+        #Plot the raypaths above the cutoff value: 
+        for path_i in range(len(depth)):
+            #Assign color to path term:
+            #If the path term is above/below the cutoff value, color it based on
+            #the colorscale made above:
+            if abs(self.path_terms[path_i])>=cutoff_val:
+                colorVal=scalarMap.to_rgba(self.path_terms[path_i])
+                
+                #Get x and y
+                x_i=x[path_i]
+                y_i=y[path_i]
+            
+                plt.plot(x_i,y_i,color=colorVal)
+            
+        #Add colorbar:
+        cb=plt.colorbar(c)
+        cb.set_label('Path term (ln residual)')
+        
+        #If stations are to be plotted:    
+        if stations==1:
+            #Hold on:
+            #plt.hold(True)
+            #Scatter:
+            plt.scatter(stx,sty,color='black',s=100,marker='^',zorder=len(self.mw)+5)
+            
+        if events==1:
+            #Hold on
+            #plt.hold(True)
+            #Scatter events:
+            plt.scatter(evx,evy,edgecolors='g',facecolors='none',s=15,linewidths=2,zorder=len(self.mw)+7)
+            
+        #Plot faults, if it's map view:
+        if view==0:
+            for segment_i in range(len(fault_segments)):
+                fault=fault_segments[segment_i]
+                plt.plot(fault[:,0],fault[:,1],color='k',zorder=len(self.mw)+9)
+            
+        #Axis limits:
+        plt.xlim(axlims[0])
+        plt.ylim(axlims[1])
+            
+        #Axis labels, etc.:
+        plt.xlabel(xlab)
+        plt.ylabel(ylab)
+        plt.title(ptitle)
+        
+        #Set format of axis:
+        ax=plt.gca()
+        ax.xaxis.set_major_formatter(x_formatter)
+        
+        #Show plot:
+        plt.show()
+        
+        #Return :
+        
+        return figure
+        
+        
+    ###############
+    def plot_raypaths_3d(self,veltype,stations,events,axlims,mymap,faultfile):
+        '''
+        Plot the raypaths in 3d
+        VJS 9/2016
+        Input:
+            veltype:        Velocity type (1/2, Vp/Vs)
+            stations:       Plot stations?  0/1 = no/yes
+            events?         Plot events?  0/1 = no/yes
+            axlims:         Axis limits: [[xmin,xmax],[ymin,ymax],[zmin,zmax]]
+            mymap:          STring with the colormap to plot
+            faultfile:      String with path to the faultfile to plot
+        Output:
+            figure:         Figure with 3D raypaths
+        '''
+        
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.mplot3d import Axes3D
+        from matplotlib import ticker
+        from numpy import zeros,unique,where,array,std,arange
+        import matplotlib.colors as colors
+        import matplotlib.cm as cm
+        import dread
+        
+        #Read fault file and store data - list of arrays, with each array being a segment of the fault (lon, lat):
+        fault_segments=dread.read_obj_list(faultfile)
+        
+        #Get data to plot based on specified velocity type:
+        if veltype==1:
+            #Then it's vp
+            ray_x=self.vp_lon
+            ray_y=self.vp_lat
+            ray_z=self.vp_depth
+        elif veltype==2:
+            ray_x=self.vs_lon
+            ray_y=self.vs_lat
+            ray_z=self.vs_depth
+        
+        ##Plot:
+        #get min and max for colormap:
+        cmin=-3*std(self.path_terms)
+        cmax=3*std(self.path_terms)
+        
+        #Get colormap
+        #Make colormap:
+        colormap_pterm=plt.get_cmap(mymap)
+        #Make a normalized colorscale
+        cNorm=colors.Normalize(vmin=cmin, vmax=cmax)
+        #Apply normalization to colormap:
+        scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap_pterm)
+        
+        #Make a fake contour plot for the colorbar:
+        Z=[[0,0],[0,0]]
+        levels=arange(cmin,cmax,0.01)
+        c=plt.contourf(Z, levels, cmap=colormap_pterm)
+        
+        #Initiate figure
+        f3d=plt.figure()
+        
+        #and axes with projection:
+        ax=f3d.gca(projection='3d')
+        #Set axis format:
+        x_formatter=ticker.ScalarFormatter(useOffset=False)
+        
+        #Plot raypaths in 3d:
+        for ray_i in range(len(ray_x)):
+            x_i=ray_x[ray_i]
+            y_i=ray_y[ray_i]
+            z_i=ray_z[ray_i]
+                
+            #get color to plot:
+            colorVal=scalarMap.to_rgba(self.path_terms[ray_i])
+            
+            ax.plot(x_i,y_i,z_i,color=colorVal)
+            
+        #Plot stations?
+        if stations==1:
+            sta_x=self.stlon
+            sta_y=self.stlat
+            sta_z=self.stelv
+            
+            #Plot:
+            ax.scatter(sta_x,sta_y,sta_z,s=150,marker='^',color='k',zorder=(len(ray_x)+10))
+            
+        if events==1:
+            ev_x=self.elon
+            ev_y=self.elat
+            ev_z=self.edepth
+            
+            #Make event depths negative:
+            ev_z=-1*ev_z
+            
+            #Plot:
+            ax.scatter(ev_x,ev_y,ev_z,s=20,edgecolors='g',facecolors='none',linewidths=1,zorder=(len(ray_x)+15))
+        
+        #Plot faults:
+        for segment_i in range(len(fault_segments)):
+            fault=fault_segments[segment_i]
+            fault_z=zeros(len(fault))
+            ax.plot(fault[:,0],fault[:,1],fault_z,color='k',zorder=len(self.mw)+17)
+    
+        #Add colorbar:
+        cb=plt.colorbar(c)
+        cb.set_label('Path term (ln residual)')
+        
+        #Set labels:
+        #Set velocity handle:
+        if veltype==1:
+            vtype='Vp'
+        elif veltype==2:
+            vtype='Vs'
+            
+        ax.set_xlabel('Longitude (deg)')
+        ax.set_ylabel('Latitude (deg)')
+        ax.set_zlabel('Depth (km)')
+        ax.set_title('Raypaths for '+vtype)
+        
+        #Set limits:
+        ax.set_xlim(axlims[0])
+        ax.set_ylim(axlims[1])
+        ax.set_zlim(axlims[2])
+        
+        #Set format of axis:
+        ax=plt.gca()
+        ax.xaxis.set_major_formatter(x_formatter)        
+             
+        #Return:
+        return ax
+
+
+
 
 ###########
 ##########
