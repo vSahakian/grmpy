@@ -15,9 +15,11 @@ what_home=0
 if what_home==0:
     #Desktop:
     HOME='/media/vsahakian/katmai'
+    codehome='/home/vsahakian/software'
 elif what_home==1:
     #Mac:
     HOME='/Users/vsahakian'
+    codehome='/Users/vsahakian/software'
 
 #Location to store figures:
 home=HOME+'/anza'

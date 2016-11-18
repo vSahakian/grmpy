@@ -93,7 +93,7 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,Mc,a
     
     import gmpe as gm
     import cPickle as pickle
-    from numpy import ones,str,around
+    from numpy import ones,str,around,isnan
     
     #Get directories for things:
     fig_dir=home+'/models/figs/'+dbname+'/'
