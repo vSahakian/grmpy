@@ -921,3 +921,51 @@ def write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std
         sfile.write('\t'+stations[site_i]+':\t'+str(siteterms[site_i])+'\n')
     
     sfile.close()
+    
+    
+
+#####
+## Stuff for Mixed Effects ##
+####
+def plot_total(totalresid,home,run_name,resaxlim_mw):
+    '''
+    Plot total residuals given total residuals object from the mixed effects results
+    Input:
+        totalresid:      Object with total residuals including path
+        home:            String with working home (i.e., /media/vsahakian/katmai/anza)
+        run_name:        STring with run name (database/model combo)
+        resaxlim_mw:      Array with r axis limits for the resid plot: [[mwmin,mwmax],[ymin,ymax]]
+    Output:
+    '''    
+
+    import matplotlib.pyplot as plt
+    from os import path
+    
+    #Get run directory:
+    run_dir=path.expanduser(home+'/models/residuals/'+run_name+'/')
+    
+    totalfig = totalresid.plt_resids(run_name,resaxlim_mw)
+    
+    #figure names:
+    totalfigname = run_dir + '/figs/' + run_name + '_total.png'
+    totalfigpdf = run_dir + '/figs/pdfs/' + run_name + '_total.pdf'
+    
+    #Save:
+    totalfig.savefig(totalfigname)
+    totalfig.savefig(totalfigpdf)
+    
+
+def plot_all(allresid,resaxlim_r,resaxlim_mw):
+    '''
+    Plot total residuals and path terms given  residuals object from the mixed effects results
+    Input:
+        allresid:        Object with all residuals including path
+        resaxlim_r:      Array with axis limits for the resid plot: [[rmin,rmax],[ymin,ymax]]
+        resaxlim_mw:     Array with axis limits for the resid plot: [[mwmin,mwmax],[ymin,ymax]]
+    Output:
+    '''
+    
+    import matplotlib.pyplot as plt
+    
+    ## First plot the total residuals:
+    

@@ -3,6 +3,7 @@
 import numpy as np
 import cPickle as pickle
 import run_inversion as run_inv
+import run_res
 
 
 #Change this parameter depending on where you run:
@@ -117,6 +118,44 @@ fig1=run_inv.plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,p
 
 
 
-#######
-#Now try with mixed effects:
+##################################################################################
+################                 MIXED EFFECTS                 ###################
+##################################################################################
 
+  
+#Now try with mixed effects:
+dbname = 'test2013'
+run_name = 'mixedregr_test2013_Mc_8.1'
+resaxlim_r = [[0,250],[-4,4]]
+resaxlim_mw = [[0,4],[-4,4]]
+
+#Initialize the residuals directories:
+inithome=HOME+'/anza/models/residuals/'
+
+runall=1
+
+#Initialize directories:
+runall=run_res.init(inithome,run_name)
+
+if runall==0:
+    print 'Not clobbering, exiting...'
+    
+elif runall==1:
+    print 'Continuing...'
+    
+    
+# Now run mixed effects approach #
+invdat,invpath,tresid,mixed_residuals=run_inv.run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c)
+
+# Plot the results of the inversion:
+
+
+# Plot all residuals:
+run_res.plot_total(tresid,home,run_name,resaxlim_mw)
+
+# Plot path residuals:
+mixedinv = run_inv.plot_data_model(home,dbpath,dbname,invpath,coeff_file,mdep_ffdf,plotdist,Mc,axlims,bmin,bmax,vref)
+
+
+##  Fix ##
+run_res.write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std)

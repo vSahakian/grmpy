@@ -114,9 +114,14 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,Mc,a
             strname=str(model.rng[k])
         else:
             strname=strname+'_'+str(model.rng[k])
-            
-    #Get basenae for figure file:        
-    basename='regr_Mc'+str(Mc)+'_'+strname+'_VR_'+str(around(model.VR,decimals=1))
+              
+    # Get basename for figure file, depending on if it's mixed or not:
+    # If it's a normal inversion, it will have a rank:
+    if isnan(model.rank) == False:
+        basename = 'regr_Mc'+str(Mc)+'_'+strname+'_VR_'+str(around(model.VR,decimals=1))
+    #If it's from mixed effects, this is set to NaN:
+    elif isnan(model.rank) == True:
+        basename = 'mixedregr_Mc'+str(Mc)+'_VR_'+np.str(np.around(model.VR,decimals=1))
 
 
     ############################################
@@ -157,22 +162,33 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,Mc,a
 
 
 ##########
-def run_mixedeffects(home,codehome,dbpath,dbname,modelpath,Mc,vref,c):
+def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c):
     '''
     Run a mixed effects model for a given database, and certain parameters.
     Input:
-        home:       Working home (i.e., /media/vsahakian/
+        home:       Working home (i.e., /media/vsahakian/katmai/anza), with no slash at the end
+        codehome:   Home for code (i.e., /home/vsahakian/software), with no slash at the end
+        run_name:   Databse/inversion combo run name for mixed effects
+        dbpath:     Full path to the database object
+        dbname:     Database name (i.e., 'test2013'), for path purposes
+        Mc:         Magnitude around which to center mag squared term, i.e., (8.5 - M)**2
+        vref:       Reference vs30 velocity for GMPE
+        c:          ffdf parameter for GMPE
     '''
     
     import cPickle as pickle
     import inversion as inv
     import cdefs as cdf
     import numpy as np
+    from os import path
     
     #Open database:
     dbfile=open(dbpath,'r')
     db=pickle.load(dbfile)
     dbfile.close()
+    
+    # Get path names for output files:
+    run_dir=path.expanduser(home+'/models/residuals/'+run_name+'/')
     
     # Get information that is needed to run inversion:
     
@@ -250,15 +266,31 @@ def run_mixedeffects(home,codehome,dbpath,dbname,modelpath,Mc,vref,c):
     pathstd = np.std(pathterm)
     
     
-    ## Make the total residuals object:
+    ### Make the total residuals object:
     tresid = cdf.total_residuals(mw,totalresid,total_mean,total_std)
     
     ## Make all residuals object:
     mixedresid = cdf.mixed_residuals(db,totalresid,total_mean,total_std,eventterm,eventmean,eventstd,weterm,wemean,westd,siteterm,sitemean,sitestd,pathterm,pathmean,pathstd)
     
+    ## Save objects ##
+    basename = 'mixedregr_Mc'+str(Mc)+'_VR_'+np.str(np.around(VR,decimals=1))
     
-    ## Save Total residuals object:
+    ## Save inversion object:
+    invpath = home + '/models/pckl/' + dbname + '/' + basename + '.pckl'
+    invfile = open(invpath,'w')
+    pickle.dump(invdat,invfile)
+    invfile.close()
     
+    print 'Saved inversion object'
     
     ## Save Mixed residuals object:
+    objpath = run_dir + basename + '_robj.pckl'
+    objfile = open(objpath,'w')
+    pickle.dump(mixedresid,objfile)
+    objfile.close()
     
+    print 'Saved all residuals object'
+    
+    
+    # return mixed residuals object:
+    return invdat, invpath, tresid, mixedresid
