@@ -26,20 +26,20 @@ elif what_home==1:
 ############
 
 #Janine's flatfile:
-flatfile=HOME+'/anza/data/databases/anza2013/PGA_2013_MW_allC.dat'
+flatfile=HOME+'/anza/data/databases/db2013_test/PGA_2013.dat'
 #Vs30 file:
 vs30file=HOME+'/anza/data/vs30/California.xyz'
 
 #Output Vs30 file:
-vs30name='vs30_2013.txt'
+vs30name='vs30_2013test.txt'
 vs30_outfile=HOME+'/anza/data/vs30/'+vs30name
 
 #Save the database object paths:
-dbfname_raw=HOME+'/anza/data/databases/anza2013/anza2013.pckl'
-dbfname=HOME+'/anza/data/databases/anza2013/anza2013.pckl'
+dbfname_raw=HOME+'/anza/data/databases/db2013_test/db2013test.pckl'
+dbfname=HOME+'/anza/data/databases/db2013_test/db2013test_5sta.pckl'
 
 #Figure paths:
-fig_dir=HOME+'/anza/data/databases/anza2013_test/figs/'
+fig_dir=HOME+'/anza/data/databases/db2013_test/figs/'
 
 
 #############
