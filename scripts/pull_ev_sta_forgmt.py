@@ -16,17 +16,25 @@ from numpy import c_,savetxt
 
 
 #What are the file locations to read/write?
-dbpath='/media/vsahakian/katmai/anza/data/databases/db2013_test/db2013test_5sta.pckl'
+#dbpath='/media/vsahakian/katmai/anza/data/databases/db2013_test/db2013test_5sta.pckl'
+dbpath='/media/vsahakian/katmai/anza/data/databases/anza2013/anza2013_5sta.pckl'
+
 
 ##GMT events:
 #evpath='/Users/vsahakian/anza/data/db2013test_5sta.ll'
 ##GMT stations:
 #stpath='/Users/vsahakian/anza/data/db2013test_5sta.ll'
 
+##GMT events:
+#evpath='/media/vsahakian/katmai/anza/data/databases/db2013_test/db2013test_5sta_events.ll'
+##GMT stations:
+#stpath='/media/vsahakian/katmai/anza/data/databases/db2013_test/db2013test_5sta_stations.ll'
+
+
 #GMT events:
-evpath='/media/vsahakian/katmai/anza/data/databases/db2013_test/db2013test_5sta_events.ll'
+evpath='/media/vsahakian/katmai/anza/data/databases/anza2013/anza2013_5sta_events.ll'
 #GMT stations:
-stpath='/media/vsahakian/katmai/anza/data/databases/db2013_test/db2013test_5sta_stations.ll'
+stpath='/media/vsahakian/katmai/anza/data/databases/anza2013/anza2013_5sta_stations.ll'
 
 
 ####

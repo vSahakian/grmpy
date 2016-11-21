@@ -25,6 +25,9 @@ elif what_home==1:
 ############
 ############
 
+# Final database name:
+dbname = 'anza2013_5sta'
+
 #Janine's flatfile:
 flatfile=HOME+'/anza/data/databases/anza2013/PGA_2013_MW_allC.dat'
 #Vs30 file:
@@ -36,18 +39,35 @@ vs30_outfile=HOME+'/anza/data/vs30/'+vs30name
 
 #Save the database object paths:
 dbfname_raw=HOME+'/anza/data/databases/anza2013/anza2013.pckl'
-dbfname=HOME+'/anza/data/databases/anza2013/anza2013.pckl'
+dbfname=HOME+'/anza/data/databases/anza2013/anza2013_5sta.pckl'
 
 #Figure paths:
-fig_dir=HOME+'/anza/data/databases/anza2013_test/figs/'
+fig_dir=HOME+'/anza/data/databases/anza2013/figs/'
 
 
 #############
 #############
 
 print 'Reading in data'
+
+# If a station/event is outside the propagation grid, remove it:
+propgrid_W = -118.12
+propgrid_S = 32.38
+dx = 0.01
+dy = 0.01
+nx = 278
+ny = 218
+
+propgrid_E = propgrid_W + (dx*nx)
+propgrid_N = progrid_S + (dy*ny)
+
+propgrid = [[propgrid_W,propgrid_E],[propgrid_S,propgrid_N]]
+
 #Read in the data:
-evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,pga_millig,source_i,receiver_i=dr.read_jsbfile(flatfile)
+evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,pga_millig,source_i,receiver_i=dr.read_jsbfile(flatfile,propgrid)
+
+
+
 
 print 'Computing Rrup'
 #Compute Rrup for the data:
@@ -156,7 +176,7 @@ datobj.close()
 bm_min=10
 bm_max=140
 axlims_m=[[0,4.5],[-8,-1]]
-f_mpath=fig_dir+'db2013test_mag.pdf'
+f_mpath=fig_dir+'anza2013_mag.pdf'
 
 f_mag=db.plot_rpga(bm_min,bm_max,axlims_m)
 f_mag.savefig(f_mpath)
@@ -166,7 +186,7 @@ br_min=0
 br_max=3
 
 axlims_r=[[0,260],[-8,-1]]
-f_rpath=fig_dir+'db2013test_r.pdf'
+f_rpath=fig_dir+'anza2013_r.pdf'
 
 f_r=db.plot_mpga(br_min,br_max,axlims_r)
 f_r.savefig(f_rpath)
