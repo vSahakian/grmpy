@@ -69,7 +69,7 @@ sstep=1
 sdist=np.array(range(smin,smax,sstep))
 
 ##Centering Magnitude for x**2 term
-Mc=7.9
+Mc=8.3
 
 #Smoothing factor
 smth=500
