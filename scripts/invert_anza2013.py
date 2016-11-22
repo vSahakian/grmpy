@@ -23,14 +23,14 @@ elif what_home==1:
 
 #Location to store figures:
 home=HOME+'/anza'
-invrun='anza2013/'
-fig_dir=home+'/models/figs/'+invrun
-obj_dir=home+'/models/pckl/'+invrun
-model_dir=home+'/models/pckl/'+invrun
+invrun='anza2013'
+fig_dir=home+'/models/figs/'+invrun+'/'
+obj_dir=home+'/models/pckl/'+invrun+'/'
+model_dir=home+'/models/pckl/'+invrun+'/'
 
 
 #Filename:
-dbpath=home+'/data/databases/anza2013/anza2013_5sta.pckl'
+dbpath=home+'/data/databases/anza2013/anza2013_pgrid_5sta.pckl'
 
 
 ####################################################
@@ -53,7 +53,7 @@ vref=760
 
 #Bin min and max for data scatter colorbar (distances):
 bmin=10
-bmax=150
+bmax=120
 
 #Number of coefficients to solve for in functional form:
 ncoeff=5
@@ -83,7 +83,7 @@ mdep_ffdf=0
 #plot_max=300
 #plot_step=60
 #plotdist=np.array(range(plot_min,plot_max,plot_step))
-plotdist=np.array([0,20,40,60,150])
+plotdist=np.array([0,20,40,60,120])
 
 
 ####################################################

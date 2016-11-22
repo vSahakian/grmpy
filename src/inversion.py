@@ -237,7 +237,8 @@ def invert(G,d):
     m,residual,rank,singular_vals=lstsq(G,d)
     
     #For some reason, lstsq isn't getting residuals for some cases with many 
-    #ranges.  #Compute your own:
+    #ranges.  
+    #Compute your own:
     
     #L2norm
     L2norm=norm(G.dot(m)-d)
@@ -245,8 +246,11 @@ def invert(G,d):
     #Get the residual that's supposed to come out of lstsq:
     residual=L2norm**2
     
+    # Get the array residuals:
+    arr_residuals=G.dot(m)-d
+    
     #Get the variance reduction:
-    VR=(1 - (np.sum(residual)/np.sum(d**2)))*100
+    VR=(1 - (np.sum(arr_residuals**2))/(np.sum(d**2)))*100
     
     print 'L2 norm is %.2f, residual (square) is %.2f, Variance Reduction is \
         %.2f percent' % (L2norm,residual,VR)

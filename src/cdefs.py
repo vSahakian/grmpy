@@ -321,7 +321,7 @@ class db:
             return f
         #Otherwise, plot the NGA data:
         else:
-            plt.plot(nga_mw,nga_pred,linestyle='--',linewidth=2,color='b',label='ASK2014')
+            plt.plot(nga_mw,nga_pred,linestyle='--',linewidth=2,color='#C0C0C0',label='ASK2014')
             
             #Add legend:
             plt.legend(loc=4)  
