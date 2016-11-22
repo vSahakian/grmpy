@@ -15,15 +15,15 @@ class db:
         '''
         Initiate the class by giving database information.
         Input:
-            event:         Array with event number (event)
-            sta:           Array/list with station name (sta)
-            N:             Array with station number (N)
-            ml:            Array with local mag (ml)
-            mw:            Array with moment mag (mw)
-            PGA:           Array with PGA in m/s/s
-            PGV:           Array with PGV in m/s
-            r:             Array with Rrup, source to site distance (r)
-            vs30:          Array with vs30 (in m/s)
+            event:          Array with event number (event)
+            sta:            Array/list with station name (sta)
+            N:              Array with station number (N)
+            ml:             Array with local mag (ml)
+            mw:             Array with moment mag (mw)
+            DA:             Array with PGA in m/s/s
+            DV:             Array with PGV in m/s
+            r:              Array with Rrup, source to site distance (r)
+            vs30:           Array with vs30 (in m/s)
             elat:           Array with event latitude
             elon:           Array with event longitude
             edepth:         Array with event depth (km), positive

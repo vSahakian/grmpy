@@ -388,7 +388,7 @@ def db_propgrid_sample(dbpath_in,propgrid,dbpath_out):
     
     #Read in the original database
     dbfile=open(dbpath_in,'r')
-    db_orig=pickle.load(dbfile)
+    dbin=pickle.load(dbfile)
     dbfile.close()
     
     # Make the propgrid outline path:
@@ -398,6 +398,93 @@ def db_propgrid_sample(dbpath_in,propgrid,dbpath_out):
     n = propgrid[1][1]
     
     gridpath = path.Path([[w,s],[e,s],[e,n],[w,n],[w,s]])
+    
+    print 'Read file %s' % dbpath_in
+    print '%s recordings read in, with %s unique events, and %s unique stations' % (str(len(dbin.evnum)),str(len(unique(dbin.evnum))),str(len(unique(dbin.sta))))
+    
+    
+    # Loop through the recordings, and if both the event and station are inside
+    #   the path, keep the recording:
+    
+    #Initiate the "keep" event index array:
+    keep_event_ind=array([]).astype('int')
+    
+    for record_i in range(len(dbin.evnum)):
+        if (gridpath.contains_point([dbin.elon[record_i],dbin.elat[record_i]])) & (gridpath.contains_point([dbin.stlon[record_i],dbin.stlat[record_i]])):
+            keep_event_ind = r_[keep_event_ind,record_i]
+            
+    evnum=dbin.evnum[keep_event_ind]
+    sta=dbin.sta[keep_event_ind]
+    stnum=dbin.stnum[keep_event_ind]
+    ml=dbin.ml[keep_event_ind]
+    mw=dbin.mw[keep_event_ind]
+    pga=dbin.pga[keep_event_ind]
+    pgv=dbin.pgv[keep_event_ind]
+    pga_pg=dbin.pga_pg[keep_event_ind]
+    r=dbin.r[keep_event_ind]
+    vs30=dbin.vs30[keep_event_ind]
+    ffdf=dbin.ffdf[keep_event_ind]
+    md_ffdf=dbin.md_ffdf[keep_event_ind]
+    elat=dbin.elat[keep_event_ind]
+    elon=dbin.elon[keep_event_ind]
+    edepth=dbin.edepth[keep_event_ind]
+    stlat=dbin.stlat[keep_event_ind]
+    stlon=dbin.stlon[keep_event_ind]
+    stelv=dbin.stelv[keep_event_ind]
+    
+    
+    print 'Data reduced to %s unique events, and %s unique stations' % (str(len(unique(evnum))),str(len(unique(sta))))
+        
+        
+        
+    # Now get source_i and receiver_i for the new dataset:
+    
+    ###Change the source and receiver indices for raytracing...
+    #Get the unique station and event indices:
+    unique_events=unique(evnum)
+    
+    #Zero out source ind array:
+    source_ind=zeros((len(evnum)))
+    #For each event in the record, devent, give it the source index to be used:
+    for event_ind in range(len(unique_events)):
+        eventi=unique_events[event_ind]
+        
+        #Find where in the recordings list the event number is the same as this one:
+        recording_event_ind=where(evnum==eventi)[0]
+        
+        #Set the source ind to be one plus this event, so it indexes with the raytracing program:
+        source_ind[recording_event_ind]=event_ind+1
+        
+    #Now set these to integers...
+    source_i=source_ind.astype('int64')
+    
+    ##
+    ##Next stations:
+    unique_stations=unique(stnum)
+    
+    #Zero out array:
+    receiver_ind=zeros((len(stnum)))
+    #Loop through the unique stations:
+    for station_ind in range(len(unique_stations)):
+        stationi=unique_stations[station_ind]
+        
+        #Find where in the recordings list the station is the same as this one:
+        recording_station_ind=where(stnum==stationi)[0]
+    
+        #Set the receiver ind to be one plus this station, so it indexes with the raytracin gprogram:
+        receiver_ind[recording_station_ind]=station_ind+1    
+        
+    #Set these to integers:
+    receiver_i=receiver_ind.astype('int64')
+    
+    
+    ## Now make new sampled database:
+    dbsamp = cdf.db(evnum,sta,stnum,ml,mw,pga,pgv,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i)
+    
+    #Save to file...
+    doutfile=open(dbpath_out,'w')
+    pickle.dump(dbsamp,doutfile)
+    doutfile.close()
     
     
 def multiseg2pckl(multisegpath,pcklpath,pathlimits):

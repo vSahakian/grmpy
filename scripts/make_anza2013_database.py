@@ -13,7 +13,7 @@ import gmpe as gm
 #0=desktop
 #1=mac
 
-what_home=0
+what_home=1
 
 if what_home==0:
     #Desktop:
@@ -39,7 +39,8 @@ vs30_outfile=HOME+'/anza/data/vs30/'+vs30name
 
 #Save the database object paths:
 dbfname_raw=HOME+'/anza/data/databases/anza2013/anza2013.pckl'
-dbfname=HOME+'/anza/data/databases/anza2013/anza2013_5sta.pckl'
+dbfname_pgrid=HOME+'/anza/data/databases/anza2013/anza2013_pgrid.pckl'
+dbfname=HOME+'/anza/data/databases/anza2013/anza2013_pgrid_5sta.pckl'
 
 #Figure paths:
 fig_dir=HOME+'/anza/data/databases/anza2013/figs/'
@@ -58,16 +59,9 @@ dy = 0.01
 nx = 278
 ny = 218
 
-propgrid_E = propgrid_W + (dx*nx)
-propgrid_N = progrid_S + (dy*ny)
-
-propgrid = [[propgrid_W,propgrid_E],[propgrid_S,propgrid_N]]
 
 #Read in the data:
-evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,pga_millig,source_i,receiver_i=dr.read_jsbfile(flatfile,propgrid)
-
-
-
+evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,pga_millig,source_i,receiver_i=dr.read_jsbfile(flatfile)
 
 print 'Computing Rrup'
 #Compute Rrup for the data:
@@ -102,6 +96,9 @@ for sta_i in range(len(sta)):
     vs30[sta_i]=vs30_unique[vs30ind]
 
 #Now vs30 cna be used to go into the database...
+
+
+
 
 #######################
 ######Make database####
@@ -143,6 +140,9 @@ datobj.close()
 
 print 'Database saved'
 
+
+
+
 ########################
 ####Sample Database#####
 ########################
@@ -151,11 +151,22 @@ print 'Sampling database'
 #Then, sample the database so that it includes only events recorded on a minimum
 #number of stations:
 min_stations=5
-dbpathin=dbfname_raw
-dbpathout=dbfname
+#dbpathin=dbfname_raw
+#dbpathout=dbfname
+
+propgrid_E = propgrid_W + (dx*nx)
+propgrid_N = propgrid_S + (dy*ny)
+
+propgrid = [[propgrid_W,propgrid_E],[propgrid_S,propgrid_N]]
+
+# Sample to remove events outside of propagation grid:
+dr.db_propgrid_sample(dbfname_raw,propgrid,dbfname_pgrid)
 
 #Sample:
-dr.db_station_sample(dbpathin,min_stations,dbpathout)
+dr.db_station_sample(dbfname_pgrid,min_stations,dbfname)
+
+# Set the output directory to the last one here:
+dbpathout = dbfname
 
 #######################End making database object############################
 
@@ -174,19 +185,23 @@ datobj.close()
 
 #Plot against magintude, with distance colored:
 bm_min=10
-bm_max=140
-axlims_m=[[0,4.5],[-8,-1]]
-f_mpath=fig_dir+'anza2013_mag.pdf'
+bm_max=120
+axlims_m=[[0,4.5],[-7,-1]]
+f_mpath=fig_dir+dbname+'_mag.pdf'
+f_mpng=fig_dir+dbname+'_mag.png'
 
 f_mag=db.plot_rpga(bm_min,bm_max,axlims_m)
 f_mag.savefig(f_mpath)
+f_mag.savefig(f_mpng)
 
 #Plot against distance, with magnitude colored:
-br_min=0
+br_min=0.6
 br_max=3
 
-axlims_r=[[0,260],[-8,-1]]
-f_rpath=fig_dir+'anza2013_r.pdf'
+axlims_r=[[0,180],[-7,-1]]
+f_rpath=fig_dir+dbname+'_r.pdf'
+f_rpng=fig_dir+dbname+'_r.png'
 
 f_r=db.plot_mpga(br_min,br_max,axlims_r)
 f_r.savefig(f_rpath)
+f_r.savefig(f_rpng)
