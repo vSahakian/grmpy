@@ -161,7 +161,7 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,Mc,a
     return fig1
 
 
-def write_inversion_stats(home,
+#def write_inversion_stats(home,)
 
 
 ##########
