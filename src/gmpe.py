@@ -49,7 +49,7 @@ def compute_model(m,rng,mw,r,ffdf,vs30,Mc,vref,mdep_ffdf):
         
         #Now compute the predicted value:
         d_predicted_i=a1+a2*mw_rangei + a3*(Mc-mw_rangei)**2 + a4*np.log(ffdf_rangei) + \
-                a5*r_rangei + 0.6*np.log(vs30_rangei/vref) 
+                a5*r_rangei #+ 0.6*np.log(vs30_rangei/vref) 
         
         #And append to the final output value:
         d_predicted=np.r_[d_predicted,d_predicted_i]
@@ -59,7 +59,7 @@ def compute_model(m,rng,mw,r,ffdf,vs30,Mc,vref,mdep_ffdf):
 
 
 ###############################################################################
-def compute_model_fixeddist(m,rng,sdist,mdep_ffdf):
+def compute_model_fixeddist(m,rng,sdist,Mc,mdep_ffdf):
     '''
     Compute the model values given the coefficients resulting from an inversion;
     Obtain values for given distances.
@@ -68,6 +68,7 @@ def compute_model_fixeddist(m,rng,sdist,mdep_ffdf):
         m:          Model coefficients
         rng:        Array with ranges used to get the model coefficients
         sdist:      Array with distances at which to compute the model
+        Mc:         Magnitude squred term (i.e., 8.5 or 8.1)
         mdep_ffdf:  Flag for fictitious depth mag-dependence; 0=no, 1=yes
     Output:
         
@@ -127,7 +128,7 @@ def compute_model_fixeddist(m,rng,sdist,mdep_ffdf):
             a5=m[(i*5)+4]
             
             #GMPE:
-            d=a1+a2*mw + a3*(8.5-mw)**2 + a4*np.log(R) + \
+            d=a1+a2*mw + a3*(Mc-mw)**2 + a4*np.log(R) + \
                 a5*sdist[j] 
                 # Don't add this yet...I think it should only go with the 
                 #data for residuals... 

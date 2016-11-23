@@ -123,7 +123,7 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,Mc,a
         basename = 'regr_Mc'+str(Mc)+'_'+strname+'_VR_'+str(around(model.VR,decimals=1))
     #If it's from mixed effects, this is set to NaN:
     elif isnan(model.rank) == True:
-        basename = 'mixedregr_Mc'+str(Mc)+'_VR_'+np.str(np.around(model.VR,decimals=1))
+        basename = 'mixedregr_Mc'+str(Mc)+'_VR_'+str(around(model.VR,decimals=1))
 
 
     ############################################
@@ -131,7 +131,7 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,Mc,a
     ############################################
     
     #Compute the magnitude/log10pga for each distance, to plot on top of data:
-    mw_model,d_model=gm.compute_model_fixeddist(model.m,model.rng,sdist,mdep_ffdf)
+    mw_model,d_model=gm.compute_model_fixeddist(model.m,model.rng,sdist,Mc,mdep_ffdf)
 
     #Get the NGA predictions to plot on the same figure:
     #Coefficient file:

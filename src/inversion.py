@@ -34,7 +34,7 @@ def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,mdep_ffdf):
     ######*****************************************************************######
     ###Solving:                                                               ###
     ###                                                                       ###                  
-    ###  a1 + a2*M + a3*M^2 + a4*ln(R) + a5*Rrup                              ###
+    ###  a1 + a2*M + a3*(Mc - M)^2 + a4*ln(R) + a5*Rrup                       ###
     ###  where R = np.sqrt(R^2 + c^2),                                        ###
     ###  where c is "fictitious depth" or "finite fault dimension factor"     ###
     ###  and is magnitude dependent:                                          ###
@@ -144,6 +144,8 @@ def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,mdep_ffdf):
         a4=np.log(iffdf)
         a5=ir
         
+        print Mc
+        
         #Define:
         G[r_beg:r_end,c_beg:c_end]=np.c_[a1, a2, a3, a4, a5] 
         d[r_beg:r_end]=np.log10(ipga)
@@ -251,6 +253,7 @@ def invert(G,d):
     
     #Get the variance reduction:
     VR=(1 - (np.sum(arr_residuals**2))/(np.sum(d**2)))*100
+
     
     print 'L2 norm is %.2f, residual (square) is %.2f, Variance Reduction is \
         %.2f percent' % (L2norm,residual,VR)

@@ -81,7 +81,7 @@ def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
     import pickle
     import gmpe as gm
     import rescomp as rcomp
-    from numpy import where
+    from numpy import where,array,mean
     from os import path
     import cdefs as cdf
     from matplotlib.pyplot import savefig
@@ -120,6 +120,12 @@ def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
     #Now compute the predicted value of PGA...
     d_predicted=gm.compute_model(model.m,model.rng,db.mw,db.r,db.ffdf,vs30,Mc,vref,mdep_ffdf)
     
+    # Test the mean from the inversion model:
+    #testresiduals = model.G.dot(model.m) - model.d
+    testresiduals = d_predicted - model.d
+    meantest = mean(testresiduals)
+    print 'Mean residual from G and d matrices are %f' % meantest
+    
     #Get residuals:
     total_residuals,mean_residual,std_dev=rcomp.total_residual(db,d_predicted)
     
@@ -130,9 +136,7 @@ def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
     #Figure names:
     f1name=run_dir+'figs/'+run_name+'_total.png'
     f1pdf=run_dir+'figs/pdfs/'+run_name+'_total.pdf'
-    #pdfs
-    f2name=run_dir+'figs/'+run_name+'_total_hist.png'
-    f2pdf=run_dir+'figs/pdfs/'+run_name+'_total_hist.pdf'
+
     
     #Save:
     f1.savefig(f1name)

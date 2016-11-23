@@ -10,7 +10,7 @@ import run_res
 #0=desktop
 #1=mac
 
-what_home=0
+what_home=1
 
 if what_home==0:
     #Desktop:
@@ -115,6 +115,7 @@ basename='regr_Mc'+str(Mc)+'_'+strname+'_VR_'+str(np.around(inv_dat.VR,decimals=
 #basename='regr_'+strname+'_VR_'+np.str(np.around(inv_dat.VR,decimals=1))
 modelpath=model_dir+basename+'.pckl'
 
+print 'Will read in '+modelpath
 
 
 #Plot:
