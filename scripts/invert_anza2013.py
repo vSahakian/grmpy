@@ -69,7 +69,7 @@ sstep=1
 sdist=np.array(range(smin,smax,sstep))
 
 ##Centering Magnitude for x**2 term
-Mc=0
+Mc=8.5
 
 #Smoothing factor
 smth=500
@@ -106,7 +106,7 @@ for k in range(len(rng)):
 #Invert#
 ########
 
-inv_dat=run_inv.setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,mdep_ffdf)
+inv_dat=run_inv.setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,vref,smth,mdep_ffdf)
 
 print inv_dat
 

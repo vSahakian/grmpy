@@ -2,7 +2,7 @@
 #VJS 9/2016
 
 
-def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,mdep_ffdf):
+def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf):
     '''
     Make the necessary matrices, invert, and save model output
     Input:
@@ -15,6 +15,7 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,mdep_ffdf):
                         equations added on at each range boundary
         Mc:             M squared centering term (8.5 in ASK2014)
         smth:           Smoothing
+        vref:           Reference vs30 value (like 760 m/s)
         mdep_ffdf:      Flag to add mag dependent ffdf (0/1=no/yes)
     Output: 
         inversion object:   Stored in model path, based on ranges etc. used in inversion
@@ -37,7 +38,7 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,mdep_ffdf):
                 
     #Invert:
     #Make matrices
-    G,d=inv.iinit_pga(db,ncoeff,rng,sdist,Mc,smth,mdep_ffdf)
+    G,d=inv.iinit_pga(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf)
     #Invert
     m, resid, L2norm, VR, rank, svals=inv.invert(G,d)
     

@@ -18,33 +18,6 @@ elif what_home==1:
     HOME='/Users/vsahakian'
     
 
-#home=HOME+'/anza/models/residuals/'
-#run_name='abdb_5sta_0-6.5_topography'
-#dbpath=HOME+'/anza/data/abdb_5sta.pckl'
-#modelpath=HOME+'/anza/models/pckl/regr_0.0_6.5_VR_98.9.pckl'
-#rayfile_vp='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vp/rays.dat'
-#rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
-
-#home=HOME+'/anza/models/residuals/'
-#run_name='anza2013_pgrid_5sta'
-#dbpath=HOME+'/anza/data/databases/anza2013/anza2013_pgrid_5sta.pckl'
-#modelpath=HOME+'/anza/models/pckl/anza2013/regr_Mc8.1_0.0_6.5_VR_99.3.pckl'
-#rayfile_vp='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vp/rays.dat'
-#rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
-
-home=HOME+'/anza/models/residuals/'
-run_name='anza2013_Mc7.9_pgrid_5sta'
-dbpath=HOME+'/anza/data/databases/anza2013/anza2013_pgrid_5sta.pckl'
-modelpath=HOME+'/anza/models/pckl/anza2013/regr_Mc7.9_0.0_6.5_VR_99.3.pckl'
-rayfile_vp='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vp/rays.dat'
-rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
-
-#home=HOME+'/anza/models/residuals/'
-#run_name='anza2013_Mc8.3_pgrid_5sta'
-#dbpath=HOME+'/anza/data/databases/anza2013/anza2013_pgrid_5sta.pckl'
-#modelpath=HOME+'/anza/models/pckl/anza2013/regr_Mc8.3_0.0_6.5_VR_99.3.pckl'
-#rayfile_vp='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vp/rays.dat'
-#rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
 
 #home=HOME+'/anza/models/residuals/'
 #run_name='anza2013_Mc8.5_pgrid_5sta'
@@ -53,17 +26,18 @@ rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
 #rayfile_vp='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vp/rays.dat'
 #rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
 
-#home=HOME+'/anza/models/residuals/'
-#run_name='anza2013_Mc7_pgrid_5sta'
-#dbpath=HOME+'/anza/data/databases/anza2013/anza2013_pgrid_5sta.pckl'
-#modelpath=HOME+'/anza/models/pckl/anza2013/regr_Mc7_0.0_6.5_VR_99.3.pckl'
-#rayfile_vp='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vp/rays.dat'
-#rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
+home=HOME+'/anza/models/residuals/'
+run_name='anza2013_Mc8.5_pgrid_5sta'
+dbpath=HOME+'/anza/data/databases/anza2013/anza2013_pgrid_5sta.pckl'
+modelpath=HOME+'/anza/models/pckl/anza2013/regr_Mc8.5_0.0_6.5_VR_99.4.pckl'
+rayfile_vp='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vp/rays.dat'
+rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
+
 
 ########
 
 ffdf_flag=0
-Mc=7.9
+Mc=8.5
 resaxlim=[[0,4],[-5,5]]
 resaxlim_dist=[[0,190],[-4,4]]
 

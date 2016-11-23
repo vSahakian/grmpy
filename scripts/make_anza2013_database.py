@@ -162,7 +162,7 @@ propgrid = [[propgrid_W,propgrid_E],[propgrid_S,propgrid_N]]
 # Sample to remove events outside of propagation grid:
 dr.db_propgrid_sample(dbfname_raw,propgrid,dbfname_pgrid)
 
-#Sample:
+#Sample by minimum number of stations:
 dr.db_station_sample(dbfname_pgrid,min_stations,dbfname)
 
 # Set the output directory to the last one here:

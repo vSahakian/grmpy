@@ -47,9 +47,14 @@ def compute_model(m,rng,mw,r,ffdf,vs30,Mc,vref,mdep_ffdf):
         ffdf_rangei=ffdf[bin_i]
         vs30_rangei=vs30[bin_i]
         
-        #Now compute the predicted value:
+        #Now compute the predicted value:        
         d_predicted_i=a1+a2*mw_rangei + a3*(Mc-mw_rangei)**2 + a4*np.log(ffdf_rangei) + \
                 a5*r_rangei #+ 0.6*np.log(vs30_rangei/vref) 
+        
+        #d_predicted_i=a1+a2*mw_rangei + a3*(Mc-mw_rangei)**2 + a4*np.log(ffdf_rangei) + \
+        #        a5*r_rangei + 0.6*np.log(vs30_rangei/vref)  
+            
+        ######^^NOT USING ANYMMORE.....CREATES A BIAS IN RESIDUALS!!  Instead, remove before inverting... so pga - 0.6*ln(vs30/vref)###
         
         #And append to the final output value:
         d_predicted=np.r_[d_predicted,d_predicted_i]
@@ -133,6 +138,7 @@ def compute_model_fixeddist(m,rng,sdist,Mc,mdep_ffdf):
                 # Don't add this yet...I think it should only go with the 
                 #data for residuals... 
                 #+ 0.6*np.log(self.vs30/vref)
+                ##ACTUALLY....it needs to be subtracted form the data before inverting
             
             #Add these onto the bigger array, for this range:     
             mw_range=np.r_[mw_range,mw]

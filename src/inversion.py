@@ -3,7 +3,7 @@
 
 #Make the d and G matrices.....
 
-def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,mdep_ffdf):
+def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf):
     '''
     Make the d and G matrices for the inversion.  Can use ranges, where the 
     coefficients from teh inversion must be smooth at the edges of the ranges.
@@ -25,6 +25,7 @@ def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,mdep_ffdf):
         sdist:      Array with distances to include for smoothing (i.e, [1,5,10]
         Mc:         M squared centering term (8.5 in ASK2014)
         smth:       Smoothing value
+        vref:       Reference Vs30 value (like 760 m/s)
         mdep_ffdf:  Magnitude-dependent fictitious depth param: 0=off, 1=on
         
             
@@ -115,7 +116,7 @@ def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,mdep_ffdf):
         #Find where the digitize index, dig_i, is equal to the range we're in:
         bin_i=np.where(dig_i==j+1)[0]
         
-        #Get the magnitudes, distances, and pga's for these indices:
+        #Get the magnitudes, distances, vs30's (to remove) and pga's for these indices:
         imw=db.mw[bin_i]
         ir=db.r[bin_i]
         if mdep_ffdf==0:
@@ -125,6 +126,7 @@ def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,mdep_ffdf):
         else:
             print 'Magnitude dependent fictitious depth flag missing.  on = 1, off =0'
         ipga=db.pga_pg[bin_i]
+        ivs30=0.6*(np.log(db.vs30[bin_i]/vref))
         
         #How many recordings are in this loop/range?
         looplen=numinbin[j]
@@ -148,7 +150,8 @@ def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,mdep_ffdf):
         
         #Define:
         G[r_beg:r_end,c_beg:c_end]=np.c_[a1, a2, a3, a4, a5] 
-        d[r_beg:r_end]=np.log10(ipga)
+        # Remove vs30 from the data before inverting:
+        d[r_beg:r_end]=np.log10(ipga) - ivs30
         
         #SMOOTHING:
         #If there are still more ranges after this one, add smoothing so that 
