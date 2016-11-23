@@ -223,7 +223,6 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
     E_evnum=[]
     E_mw=[]
     E_residual=[]
-    E_std_dev=[]
     
     ##Zero out lists to use for indexing - use this resulting index, the station index,
     # to sort out the events for the station object later on...

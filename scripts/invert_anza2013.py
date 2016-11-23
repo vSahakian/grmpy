@@ -10,7 +10,7 @@ import run_res
 #0=desktop
 #1=mac
 
-what_home=1
+what_home=0
 
 if what_home==0:
     #Desktop:
@@ -69,7 +69,7 @@ sstep=1
 sdist=np.array(range(smin,smax,sstep))
 
 ##Centering Magnitude for x**2 term
-Mc=8.3
+Mc=0
 
 #Smoothing factor
 smth=500
@@ -114,6 +114,8 @@ print inv_dat
 basename='regr_Mc'+str(Mc)+'_'+strname+'_VR_'+str(np.around(inv_dat.VR,decimals=1))
 #basename='regr_'+strname+'_VR_'+np.str(np.around(inv_dat.VR,decimals=1))
 modelpath=model_dir+basename+'.pckl'
+
+
 
 #Plot:
 fig1=run_inv.plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,plotdist,Mc,axlims,bmin,bmax,vref)

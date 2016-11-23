@@ -62,9 +62,11 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,mdep_ffdf):
     #Put into an inversion object:
     invdat=cdf.invinfo(G,d,m,resid,L2norm,VR,rank,svals,rng,sdist,smth,stderror,tvalue)
     fname=obj_dir+basename+'.pckl'
-    datobj=open(fname,'w')
-    pickle.dump(invdat,datobj)
-    datobj.close()
+    datobjfile=open(fname,'w')
+    pickle.dump(invdat,datobjfile)
+    datobjfile.close()
+    
+    print 'Printing inversion data object to '+fname
     
     #Return the model info...
     return invdat

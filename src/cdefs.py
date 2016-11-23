@@ -599,7 +599,7 @@ class residuals:
         
         import cPickle as pickle
         import dread
-        from numpy import where,mean,std
+        from numpy import where,mean,std,array
         
         #Load in database object:
         dname=open(dbpath,'r')
@@ -663,7 +663,6 @@ class residuals:
                 
                 #If this event is the same as the recording in question, continue:
                 if evnum_i==record_evnum_i:
-                    event_total_residual_i=event.total_residual
                     event_E_i=event.E_residual
                     event_Estd_i=event.E_std
                     event_Wmean_i=event.W_mean
@@ -671,14 +670,13 @@ class residuals:
                     
                     #Save the values that correspond to this recording, which will
                     #be stored in the residuals object:
-                    record_total_residual_i=event_total_residual_i
                     record_E_i=event_E_i
                     record_Estd_i=event_Estd_i
                     record_Wmean_i=event_Wmean_i
                     record_Wstd_i=event_Wstd_i
                     
                     #Append to the event term and std lists for the object:
-                    total_residual.append(record_total_residual_i)
+                    
                     E_residual.append(record_E_i)
                     E_std.append(record_Estd_i)
                     W_mean.append(record_Wmean_i)
@@ -702,6 +700,7 @@ class residuals:
                             station_evnum_ind=where(station.evnum==evnum_i)[0]
                             
                             #Take this index, and save the info from it:
+                            record_total_residual_i=station.total_residual[station_evnum_ind][0]
                             record_W_i=station.W_residual[station_evnum_ind][0][0]
                             
                             #Also get the site term:
@@ -712,6 +711,7 @@ class residuals:
                             record_path_term_i=record_W_i-record_site_term_i
                             
                             #Save these to the recording...
+                            total_residual.append(record_total_residual_i)
                             W_residual.append(record_W_i)
                             site_terms.append(record_site_term_i)
                             path_terms.append(record_path_term_i)
@@ -725,6 +725,7 @@ class residuals:
                 else:
                     continue        
                     
+        total_residual = array(total_residual)
             
         #Save new 
         self.total_residual=total_residual

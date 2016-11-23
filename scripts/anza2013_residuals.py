@@ -8,7 +8,7 @@ import raytracing as rt
 #0=desktop
 #1=mac
 
-what_home=1
+what_home=0
 
 if what_home==0:
     #Desktop:
@@ -32,24 +32,31 @@ elif what_home==1:
 #rayfile_vp='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vp/rays.dat'
 #rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
 
+home=HOME+'/anza/models/residuals/'
+run_name='anza2013_Mc7.9_pgrid_5sta'
+dbpath=HOME+'/anza/data/databases/anza2013/anza2013_pgrid_5sta.pckl'
+modelpath=HOME+'/anza/models/pckl/anza2013/regr_Mc7.9_0.0_6.5_VR_99.3.pckl'
+rayfile_vp='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vp/rays.dat'
+rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
+
 #home=HOME+'/anza/models/residuals/'
-#run_name='anza2013_Mc7.9_pgrid_5sta'
+#run_name='anza2013_Mc8.3_pgrid_5sta'
 #dbpath=HOME+'/anza/data/databases/anza2013/anza2013_pgrid_5sta.pckl'
-#modelpath=HOME+'/anza/models/pckl/anza2013/regr_Mc7.9_0.0_6.5_VR_99.3.pckl'
+#modelpath=HOME+'/anza/models/pckl/anza2013/regr_Mc8.3_0.0_6.5_VR_99.3.pckl'
 #rayfile_vp='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vp/rays.dat'
 #rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
 
-home=HOME+'/anza/models/residuals/'
-run_name='anza2013_Mc8.3_pgrid_5sta'
-dbpath=HOME+'/anza/data/databases/anza2013/anza2013_pgrid_5sta.pckl'
-modelpath=HOME+'/anza/models/pckl/anza2013/regr_Mc8.3_0.0_6.5_VR_99.3.pckl'
-rayfile_vp='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vp/rays.dat'
-rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
+#home=HOME+'/anza/models/residuals/'
+#run_name='anza2013_Mc8.5_pgrid_5sta'
+#dbpath=HOME+'/anza/data/databases/anza2013/anza2013_pgrid_5sta.pckl'
+#modelpath=HOME+'/anza/models/pckl/anza2013/regr_Mc8.5_0.0_6.5_VR_99.3.pckl'
+#rayfile_vp='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vp/rays.dat'
+#rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
 
 ########
 
 ffdf_flag=0
-Mc=8.3
+Mc=7.9
 resaxlim=[[0,4],[-5,5]]
 resaxlim_dist=[[0,190],[-4,4]]
 

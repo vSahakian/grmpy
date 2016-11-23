@@ -246,7 +246,7 @@ def invert(G,d):
     #Get the residual that's supposed to come out of lstsq:
     residual=L2norm**2
     
-    # Get the array residuals:
+    # Get the array form residuals:
     arr_residuals=G.dot(m)-d
     
     #Get the variance reduction:
