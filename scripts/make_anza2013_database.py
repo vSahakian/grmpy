@@ -26,7 +26,7 @@ elif what_home==1:
 ############
 
 # Final database name:
-dbname = 'anza2013_5sta'
+dbname = 'anza2013_pgrid_5sta'
 
 #Janine's flatfile:
 flatfile=HOME+'/anza/data/databases/anza2013/PGA_2013_MW_allC.dat'
@@ -46,11 +46,7 @@ dbfname=HOME+'/anza/data/databases/anza2013/anza2013_pgrid_5sta.pckl'
 fig_dir=HOME+'/anza/data/databases/anza2013/figs/'
 
 
-#############
-#############
-
-print 'Reading in data'
-
+# Other Parameters:
 # If a station/event is outside the propagation grid, remove it:
 propgrid_W = -118.12
 propgrid_S = 32.38
@@ -59,6 +55,18 @@ dy = 0.01
 nx = 278
 ny = 218
 
+#Number of grid points to use as buffer for keeping inside the propagation grid:
+buffer=7
+
+#Minimum number of stations for each event:
+min_stations=5
+
+print 'Will use a buffer of %f, and minimum number of stations as %f' % (buffer,min_stations)
+
+#############
+#############
+
+print 'Reading in data'
 
 #Read in the data:
 evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,pga_millig,source_i,receiver_i=dr.read_jsbfile(flatfile)
@@ -148,16 +156,14 @@ print 'Database saved'
 ########################
 
 print 'Sampling database'
-#Then, sample the database so that it includes only events recorded on a minimum
-#number of stations:
-min_stations=5
-#dbpathin=dbfname_raw
-#dbpathout=dbfname
+#Then, sample the database so that it includes only events inside the propagation bridge
+#   plus a buffer, and also recorded on a minimum number of stations:
 
 propgrid_E = propgrid_W + (dx*nx)
 propgrid_N = propgrid_S + (dy*ny)
 
-propgrid = [[propgrid_W,propgrid_E],[propgrid_S,propgrid_N]]
+# add buffer:
+propgrid = [[propgrid_W + (buffer*dx),propgrid_E - (buffer*dx)],[propgrid_S + (buffer*dy),propgrid_N - (buffer*dy)]]
 
 # Sample to remove events outside of propagation grid:
 dr.db_propgrid_sample(dbfname_raw,propgrid,dbfname_pgrid)
