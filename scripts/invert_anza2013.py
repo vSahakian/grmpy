@@ -10,16 +10,16 @@ import run_res
 #0=desktop
 #1=mac
 
-what_home=1
+what_home=0
 
 if what_home==0:
     #Desktop:
     HOME='/media/vsahakian/katmai'
-    codehome='/home/vsahakian/software'
+    codehome='/home/vsahakian'
 elif what_home==1:
     #Mac:
     HOME='/Users/vsahakian'
-    codehome='/Users/vsahakian/software'
+    codehome='/Users/vsahakian'
 
 #Location to store figures:
 home=HOME+'/anza'
@@ -80,88 +80,88 @@ smth=500
 mdep_ffdf=0
 
 #Plotting distances:
-#plot_min=0
-#plot_max=300
-#plot_step=60
-#plotdist=np.array(range(plot_min,plot_max,plot_step))
 plotdist=np.array([0,20,40,60,120])
 
 
-####################################################
-##########Run Inversion and plot:###################
-####################################################
-
-
-#################
-######Setup######
-#################
-
-#Get the string for the filename, based on the ranges:
-for k in range(len(rng)):
-    if k==0:
-        strname=np.str(rng[k])
-    else:
-        strname=strname+'_'+np.str(rng[k])
-
-########
-#Invert#
-########
-
-inv_dat=run_inv.setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,vref,smth,mdep_ffdf)
-
-print inv_dat
-
-#Get basename for model:
-basename='regr_Mc'+str(Mc)+'_'+strname+'_VR_'+str(np.around(inv_dat.VR,decimals=1))
-#basename='regr_'+strname+'_VR_'+np.str(np.around(inv_dat.VR,decimals=1))
-modelpath=model_dir+basename+'.pckl'
-
-print 'Will read in '+modelpath
-
-
-#Plot:
-fig1=run_inv.plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,plotdist,Mc,axlims,bmin,bmax,vref)
-
-
-
-###################################################################################
-#################                 MIXED EFFECTS                 ###################
-###################################################################################
+#####################################################
+###########Run Inversion and plot:###################
+#####################################################
 #
-#  
-##Now try with mixed effects:
+#
+##################
+#######Setup######
+##################
+#
+##Get the string for the filename, based on the ranges:
+#for k in range(len(rng)):
+#    if k==0:
+#        strname=np.str(rng[k])
+#    else:
+#        strname=strname+'_'+np.str(rng[k])
+#
+#########
+##Invert#
+#########
+#
+#inv_dat=run_inv.setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,vref,smth,mdep_ffdf)
+#
+#print inv_dat
+#
+##Get basename for model:
+#basename='regr_Mc'+str(Mc)+'_'+strname+'_VR_'+str(np.around(inv_dat.VR,decimals=1))
+##basename='regr_'+strname+'_VR_'+np.str(np.around(inv_dat.VR,decimals=1))
+#modelpath=model_dir+basename+'.pckl'
+#
+#print 'Will read in '+modelpath
+#
+#
+##Plot:
+#fig1=run_inv.plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,plotdist,Mc,axlims,bmin,bmax,vref)
+
+
+
+##################################################################################
+################                 MIXED EFFECTS                 ###################
+##################################################################################
+
+  
+#Now try with mixed effects:
 #dbname = 'test2013'
-#run_name = 'mixedregr_test2013_Mc_8.1'
-#resaxlim_r = [[0,250],[-4,4]]
-#resaxlim_mw = [[0,4],[-4,4]]
-#
-##Initialize the residuals directories:
-#inithome=HOME+'/anza/models/residuals/'
-#
-#runall=1
-#
-##Initialize directories:
-#runall=run_res.init(inithome,run_name)
-#
-#if runall==0:
-#    print 'Not clobbering, exiting...'
-#    
-#elif runall==1:
-#    print 'Continuing...'
-#    
-#    
-## Now run mixed effects approach #
-#invdat,invpath,tresid,mixed_residuals=run_inv.run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c)
-#
-## Plot the results of the inversion:
-#
-#
-## Plot all residuals:
-#run_res.plot_total(tresid,home,run_name,resaxlim_mw)
-#
-## Plot path residuals:
-#mixedinv = run_inv.plot_data_model(home,dbpath,dbname,invpath,coeff_file,mdep_ffdf,plotdist,Mc,axlims,bmin,bmax,vref)
-#
-#
+run_name = 'mixedregr_anza2013_Mc_8.5'
+resaxlim_r = [[0,180],[-4.7,4.7]]
+resaxlim_mw = [[0,4],[-4.7,4.7]]
+
+#Fictitious depth parameter:
+c=4.5
+
+#Initialize the residuals directories:
+inithome=HOME+'/anza/models/residuals/'
+
+runall=1
+
+#Initialize directories:
+runall=run_res.init(inithome,run_name)
+
+if runall==0:
+    print 'Not clobbering, exiting...'
+    
+elif runall==1:
+    print 'Continuing...'
+    
+    
+# Now run mixed effects approach #
+invdat,invpath,tresid,mixed_residuals=run_inv.run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c)
+
+# Plot data with model:
+mixedinv = run_inv.plot_data_model(home,dbpath,dbname,invpath,coeff_file,mdep_ffdf,plotdist,Mc,axlims,bmin,bmax,vref)
+#Save plot:
+
+
+# Plot all residuals:
+run_res.plot_total(tresid,home,run_name,resaxlim_mw)
+
+
+
+
 ###  Fix ##
 #run_res.write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std)

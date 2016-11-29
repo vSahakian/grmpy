@@ -159,6 +159,8 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,Mc,a
     fig1.savefig(figname)
     fig1.savefig(figpdf)
     
+    print 'Saved figure to %s, and %s' % (figname,figpdf)
+    
     #Show and return the figure:
     fig1.show()
     return fig1
@@ -210,7 +212,17 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c):
     
     # Add these to an inversion object....set unused values to nan:
     d = np.log10(pga) - 0.6*np.log(vs30/vref)
-    rng = [min(mw),max(mw)]
+    
+    if min(mw)>0:
+        rngmin=0
+    else:
+        rngmin=min(mw)
+        
+    if max(mw)<6.5:
+        rngmax=6.5
+    else:
+        rngmax=max(mw)
+    rng = [rngmin,rngmax]
     
     G = float('NaN')
     resid = float('NaN')
@@ -246,6 +258,7 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c):
     invdat = cdf.invinfo(G,d,model,resid,L2norm,VR,rank,svals,rng,sdist,smth,stderror,tvalue)
     
     
+    ################  RESIDUALS   ############
     # Now also get residuals object to store later per recording:
     totalresid = modelresid
     total_mean = np.mean(modelresid)
@@ -287,7 +300,7 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c):
     pickle.dump(invdat,invfile)
     invfile.close()
     
-    print 'Saved inversion object'
+    print 'Saved inversion object to %s' % invpath
     
     ## Save Mixed residuals object:
     objpath = run_dir + basename + '_robj.pckl'

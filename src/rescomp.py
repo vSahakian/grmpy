@@ -2,7 +2,7 @@
 #VJS 6/2016
 
 
-def total_residual(db,d_predicted_log10):
+def total_residual(db,d_predicted_log10,vref):
     '''
     Compute the total residual and standard deviation for a dataset
     Input:
@@ -18,13 +18,18 @@ def total_residual(db,d_predicted_log10):
     #Subtract the two... do it in natural log space.
     #The PGA from the event object is %g...not in log10 space.
     pga=db.pga_pg
+    # Get vs30 and vref:
+    vs30correct=0.6*log(db.vs30/vref)
+    
+    # 
+    
     #However d_predicted is in log10 space...connvert it:
     d_predicted=10**(d_predicted_log10)
     
     #Now do everything in ln space, since that's what engineers do...
     #ln(pga) - ln(d_predicted).....NOT ln(pga - d_predicted), since
     #in theory d_predicted should predict ln(pga).
-    total_residuals=log(pga)-log(d_predicted)
+    total_residuals=log(pga)-log(d_predicted)   #-vs30correct
     
     #Mean total residual?
     mean_resid=mean(total_residuals)
@@ -108,4 +113,29 @@ def within_event_residual(eventdb,d_predicted_log10,E_residual):
     W_std_dev=std(W_residuals)
     
     return evnum,evmw,sta,stnum,W_residuals,W_mean,W_std_dev
+    
+    
+    
+###############################
+##### MIXED EFFECTS STUFF #####
+###############################
+
+def mixed_event_objects(mixedresiduals):
+    '''
+    '''
+    
+    import pandas as pd
+    
+    # Set mixed_residuals to a shorter name:
+    mr=mixedresiduals
+    
+    # Make a dict structure:
+    evdict = {'evnum' : mr.evnum, 'sta' : mr.sta, 'stnum' : mr.stnum, 'ml' : mr.ml, 'mw' : mr.mw, 'pga' : mr.pga, \
+        'pgv' : mr.pgv, 'pga_pg' : mr.pga_pg, 'r' : mr.r, 'vs30' : mr.vs30, 'ffdf' : mr.ffdf, 'md_ffdf' : mr.md_ffdf, \
+        'elat' : mr.elat, 'elon' : mr.elon, 'edepth' : mr.edepth, 'stlat' : mr.stlat, 'stlon' : mr.stlon, 'stelv' : mr.stelv, \
+        'source_i' : mr.source_i, 'receiver_i' : mr.receiver_i}     
+
+    allevents = pd.DataFrame(evdict)
+    
+    allevents[allevents.evnum == 668267]
     

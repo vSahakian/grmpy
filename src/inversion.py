@@ -317,7 +317,7 @@ def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,M
     data = pd.DataFrame(dbdict)
     
     # Output data to csv:
-    csvfile=workinghome+'/models/pckl/'+dbname+'/r/tmp_mixed.csv'
+    csvfile=workinghome+'/models/pckl/'+dbname+'/r/'+dbname+'_mixed.csv'
     
     data.to_csv(csvfile)
 

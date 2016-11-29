@@ -127,7 +127,7 @@ def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
     print 'Mean residual from G and d matrices are %f' % meantest
     
     #Get residuals:
-    total_residuals,mean_residual,std_dev=rcomp.total_residual(db,d_predicted)
+    total_residuals,mean_residual,std_dev=rcomp.total_residual(db,d_predicted,vref)
     
     #Plot residuals and save plots:
     allresid=cdf.total_residuals(db.mw,total_residuals,mean_residual,std_dev)
@@ -141,10 +141,9 @@ def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
     #Save:
     f1.savefig(f1name)
     f1.savefig(f1pdf)
-    #
-    #f2.savefig(f2name)
-    #f2.savefig(f2pdf)
-    #
+
+    print 'Saved figures to %s and %s' % (f1name,f1pdf)
+
     return db.mw,allresid,mean_residual,std_dev
     
     
@@ -951,12 +950,14 @@ def plot_total(totalresid,home,run_name,resaxlim_mw):
     totalfig = totalresid.plt_resids(run_name,resaxlim_mw)
     
     #figure names:
-    totalfigname = run_dir + '/figs/' + run_name + '_total.png'
-    totalfigpdf = run_dir + '/figs/pdfs/' + run_name + '_total.pdf'
+    totalfigname = run_dir + 'figs/' + run_name + '_total.png'
+    totalfigpdf = run_dir + 'figs/pdfs/' + run_name + '_total.pdf'
     
     #Save:
     totalfig.savefig(totalfigname)
     totalfig.savefig(totalfigpdf)
+    
+    print 'Saved figures to %s and %s' % (totalfigname,totalfigpdf)
     
 
 def plot_all(allresid,resaxlim_r,resaxlim_mw):
