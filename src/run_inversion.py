@@ -7,7 +7,7 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ff
     Make the necessary matrices, invert, and save model output
     Input:
         home:           String with project home (i.e., anza)
-        db:             String to database path
+        dbpath:             String to database path
         dbname:         String with database path name (i.e., db2013 for pckl/db2013/)
         ncoeff:         Number of coefficients used in inversion
         rng:            Array of ranges to use in constraining the inversion
@@ -35,12 +35,20 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ff
     db=pickle.load(dbfile)
     dbfile.close()
         
+        
+    print 'smth is %i, vref is %i' % (smth,vref)
                 
     #Invert:
     #Make matrices
     G,d=inv.iinit_pga(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf)
     #Invert
     m, resid, L2norm, VR, rank, svals=inv.invert(G,d)
+
+    print 'Inversion residual is: '
+    print G.dot(m) - d
+    
+    print 'Mean of inversion residual is: '
+    print np.mean(G.dot(m) - d)
     
     ##
     #Save G, d, and m.....and other things...
@@ -67,7 +75,16 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ff
     pickle.dump(invdat,datobjfile)
     datobjfile.close()
     
-    print 'Printing inversion data object to '+fname
+    # Now, also print the model coefficients to a file:
+    model_coeff_file = obj_dir + 'coeff_' + basename + '.txt'
+    coeff=open(model_coeff_file,'w')
+    coeff.write('Model Coefficients for inversion' + basename + ':')
+    coeff.write('\n a1 = ' + str(m[0]))
+    coeff.write('\n a2 = ' + str(m[1]))
+    coeff.write('\n a3 = ' + str(m[2]))
+    coeff.write('\n a4 = ' + str(m[3]))
+    coeff.write('\n a5 = ' + str(m[4]))
+    coeff.close()
     
     #Return the model info...
     return invdat
@@ -260,9 +277,14 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c):
     
     ################  RESIDUALS   ############
     # Now also get residuals object to store later per recording:
-    totalresid = modelresid
-    total_mean = np.mean(modelresid)
-    total_std = np.std(modelresid)
+    #totalresid = modelresid
+    #total_mean = np.mean(modelresid)
+    #total_std = np.std(modelresid)
+    
+    totalresid = np.log(10**d) - np.log(10**prediction)
+    total_mean = np.mean(totalresid)
+    total_std = np.std(totalresid)
+    
     
     # Event
     eventterm = event[:,0]

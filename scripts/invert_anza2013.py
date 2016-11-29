@@ -10,7 +10,7 @@ import run_res
 #0=desktop
 #1=mac
 
-what_home=0
+what_home=1
 
 if what_home==0:
     #Desktop:
@@ -103,7 +103,7 @@ plotdist=np.array([0,20,40,60,120])
 ##Invert#
 #########
 #
-#inv_dat=run_inv.setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,vref,smth,mdep_ffdf)
+#inv_dat=run_inv.setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf)
 #
 #print inv_dat
 #

@@ -2,7 +2,7 @@
 #VJS 6/2016
 
 
-def total_residual(db,d_predicted_log10,vref):
+def total_residual(db,d_predicted_log10,vref,G,m,d):
     '''
     Compute the total residual and standard deviation for a dataset
     Input:
@@ -13,23 +13,51 @@ def total_residual(db,d_predicted_log10,vref):
         mean_resid:          Mean residual for dataset
         std_dev:             Standard deviation in dataset
     '''
-    from numpy import mean,std,log,log10
+    from numpy import mean,std,log,log10,load
     
     #Subtract the two... do it in natural log space.
-    #The PGA from the event object is %g...not in log10 space.
+    #The PGA from the event object is units of g...not in log10 space.
     pga=db.pga_pg
     # Get vs30 and vref:
     vs30correct=0.6*log(db.vs30/vref)
     
-    # 
+    # Get corrected PGA, or d_observed:
+    d_observed_log10 = log10(pga) - vs30correct
     
     #However d_predicted is in log10 space...connvert it:
     d_predicted=10**(d_predicted_log10)
+    d_observed = 10**(d_observed_log10)
+    
+    # Predicted residual from inversion:
+    inversionmean=mean(G.dot(m)-d)
+    print 'Inversion mean is %f' % inversionmean
+    
+    # Get the difference between d_predicted from G.dot(m) in the inversion and and d_predicted_log10 here (should b the same):
+    print 'difference between d_predicted_log10 and G.dot(m) is '
+    print (d_predicted_log10 - G.dot(m))
+    print '\n difference between d_observed_log10 and d is'
+    print (d_observed_log10 - d)
+    
+    # Load in the inversion data:
+    invdat=load('/Users/vsahakian/Desktop/inversiondata.npz')
+    # Get those G, m, and d:
+    G_inv=invdat['G']
+    d_inv=invdat['d']
+    m_inv=invdat['m']
+    
+    #Now get some differences
+    print 'Now for loaded inversion info......'
+    print 'difference between d_predicted_log10 and inversion G.dot(m) is '
+    print (d_predicted_log10 - G_inv.dot(m_inv))
+    print '\n difference between d_observed_log10 and inversion d is'
+    print (d_observed_log10 - d_inv)
     
     #Now do everything in ln space, since that's what engineers do...
     #ln(pga) - ln(d_predicted).....NOT ln(pga - d_predicted), since
     #in theory d_predicted should predict ln(pga).
-    total_residuals=log(pga)-log(d_predicted)   #-vs30correct
+    #total_residuals=log(pga)-log(d_predicted)   #-vs30correct
+    total_residuals=log(d_observed)-log(d_predicted)   #-vs30correct
+
     
     #Mean total residual?
     mean_resid=mean(total_residuals)

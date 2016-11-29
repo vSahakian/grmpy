@@ -43,6 +43,9 @@ def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf):
     ###         =1 for M<=4)                                                  ###
     ######*****************************************************************######
     
+    print '\n vref is ' + str(vref)
+    
+    
     #Get the R for each smoothing distance:
     if mdep_ffdf==0:
         c=4.5
@@ -92,6 +95,8 @@ def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf):
     #Get the indices where each magnitude fits in each bin - "digitize index":
     dig_i=np.digitize(db.mw,rng)
     
+    print 'Legnth of pga is %f' % pgalen
+    print 'Length of d is %f' % dlen
     
     #####
     ##Start filling G and d:
@@ -116,6 +121,8 @@ def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf):
         #Find where the digitize index, dig_i, is equal to the range we're in:
         bin_i=np.where(dig_i==j+1)[0]
         
+        print 'length of bin_i = %f' % len(bin_i)
+        
         #Get the magnitudes, distances, vs30's (to remove) and pga's for these indices:
         imw=db.mw[bin_i]
         ir=db.r[bin_i]
@@ -127,6 +134,8 @@ def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf):
             print 'Magnitude dependent fictitious depth flag missing.  on = 1, off =0'
         ipga=db.pga_pg[bin_i]
         ivs30=0.6*(np.log(db.vs30[bin_i]/vref))
+        print ivs30
+        print 'vref is %i' % vref
         
         #How many recordings are in this loop/range?
         looplen=numinbin[j]
@@ -145,8 +154,6 @@ def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf):
         a3=(Mc-imw)**2
         a4=np.log(iffdf)
         a5=ir
-        
-        print Mc
         
         #Define:
         G[r_beg:r_end,c_beg:c_end]=np.c_[a1, a2, a3, a4, a5] 
@@ -196,6 +203,9 @@ def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf):
         #one since j increases by 1:
         ccol=ccol+4
     
+    #Save d and v s30 for debugging:
+    print '\n saving d, ivs30, ipga, and dbvs30 to file /Users/vsahakian/Desktop/inversiond_vs30.npz'
+    np.savez('/Users/vsahakian/Desktop/inversiond_vs30.npz',d=d, ivs30=ivs30, ipga=ipga, dbvs30=db.vs30[bin_i])
     
     return G, d
     
@@ -262,7 +272,13 @@ def invert(G,d):
         %.2f percent' % (L2norm,residual,VR)
     
     
+    # Save to desktop for debuggign:
+    np.savez('/Users/vsahakian/Desktop/inversiondata.npz',G=G,m=m,d=d)
+    print 'Saved inversion data to /Users/vsahakian/Desktop/inversiondata.npz'
+    
     return m, residual, L2norm, VR, rank, singular_vals
+    
+
     
         
         
@@ -297,7 +313,6 @@ def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,M
     '''
     
     import pandas as pd
-    import statsmodels.api as sm
     import numpy as np
     import subprocess
     from shlex import split

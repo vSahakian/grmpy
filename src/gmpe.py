@@ -36,6 +36,8 @@ def compute_model(m,rng,mw,r,ffdf,vs30,Mc,vref,mdep_ffdf):
         a3=m[(range_i*5)+2]
         a4=m[(range_i*5)+3]
         a5=m[(range_i*5)+4]
+        
+        print m
     
         #Where is mw in this range?
         bin_i=np.where(dig_i==range_i+1)

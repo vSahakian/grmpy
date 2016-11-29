@@ -81,7 +81,7 @@ def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
     import pickle
     import gmpe as gm
     import rescomp as rcomp
-    from numpy import where,array,mean
+    from numpy import where,array,mean,log,log10
     from os import path
     import cdefs as cdf
     from matplotlib.pyplot import savefig
@@ -102,6 +102,9 @@ def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
     datobj=open(mname,'r')
     model=pickle.load(datobj)
     datobj.close()
+    
+    print 'Opened model %s' % modelpath
+    print model.m
     
     #Overall residual, 
     #In some places, vs30 is 0.  Set these to vref.
@@ -126,8 +129,11 @@ def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
     meantest = mean(testresiduals)
     print 'Mean residual from G and d matrices are %f' % meantest
     
+    #Test that the correted data, outside of rcomp, is the same as what is from inversion:
+    d_comparison = model.d - (log10(db.pga_pg) - 0.6*log(vs30/vref))
+    
     #Get residuals:
-    total_residuals,mean_residual,std_dev=rcomp.total_residual(db,d_predicted,vref)
+    total_residuals,mean_residual,std_dev=rcomp.total_residual(db,d_predicted,vref,model.G,model.m,model.d)
     
     #Plot residuals and save plots:
     allresid=cdf.total_residuals(db.mw,total_residuals,mean_residual,std_dev)
