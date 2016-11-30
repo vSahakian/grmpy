@@ -45,7 +45,7 @@ def total_residual(db,d_predicted_ln,vref):
     
     return total_residuals,mean_resid,std_dev
     
-def event_residual(eventdb,d_predicted_ln):
+def event_residual(eventdb,d_predicted_ln,vref):
     '''
     Compute the event residual
     Input:
@@ -57,7 +57,7 @@ def event_residual(eventdb,d_predicted_ln):
         E_std_dev:            Standard deviation in the event residual
     '''
     
-    from numpy import log,log10,mean,std
+    from numpy import log,mean,std
     
     #Event number and magnitude?
     evnum=eventdb.evnum[0]
@@ -70,7 +70,7 @@ def event_residual(eventdb,d_predicted_ln):
     pga=eventdb.pga_pg
     
     #Get residual for each recording in the event:
-    event_residuals=log(pga)-d_predicted_ln
+    event_residuals=(log(pga) - 0.6*log(eventdb.vs30/vref))-d_predicted_ln
     
     #Get the "event residual" (mean of all recordings):
     E_residual=mean(event_residuals)
@@ -79,7 +79,7 @@ def event_residual(eventdb,d_predicted_ln):
     #Return these values:
     return evnum,evmw,E_residual, E_std_dev
     
-def within_event_residual(eventdb,d_predicted_log10,E_residual):
+def within_event_residual(eventdb,d_predicted_ln,E_residual,vref):
     '''
     Compute the within-event residual
     Input:
@@ -101,16 +101,13 @@ def within_event_residual(eventdb,d_predicted_log10,E_residual):
     #Get pga for each event recording - eventdb has pga NOT in log10 space:
     pga=eventdb.pga_pg
     
-    #However d_predicted that is piped in IS In log10 space, convert it:
-    d_predicted=10**(d_predicted_log10)
-    
     #Add the Event residual on to the predicted value, to get the mean 
     #prediction for this event:
-    event_predicted=log(d_predicted)+E_residual
+    event_predicted=d_predicted_ln+E_residual
     
     #Subtract the value of the prediction for this event from the pga from 
     #each recording in this event
-    W_residuals=log(pga)-event_predicted
+    W_residuals=(log(pga) - 0.6*log(eventdb.vs30/vref))-event_predicted
     
     #Mean and std dev:
     W_mean=mean(W_residuals)

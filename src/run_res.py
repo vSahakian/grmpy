@@ -284,13 +284,13 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,vref,ffdf_flag,resaxlim):
         eventi.add_total_resid(total_residual)
         
         #Compute the event terms:
-        evnum_i,evmw_i,E_residual_i,std_dev_i=rcomp.event_residual(eventi,d_predicted_i)
+        evnum_i,evmw_i,E_residual_i,std_dev_i=rcomp.event_residual(eventi,d_predicted_i,vref)
         
         #Add the residual information to the event object:
         eventi.add_E_resid(E_residual_i,std_dev_i)
         
         #Get the Within-Event Residuals:
-        evnum_i,evmw_i,sta_i,stnum_i,W_residuals_i,W_mean_i,W_std_dev_i=rcomp.within_event_residual(eventi,d_predicted_i,eventi.E_residual)    
+        evnum_i,evmw_i,sta_i,stnum_i,W_residuals_i,W_mean_i,W_std_dev_i=rcomp.within_event_residual(eventi,d_predicted_i,eventi.E_residual,vref)    
     
         #Add the within-event residuals to the event object:
         eventi.add_W_resids(W_residuals_i,W_mean_i,W_std_dev_i)
