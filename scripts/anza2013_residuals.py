@@ -57,7 +57,7 @@ elif runall==1:
     tr_mw,tot_resid,mean_tot,std_dev_tot=run_res.get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim)
     
     #Get event/within-event residuals:
-    E_evnum,E_mw,E_residual,E_mean,E_std_dev=run_res.getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim)
+    E_evnum,E_mw,E_residual,E_mean,E_std_dev=run_res.getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,vref,ffdf_flag,resaxlim)
     
     #Make station objects:
     run_res.sta_list(home,run_name,dbpath)

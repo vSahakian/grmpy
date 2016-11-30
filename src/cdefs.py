@@ -218,7 +218,7 @@ class db:
         
         return f1
         
-    def plot_rpga_withmodel(self,bmin,bmax,mw,d,rng,sdist,axlims,VR,nga_mw=True,nga_pred=True,vref=True):
+    def plot_rpga_withmodel(self,bmin,bmax,mw,d_ln,rng,sdist,axlims,VR,nga_mw=True,nga_pred=True,vref=True):
         '''
         Plots log10 PGA, for various distance ranges specified by bmin, bmax,
         and step.
@@ -226,7 +226,7 @@ class db:
             bmin:       Min value for bins for data
             bmax:       Max balue for bins for data
             mw:         Mw array from gmpe.compute_model_fixeddist
-            d:          d array from compute_model_fixeddist
+            d_ln:       d array from compute_model_fixeddist - IN LN PGA!!
             rng:        Magnitude ranges, same array used for inversion
             sdist:      Distances array used for inversion
             axlims:     Array with lims: [[xmin,xmax],[ymin,ymax]]
@@ -245,11 +245,8 @@ class db:
         if vref==None:
             vref=760
             
-        ##Get bins:
-        #bins=np.arange(bmin,bmax,step)
-        ##Get the bin index for each recording:
-        #dinds=np.digitize(np.floor(self.r),bins)
-        #
+        # Convert d_ln to log10 for plotting with data:
+        d = np.log10(np.exp(d_ln))
         
         #Get colormap
         mymap='jet'

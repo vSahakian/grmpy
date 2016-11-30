@@ -49,11 +49,7 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ff
     
     print 'Mean of inversion residual is: '
     print np.mean(G.dot(m) - d)
-    
-    ##
-    #Save G, d, and m.....and other things...
-    #Save plots:
-    
+
     
     #Get the string for the filename, based on the ranges:
     for k in range(len(rng)):

@@ -17,7 +17,7 @@ def compute_model(m,rng,mw,r,ffdf,vs30,Mc,vref,mdep_ffdf):
         vref:           Vref value
         mdep_ffdf:      Magnitude dependent fictitious depth flag
     Output:
-        d_predicted:    Predicted value at that data point    
+        d_predicted:    Predicted value of ln(PGA) at that data point    
     '''
     import numpy as np
     
@@ -37,7 +37,6 @@ def compute_model(m,rng,mw,r,ffdf,vs30,Mc,vref,mdep_ffdf):
         a4=m[(range_i*5)+3]
         a5=m[(range_i*5)+4]
         
-        print m
     
         #Where is mw in this range?
         bin_i=np.where(dig_i==range_i+1)
@@ -56,7 +55,7 @@ def compute_model(m,rng,mw,r,ffdf,vs30,Mc,vref,mdep_ffdf):
         #d_predicted_i=a1+a2*mw_rangei + a3*(Mc-mw_rangei)**2 + a4*np.log(ffdf_rangei) + \
         #        a5*r_rangei + 0.6*np.log(vs30_rangei/vref)  
             
-        ######^^NOT USING ANYMMORE.....CREATES A BIAS IN RESIDUALS!!  Instead, remove before inverting... so pga - 0.6*ln(vs30/vref)###
+        ######^^NOT USING ANYMMORE.....CREATES A BIAS IN RESIDUALS!!  Instead, remove before inverting... so ln(pga) - 0.6*ln(vs30/vref)###
         
         #And append to the final output value:
         d_predicted=np.r_[d_predicted,d_predicted_i]
@@ -78,7 +77,8 @@ def compute_model_fixeddist(m,rng,sdist,Mc,mdep_ffdf):
         Mc:         Magnitude squred term (i.e., 8.5 or 8.1)
         mdep_ffdf:  Flag for fictitious depth mag-dependence; 0=no, 1=yes
     Output:
-        
+        mw_out:     Array of mw
+        d_out:      Predicted ln(PGA)
     '''
     
     import numpy as np
@@ -134,17 +134,16 @@ def compute_model_fixeddist(m,rng,sdist,Mc,mdep_ffdf):
             a4=m[(i*5)+3]
             a5=m[(i*5)+4]
             
-            #GMPE:
-            d=a1+a2*mw + a3*(Mc-mw)**2 + a4*np.log(R) + \
+            #    GMPE:    #
+            # This now predicts lnPGA, but it goes into somethign that plots log10PGA...
+            #       So convert to log10...
+            d_ln=a1+a2*mw + a3*(Mc-mw)**2 + a4*np.log(R) + \
                 a5*sdist[j] 
-                # Don't add this yet...I think it should only go with the 
-                #data for residuals... 
-                #+ 0.6*np.log(self.vs30/vref)
-                ##ACTUALLY....it needs to be subtracted form the data before inverting
+
             
             #Add these onto the bigger array, for this range:     
             mw_range=np.r_[mw_range,mw]
-            d_range=np.r_[d_range,d]
+            d_range=np.r_[d_range,d_ln]
         
         #Now add these onto the final arrayt, horizontally:
         if j==0:

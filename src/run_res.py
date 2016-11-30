@@ -104,7 +104,6 @@ def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
     datobj.close()
     
     print 'Opened model %s' % modelpath
-    print model.m
     
     #Overall residual, 
     #In some places, vs30 is 0.  Set these to vref.
@@ -130,10 +129,11 @@ def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
     print 'Mean residual from G and d matrices are %f' % meantest
     
     #Test that the correted data, outside of rcomp, is the same as what is from inversion:
-    d_comparison = model.d - (log10(db.pga_pg) - 0.6*log(vs30/vref))
+    d_comparison = model.d - (log(db.pga_pg) - 0.6*log(vs30/vref))
+    print d_comparison
     
     #Get residuals:
-    total_residuals,mean_residual,std_dev=rcomp.total_residual(db,d_predicted,vref,model.G,model.m,model.d)
+    total_residuals,mean_residual,std_dev=rcomp.total_residual(db,d_predicted,vref)
     
     #Plot residuals and save plots:
     allresid=cdf.total_residuals(db.mw,total_residuals,mean_residual,std_dev)
@@ -155,7 +155,7 @@ def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
     
     
     
-def getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
+def getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,vref,ffdf_flag,resaxlim):
     '''
     Get the Event and Within-Event Residuals, and store in Event objects
     Input:
@@ -164,6 +164,7 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
         dbpath:          String with path to a pickle database object
         modelpath:       String with path to a gmpe model pickle object
         Mc:              Number around which to center magnitude squred term (i.e., 8.1 or 8.5)
+        vref:            Reference vs30 velocity
         ffdf_flag:       Flag for mag dependent ffdf.  0=off, 1=on
         resaxlim:        Array with axis limits for the resid plot: [[xmin,xmax],[ymin,ymax]]
     Output:
@@ -208,7 +209,7 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
     datobj.close()
     
     #In some places, vs30 is 0.  Set these to vref.
-    vref=760
+    print 'vref is %i' % vref
     mdep_ffdf=ffdf_flag
     #Where are they 0?
     vs30_0ind=np.where(db.vs30==0)[0]
@@ -218,7 +219,7 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
     vs30[vs30_0ind]=vref
     
     #Now compute the predicted value of PGA...
-    d_predicted=gm.compute_model(model.m,model.rng,db.mw,db.r,db.ffdf,vs30,Mc,vref,mdep_ffdf)
+    d_predicted_ln=gm.compute_model(model.m,model.rng,db.mw,db.r,db.ffdf,vs30,Mc,vref,mdep_ffdf)
 
     ###
     ##Get unique events:
@@ -243,7 +244,7 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
         unique_ind=np.where(unique_events[i]==db.evnum)[0]
         #Get the predicted data for this event only, for each recording
         #d_predicted_i is an array, with len = # of recordings for event):
-        d_predicted_i=d_predicted[unique_ind]
+        d_predicted_i=d_predicted_ln[unique_ind]
     
         #Get the database info for this event:
         evnum_i=db.evnum[unique_ind]
@@ -277,7 +278,7 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
         eventi=cdf.event(evnum_i,sta_i,stnum_i,ml_i,mw_i,pga_i,pgv_i,pga_pg_i,r_i,vs30_i,ffdf_i,md_ffdf_i,lat_i,lon_i,depth_i,stlat_i,stlon_i,stelv_i,source_i,receiver_i)
         
         #Get total residual to store:
-        total_residual=pga_pg_i-d_predicted_i
+        total_residual=(np.log(pga_pg_i) - 0.6*np.log(vs30_i/vref))-d_predicted_i
         
         #Add total residual to object:
         eventi.add_total_resid(total_residual)

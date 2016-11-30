@@ -2,18 +2,18 @@
 #VJS 6/2016
 
 
-def total_residual(db,d_predicted_log10,vref,G,m,d):
+def total_residual(db,d_predicted_ln,vref):
     '''
     Compute the total residual and standard deviation for a dataset
     Input:
         db:                  Database object with data to compute
-        d_predicted_log10:         Array with predicted value          
+        d_predicted_ln:      Array with predicted value          
     Output:
         total_residuals:     Array with residual for each data point
         mean_resid:          Mean residual for dataset
         std_dev:             Standard deviation in dataset
     '''
-    from numpy import mean,std,log,log10,load
+    from numpy import mean,std,log
     
     #Subtract the two... do it in natural log space.
     #The PGA from the event object is units of g...not in log10 space.
@@ -22,42 +22,20 @@ def total_residual(db,d_predicted_log10,vref,G,m,d):
     vs30correct=0.6*log(db.vs30/vref)
     
     # Get corrected PGA, or d_observed:
-    d_observed_log10 = log10(pga) - vs30correct
+    d_observed_ln = log(pga) - vs30correct
+    
+    print 'ln dobserved is '
+    print d_observed_ln
+    
+    print 'ln dpredicted is '
+    print d_predicted_ln
     
     #However d_predicted is in log10 space...connvert it:
-    d_predicted=10**(d_predicted_log10)
-    d_observed = 10**(d_observed_log10)
+    d_predicted = d_predicted_ln
+    d_observed = d_observed_ln
     
-    # Predicted residual from inversion:
-    inversionmean=mean(G.dot(m)-d)
-    print 'Inversion mean is %f' % inversionmean
-    
-    # Get the difference between d_predicted from G.dot(m) in the inversion and and d_predicted_log10 here (should b the same):
-    print 'difference between d_predicted_log10 and G.dot(m) is '
-    print (d_predicted_log10 - G.dot(m))
-    print '\n difference between d_observed_log10 and d is'
-    print (d_observed_log10 - d)
-    
-    # Load in the inversion data:
-    invdat=load('/Users/vsahakian/Desktop/inversiondata.npz')
-    # Get those G, m, and d:
-    G_inv=invdat['G']
-    d_inv=invdat['d']
-    m_inv=invdat['m']
-    
-    #Now get some differences
-    print 'Now for loaded inversion info......'
-    print 'difference between d_predicted_log10 and inversion G.dot(m) is '
-    print (d_predicted_log10 - G_inv.dot(m_inv))
-    print '\n difference between d_observed_log10 and inversion d is'
-    print (d_observed_log10 - d_inv)
-    
-    #Now do everything in ln space, since that's what engineers do...
-    #ln(pga) - ln(d_predicted).....NOT ln(pga - d_predicted), since
-    #in theory d_predicted should predict ln(pga).
-    #total_residuals=log(pga)-log(d_predicted)   #-vs30correct
-    total_residuals=log(d_observed)-log(d_predicted)   #-vs30correct
-
+    # Get total residual - both of these are already in ln space.
+    total_residuals = d_observed - d_predicted   
     
     #Mean total residual?
     mean_resid=mean(total_residuals)
@@ -67,16 +45,16 @@ def total_residual(db,d_predicted_log10,vref,G,m,d):
     
     return total_residuals,mean_resid,std_dev
     
-def event_residual(eventdb,d_predicted_log10):
+def event_residual(eventdb,d_predicted_ln):
     '''
     Compute the event residual
     Input:
         eventdb:              Event object
-        d_predicted_log10:    Array with model predictions for each recording in 
-                                  event object
+        d_predicted_ln:       Array with model predictions for each recording in 
+                                  event object - predicts ln(PGA)
     Output: 
-        E_residual:         Event residual
-        E_std_dev:          Standard deviation in the event residual
+        E_residual:           Event residual
+        E_std_dev:            Standard deviation in the event residual
     '''
     
     from numpy import log,log10,mean,std
@@ -90,11 +68,9 @@ def event_residual(eventdb,d_predicted_log10):
     #The PGA from the event object is %g...not in log10 space.
     #Subtract the predicted value from the event value of pga_pg (in log10 space):
     pga=eventdb.pga_pg
-    #Convert d_predicted from its log10 space:
-    d_predicted=10**(d_predicted_log10)
     
     #Get residual for each recording in the event:
-    event_residuals=log(pga)-log(d_predicted)
+    event_residuals=log(pga)-d_predicted_ln
     
     #Get the "event residual" (mean of all recordings):
     E_residual=mean(event_residuals)
