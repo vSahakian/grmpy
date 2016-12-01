@@ -306,14 +306,13 @@ def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,M
     '''
     
     import pandas as pd
-    import statsmodels.api as sm
     import numpy as np
     import subprocess
     from shlex import split
     
     ## Set database information
     # Set input for model, that is not "raw" (i.e., M):
-    pga_corrected=np.log10(pga) - 0.6*(np.log(vs30/vref))
+    pga_corrected=np.log(pga) - 0.6*(np.log(vs30/vref))
     m2=(Mc - m)**2
     R=np.sqrt(rrup**2 + c**2)
     lnR=np.log(R)
@@ -327,8 +326,11 @@ def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,M
     
     # Output data to csv:
     csvfile=workinghome+'/models/pckl/'+dbname+'/r/'+dbname+'_mixed.csv'
+    # Also output to tmp.csv for the mixed effects inversion:
+    tmpfile=workinghome+'/models/pckl/'+dbname+'/r/'+'tmp_mixed.csv' 
     
     data.to_csv(csvfile)
+    data.to_csv(tmpfile)
 
     
     #### MAKE SYSTEM CALL TO R ####

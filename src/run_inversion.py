@@ -224,7 +224,7 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c):
     log, fixed, event, site = inv.mixed_effects(codehome,home,dbname,pga,mw,rrup,vs30,evnum,sta,vref,c,Mc)
     
     # Add these to an inversion object....set unused values to nan:
-    d = np.log10(pga) - 0.6*np.log(vs30/vref)
+    d = np.log(pga) - 0.6*np.log(vs30/vref)
     
     if min(mw)>0:
         rngmin=0
@@ -277,7 +277,7 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c):
     #total_mean = np.mean(modelresid)
     #total_std = np.std(modelresid)
     
-    totalresid = np.log(10**d) - np.log(10**prediction)
+    totalresid = d - prediction
     total_mean = np.mean(totalresid)
     total_std = np.std(totalresid)
     
