@@ -709,8 +709,6 @@ def plot_site_WE(home,run_name,resaxlim):
     Output:
         
     '''
-    
-    import cdefs as cdf
     import matplotlib.pyplot as plt
     from os import path
     import dread
@@ -948,7 +946,6 @@ def plot_total(totalresid,home,run_name,resaxlim_mw):
     Output:
     '''    
 
-    import matplotlib.pyplot as plt
     from os import path
     
     #Get run directory:
@@ -977,7 +974,6 @@ def plot_all(allresid,resaxlim_r,resaxlim_mw):
     Output:
     '''
     
-    import matplotlib.pyplot as plt
     
     ## First plot the total residuals:
     
@@ -1225,3 +1221,292 @@ def makeEvents_mixed(home,run_name,mixedresidpath,Mc,vref,ffdf_flag,resaxlim):
     
     
     return f1
+    
+    ############
+    
+def makeStations_mixed(home,run_name,resfile):
+    '''
+    Read in a database and an event list object, sort out by station, and 
+    computes site residuals, creates station objects, to append to a list.
+    Input:
+        home:            String with home path
+        run_name:        String with name of the run
+        resfile:         String with path to a pickle residuals object from mixed effects
+    Output: 
+        station_list_object:    Writes a list of station objects into an object,
+                                into directory /home/run_name/sta_objs/
+    '''
+    
+    import cdefs as cdf
+    import numpy as np
+    import cPickle as pickle
+    from os import path
+    
+    #Get directory for output:
+    run_dir=path.expanduser(home+run_name+'/')
+    so_dir=run_dir+'sta_objs/'
+    
+    #REad database object:
+    #Filename:
+    fname=resfile
+    datobj=open(fname,'r')
+    db=pickle.load(datobj)
+    datobj.close()
+    
+    ##Zero out lists to use for indexing - use this resulting index, the station index,
+    # to sort out the events for the station object later on...
+    ##Get unique events:
+    unique_stnums=np.unique(db.stnum)
+    unique_stas=np.unique(db.sta)
+    
+    
+    ###Make Station Objects, for other residuals####
+
+    #Start an empty list, store all station objects here in the end:    
+    station_list=[]
+    site_terms=[]
+    
+    #First loop over the list of unique stations    
+    for sta_ind in range(len(unique_stnums)):
+        #Station number?
+        station_num_i=unique_stnums[sta_ind]
+        
+        #Station name:
+        station_name_i=unique_stas[sta_ind]
+        
+        #Zero out the lists/arrays that will be used to add to the station object for htis statioN:
+        evnum=[]
+        ml=[]
+        mw=[]
+        pga_pg=[]
+        pga=[]
+        pgv=[]
+        r=[]
+        ffdf=[]
+        md_ffdf=[]
+        elat=[]
+        elon=[]
+        edepth=[]
+        stlat=[]
+        stlon=[]
+        stelv=[]
+        source_i=[]
+        receiver_i=[]
+        #Total residual:
+        total_residual=[]
+        #Event residuals:
+        E_residual=[]
+        #Within-event residuals:
+        W_residual=[]
+        # Site terms:
+        site_terms=[]
+        
+        # Now find which indices in teh residuals object these station are at:
+        station_res_ind=np.where(db.stnum==station_num_i)[0]
+        
+        # Get the data for these:
+        vs30=db.vs30[station_res_ind]
+        evnum.append(db.evnum[station_res_ind])
+        ml.append(db.ml[station_res_ind])
+        mw.append(db.mw[station_res_ind])
+        pga_pg.append(db.pga_pg[station_res_ind])
+        pgv.append(db.pgv[station_res_ind])    
+        r.append(db.r[station_res_ind])    
+        ffdf.append(db.ffdf[station_res_ind])
+        md_ffdf.append(db.md_ffdf[station_res_ind])
+        elat.append(db.elat[station_res_ind])
+        elon.append(db.elon[station_res_ind])
+        edepth.append(db.edepth[station_res_ind])
+        stlat.append(db.stlat[station_res_ind])
+        stlon.append(db.stlon[station_res_ind])
+        stelv.append(db.stelv[station_res_ind])
+        source_i.append(db.source_i[station_res_ind])
+        receiver_i.append(db.receiver_i[station_res_ind])
+        total_residual.append(db.total_residual[station_res_ind])
+
+        W_residual.append(db.W_residual[station_res_ind])
+        
+        #event and site residual in station object should be one number, so append [0]:
+        E_residual.append(db.E_residual[station_res_ind][0])
+        site_terms.append(db.site_terms[station_res_ind][0])        
+                
+            
+        #AFter looping over all events, convert these lists into arrays, to put
+        #into a station object:
+        #Vs30 stays as just one number
+        evnum=np.array(evnum)
+        ml=np.array(ml)
+        mw=np.array(mw)
+        pga_pg=np.array(pga_pg)
+        pgv=np.array(pgv)
+        r=np.array(r)
+        ffdf=np.array(ffdf)
+        md_ffdf=np.array(md_ffdf)
+        elat=np.array(elat)
+        elon=np.array(elon)
+        edepth=np.array(edepth)
+        stlat=np.array(stlat)
+        stlon=np.array(stlon)
+        stelv=np.array(stelv)
+        source_i=np.array(source_i)
+        receiver_i=np.array(receiver_i)
+        total_residual=np.array(total_residual)
+        E_residual=np.array(E_residual)
+        W_residual=np.array(W_residual)[0]
+        
+        # But don't convert the site residual since there's only one...
+        #       instead, take only one of them, since they are now an array:
+        site_terms=site_terms[0]
+        
+        #Put into a station object...
+        station_i=cdf.station(station_name_i,station_num_i,vs30[0],evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,total_residual,E_residual,W_residual)
+        
+        #Get the site residual:
+        station_i.add_site_resid(site_terms)
+        
+        #Append to the station list...
+        station_list.append(station_i)
+
+
+    #Write out the station list to an object:
+    fname=so_dir+run_name+'.pckl'
+    flist=open(fname,'w')
+    #Loop over each event in event_list, and dump it into the pickle file:
+    for i in range(len(station_list)):
+        pickle.dump(station_list[i],flist)
+    #close the file
+    flist.close()
+        
+    return station_list
+    
+    
+#######
+def plotPath_mixed(home,run_name,mixed_resid_path,axlims,axlims_dist):
+    '''
+    Get the path term, meanwhile make an all residuals object
+    VJS 8/2016
+    Input: 
+        home:               Path to the home directory
+        run_name:           STring with the run name
+        mixed_resid_path:   String with path to residuals object
+        axlims:             Axis limits for plotting [[xmin,xmax],[ymin,ymax]]
+        axlims_dist:        Axis limits for plotting the distance path terms [[xmin,xmax],[ymin,ymax]]
+    Output:
+        f_mw:               Figure of path term vs. mw
+        f_dist:             Figure of path term vs. r
+        allresiduals:       An object containing all db info, all residuals, and raytracing indices
+        pterm_mean:         Mean of path term
+        pterm_std:          Standard deviation of path term
+    '''
+    
+    from os import path
+    import cPickle as pickle
+    from numpy import mean,std
+    
+    #Get the run directory:
+    run_dir=path.expanduser(home+run_name+'/')
+    
+    #Neet the directories to the figures:
+    fig_dir=run_dir+'figs/'
+    pdf_dir=fig_dir+'pdfs/'
+
+    #Figure names:
+    mwfile=fig_dir+run_name+'_pathterms_mw.png'
+    mwpdf=pdf_dir+run_name+'_pathterms_mw.pdf'
+    
+    distfile=fig_dir+run_name+'_pathterms_r.png'
+    distpdf=pdf_dir+run_name+'_pathterms_r.pdf'
+    
+    # Open residuals object:
+    rfile=open(mixed_resid_path,'r')
+    allresiduals=pickle.load(rfile)
+    rfile.close()
+    
+    # Get mean info for return:
+    pterm_mean=mean(allresiduals.path_terms)
+    pterm_std=std(allresiduals.path_terms)
+    
+    ##Plot:
+    #First by magnitude:
+    f_mw=allresiduals.plot_path_term_mw(run_name,axlims)
+    #save:
+    f_mw.savefig(mwfile)
+    f_mw.savefig(mwpdf)
+    
+    #then by distance:
+    f_dist=allresiduals.plot_path_term_r(run_name,axlims_dist)
+    #save
+    f_dist.savefig(distfile)
+    f_dist.savefig(distpdf)
+    
+    #REturn the allr esiduals object:
+    return f_mw,f_dist,pterm_mean,pterm_std
+    
+    
+######
+def write_stats_mixed(home,run_name,mixed_resid_path,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std):
+    '''
+    Write out statistics to a file
+    Input:
+        home:               String to path where the home dir is
+        run_name:           String with the name of this run
+        mixed_resid_path:   String with path to residuals object   
+        mean_tot:           Mean Total residual
+        std_dev_tot:        Std Dev Total residual
+        E_mean:             Mean Event Residual
+        E_std_dev:          Std Dev Event Residual
+        W_mean:             Mean Within-Event Residual
+        W_std_dev:          Std Dev Within-Event Residual
+        pterm_mean:         Mean of the path terms
+        pterm_std:          Std Dev of the path terms
+    Output:
+        STatistics file to home/run_name/run_name_stats.txt 
+    '''
+    from os import path
+    from numpy import str,unique,array,around,mean,std
+    import cPickle as pickle
+    
+    #Make stats file:   
+    statsdir=path.expanduser(home+run_name+'/')
+    statsfile=statsdir+run_name+'_stats.txt'
+    
+    #Open the residuals object to get the site terms:
+    rfile=open(mixed_resid_path,'r')
+    robj=pickle.load(rfile)
+    rfile.close()
+    
+    #Get out the stations and site terms:
+    #Get unique station names:
+    stations,u_stations_ind=unique(robj.sta,return_index=True)
+    siteterms=around(array(robj.site_terms)[u_stations_ind],decimals=2)
+    
+    #Get standard deviation:
+    siteterm_mean=mean(siteterms)
+    siteterm_std=std(siteterms)
+    
+    #Write out stats to a file:
+    sfile=open(statsfile,'w')
+    sfile.write('Statistics for Run                  '+run_name+'\n')
+    sfile.write('\n')
+    sfile.write('Total Residual Mean:                '+str(mean_tot)+'\n')
+    sfile.write('Total Residual Std Dev:             '+str(std_dev_tot)+'\n')
+    sfile.write('\n')
+    sfile.write('Event Residual Mean:                '+str(E_mean)+'\n')
+    sfile.write('Event Residual Std Dev:             '+str(E_std_dev)+'\n')
+    sfile.write('\n')
+    sfile.write('Within-Event Residual Mean:         '+str(W_mean)+'\n')
+    sfile.write('Within-Event Residual Std Dev:      '+str(W_std_dev)+'\n')
+    sfile.write('\n')
+    sfile.write('Site Term Residual Mean:            '+str(siteterm_mean)+'\n')
+    sfile.write('Site Term Residual Std Dev:         '+str(siteterm_std)+'\n')
+    sfile.write('\n')
+    sfile.write('Path Term Residual Mean:            '+str(pterm_mean)+'\n')
+    sfile.write('Path Term Residual Std Dev:         '+str(pterm_std)+'\n')
+    sfile.write('\n')
+    
+    #Site terms:
+    sfile.write('Site terms:\n')
+    for site_i in range(len(siteterms)):
+        sfile.write('\t'+stations[site_i]+':\t'+str(siteterms[site_i])+'\n')
+    
+    sfile.close()

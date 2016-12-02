@@ -524,6 +524,9 @@ class station:
         site_resid=mean(W_residual)
         
         self.site_resid=site_resid
+        
+    def add_site_resid(self,site_term):
+        self.site_resid=site_term
 
     def plot_site_WE(self,sta_axis,colors,axis_lims,xlabel_toggle,ylabel_toggle):
         '''

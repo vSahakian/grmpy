@@ -155,8 +155,13 @@ invdat,invpath,tresid,mixed_residuals,d_r_prediction,mixed_resid_path=run_inv.ru
 
 # Plot data with model:
 mixedinv = run_inv.plot_data_model(home,dbpath,dbname,invpath,coeff_file,mdep_ffdf,plotdist,Mc,axlims,bmin,bmax,vref)
-#Save plot:
 
+# Get some mean values for the stats file:
+mean_tot=np.mean(mixed_residuals.total_residual)
+std_dev_tot=np.std(mixed_residuals.total_residual)
+
+E_mean=np.mean(mixed_residuals.E_residual)
+E_std_dev=np.std(mixed_residuals.E_residual)
 
 # Plot all residuals:
 run_res.plot_total(tresid,home,run_name,resaxlim_mw)
@@ -164,6 +169,17 @@ run_res.plot_total(tresid,home,run_name,resaxlim_mw)
 # Plot event terms:
 eventfig1 = run_res.makeEvents_mixed(run_home,run_name,mixed_resid_path,Mc,vref,mdep_ffdf,resaxlim_mw)
 
+# Get station objects:
+station_list=run_res.makeStations_mixed(run_home,run_name,mixed_resid_path)
+
+# Plot W residuals on one plot:
+W_mean,W_std_dev = run_res.plot_Wresid(run_home,run_name,resaxlim_mw)
+
+# Plot by station:
+run_res.plot_site_WE(run_home,run_name,resaxlim_mw)
+
+# Plot path residuals:
+f_mw,f_dist,pterm_mean,pterm_std=run_res.plotPath_mixed(run_home,run_name,mixed_resid_path,resaxlim_mw,resaxlim_r)
 
 ###  Fix ##
-#run_res.write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std)
+run_res.write_stats_mixed(run_home,run_name,mixed_resid_path,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std)
