@@ -128,6 +128,7 @@ plotdist=np.array([0,20,40,60,120])
 #Now try with mixed effects:
 #dbname = 'test2013'
 run_name = 'mixedregr_anza2013_Mc_8.5'
+run_home=home+'/models/residuals/'
 resaxlim_r = [[0,180],[-5,5]]
 resaxlim_mw = [[0,4],[-5,5]]
 
@@ -150,7 +151,7 @@ elif runall==1:
     
     
 # Now run mixed effects approach #
-invdat,invpath,tresid,mixed_residuals=run_inv.run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c)
+invdat,invpath,tresid,mixed_residuals,d_r_prediction,mixed_resid_path=run_inv.run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c)
 
 # Plot data with model:
 mixedinv = run_inv.plot_data_model(home,dbpath,dbname,invpath,coeff_file,mdep_ffdf,plotdist,Mc,axlims,bmin,bmax,vref)
@@ -160,7 +161,8 @@ mixedinv = run_inv.plot_data_model(home,dbpath,dbname,invpath,coeff_file,mdep_ff
 # Plot all residuals:
 run_res.plot_total(tresid,home,run_name,resaxlim_mw)
 
-
+# Plot event terms:
+eventfig1 = run_res.makeEvents_mixed(run_home,run_name,mixed_resid_path,Mc,vref,mdep_ffdf,resaxlim_mw)
 
 
 ###  Fix ##

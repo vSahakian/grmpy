@@ -279,7 +279,7 @@ def invert(G,d):
 ###Run Mixed Effects Model in R###
 ##################################
 
-def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,Mc):
+def mixed_effects(codehome,workinghome,dbname,pga,mw,rrup,vs30,evnum,sta,vref,c,Mc):
     '''
     Run a Mixed effects model to compute the model coefficients (a1 - a5), 
     as well as the event and station terms.  The remaining residual can 
@@ -290,7 +290,7 @@ def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,M
         workinghome:   String with full path to working dir home, no slash at end (i.e., /Users/vsahakian/anza or /home/vsahakian/katmai/anza)
         dbname:        String with name to database, for path in pckl dir (i.e., 'test2013')
         pga:           Array with values of PGA for each recording, in g
-        m:             Array with values of moment magnitude per recording
+        mw:             Array with values of moment magnitude per recording
         rrup:          Array with values of Rrup per recording
         vs30:          Array with values of Vs30 per recoridng
         evnum:         Array with values of the event number per recording
@@ -313,13 +313,13 @@ def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,M
     ## Set database information
     # Set input for model, that is not "raw" (i.e., M):
     pga_corrected=np.log(pga) - 0.6*(np.log(vs30/vref))
-    m2=(Mc - m)**2
+    mw2=(Mc - mw)**2
     R=np.sqrt(rrup**2 + c**2)
     lnR=np.log(R)
     
     
     #  First make a dictionary:
-    dbdict = {'pga' : pga_corrected, 'm' : m, 'm2' : m2, 'lnR' : lnR, 'rrup' : rrup, 'evnum' : evnum, 'sta' : sta}
+    dbdict = {'pga' : pga_corrected, 'm' : mw, 'm2' : mw2, 'lnR' : lnR, 'rrup' : rrup, 'evnum' : evnum, 'sta' : sta}
     
     # Make datafram ewith Pandas
     data = pd.DataFrame(dbdict)
@@ -351,7 +351,7 @@ def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,M
     # Print output
     print out
     print err
-    log=str(out) + str(err)
+    me_log=str(out) + str(err)
     
     
     ##### Read R results back in ######
@@ -360,6 +360,7 @@ def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,M
     r_fixed = workinghome + '/models/pckl/' + dbname +'/r/results_fixed.csv'
     r_site = workinghome + '/models/pckl/' + dbname +'/r/results_site.csv'
     r_event = workinghome + '/models/pckl/' + dbname +'/r/results_event.csv'
+    r_pred = workinghome + '/models/pckl/' + dbname + '/r/results_prediction.csv'
     
     # Import:
     # Fixed data - reads in Coefficient, std. error, t.value.  Rows:  a1, a3, a3, a4, a5
@@ -375,6 +376,9 @@ def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,M
     # evnum, bias (event term), std.error
     event_data = np.genfromtxt(r_event, delimiter=",",skip_header=1)
     
+    
+    # Finally predictions from lmer - includes model, event, and site terms...
+    pred_data = np.genfromtxt(r_pred, delimiter=",",skip_header=1)
     
     
     ### Reincorporate site and event terms into the list of recordings ###
@@ -402,4 +406,4 @@ def mixed_effects(codehome,workinghome,dbname,pga,m,rrup,vs30,evnum,sta,vref,c,M
     
     
     ### Print fixed effects out into something... ###
-    return log, fixed_data, event_terms, site_terms
+    return me_log, fixed_data, event_terms, site_terms, pred_data

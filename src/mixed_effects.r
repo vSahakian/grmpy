@@ -108,6 +108,14 @@ r_mixedeffects <- function(datacsv, home, database, ...) {
 	
 	model <- lme4::lmer(pga ~ m + m2 + lnR + rrup + (1|evnum) + (1|sta), data=db)
 	
+	# Make a new dataframe with just data to see if the predict funtion
+	# 	always includes the random effects in the prediction:
+	
+	newdatframe <- data.frame(db$m, db$m2, db$lnR, db$rrup)
+	
+	prediction_vector <- predict(model)
+	prediction <- data.frame(prediction_vector)
+	
 	## Print to screen:
 	print(model)
 	
@@ -128,6 +136,11 @@ r_mixedeffects <- function(datacsv, home, database, ...) {
 	filename <- file.path(home,"models/pckl",database,"r/results_event.csv")
 	readr::write_csv(event_coefs, path=filename)
 	message("Event effects saved to: ", filename)
+	
+	# Save predictions to a file:
+	filename <- file.path(home,"models/pckl",database,"r/results_prediction.csv")
+	readr::write_csv(prediction, path=filename)
+	message("Wrote predicted values to: ", filename)
 }	
 	
 	

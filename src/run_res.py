@@ -981,3 +981,247 @@ def plot_all(allresid,resaxlim_r,resaxlim_mw):
     
     ## First plot the total residuals:
     
+    
+    
+def makeEvents_mixed(home,run_name,mixedresidpath,Mc,vref,ffdf_flag,resaxlim):
+    '''
+    Get the Event and Within-Event Residuals, and store in Event objects
+    Input:
+        home:            STring with home path
+        run_name:        String with name of the run
+        mixedresidpath:  String with path to the mixed residuals object
+        Mc:              Number around which to center magnitude squred term (i.e., 8.1 or 8.5)
+        vref:            Reference vs30 velocity
+        ffdf_flag:       Flag for mag dependent ffdf.  0=off, 1=on
+        resaxlim:        Array with axis limits for the resid plot: [[xmin,xmax],[ymin,ymax]]
+    Output:
+        E_evnum:                Array of event numbers
+        E_mw:                   Array of event magnitudes
+        E_residual:             Array of event residuals for db
+        E_mean:                 Mean event residual for db
+        E_std_dev:              Standard deviation for all event residuals in db
+        Event_list_object:      An object, saved to run_dir/event_objs/run_name.pckl, 
+                                with a list of all event objects for the databases
+    '''
+    
+    import numpy as np
+    import cdefs as cdf
+    from os import path
+    import cPickle as pickle
+    import matplotlib.pyplot as plt
+    from matplotlib.ticker import MultipleLocator
+
+    
+    #Get directory for output:
+    run_dir=path.expanduser(home+run_name+'/')
+    eo_dir=run_dir+'event_objs/'
+    fig_dir=run_dir+'figs/'
+     
+    ###Get Event and Within-Event Residuals##\
+    #Import the database and model predictions
+    ##########Open the database object:###################
+    #Filename:
+    dbname=mixedresidpath
+    datobj=open(dbname,'r')
+    db=pickle.load(datobj)
+    datobj.close()
+    
+    
+    ##In some places, vs30 is 0.  Set these to vref.
+    #print 'vref is %i' % vref
+    #mdep_ffdf=ffdf_flag
+    ##Where are they 0?
+    #vs30_0ind=np.where(db.vs30==0)[0]
+    ##Get vs30 from database...
+    #vs30=db.vs30
+    ##Set 0 entries to vref:
+    #vs30[vs30_0ind]=vref
+    
+    ##Now compute the predicted value of PGA...
+    #d_predicted_ln=gm.compute_model(model.m,model.rng,db.mw,db.r,db.ffdf,vs30,Mc,vref,mdep_ffdf)
+    #d_
+
+    ###
+    ##Get unique events:
+    unique_events=np.unique(db.evnum)
+
+    ##Make a class for each event; append them to a list, made empty here:
+    event_list=[]
+    
+    ##Zero out arrays for info used for plotting, for all events...
+    E_evnum=[]
+    E_mw=[]
+    E_residual=[]
+    
+
+    #Loop through the unique events, make each into an object, append to event list
+    for i in range(len(unique_events)):
+        unique_ind=np.where(unique_events[i]==db.evnum)[0]
+    
+        #Get the database info for this event:
+        evnum_i=db.evnum[unique_ind]
+        sta_i=db.sta[unique_ind]
+        stnum_i=db.stnum[unique_ind]
+        ml_i=db.ml[unique_ind]
+        mw_i=db.mw[unique_ind]
+        pga_i=db.pga[unique_ind]
+        pgv_i=db.pgv[unique_ind]
+        pga_pg_i=db.pga_pg[unique_ind]
+        r_i=db.r[unique_ind]
+        ffdf_i=db.ffdf[unique_ind]
+        md_ffdf_i=db.md_ffdf[unique_ind]
+        lat_i=db.elat[unique_ind]
+        lon_i=db.elon[unique_ind]
+        depth_i=db.edepth[unique_ind]
+        stlat_i=db.stlat[unique_ind]
+        stlon_i=db.stlon[unique_ind]
+        stelv_i=db.stelv[unique_ind]
+        source_i=db.source_i[unique_ind]
+        receiver_i=db.receiver_i[unique_ind]
+        vs30_i=db.vs30[unique_ind]
+                
+        
+        #Make the event object:
+        eventi=cdf.event(evnum_i,sta_i,stnum_i,ml_i,mw_i,pga_i,pgv_i,pga_pg_i,r_i,vs30_i,ffdf_i,md_ffdf_i,lat_i,lon_i,depth_i,stlat_i,stlon_i,stelv_i,source_i,receiver_i)
+        
+        #Get total residual to store:
+        total_residual=db.total_residual[unique_ind]
+        
+        #Add total residual to object:
+        eventi.add_total_resid(total_residual)
+        
+        #Compute the event terms:
+        E_residual_i=db.E_residual[unique_ind][0]
+        std_dev_i=db.E_std
+        
+        #Add the residual information to the event object:
+        eventi.add_E_resid(E_residual_i,std_dev_i)
+        
+        #Get the Within-Event Residuals:
+        W_residuals_i=db.W_residual[unique_ind]
+        W_mean_i=db.W_mean
+        W_std_dev_i=db.W_std
+    
+        #Add the within-event residuals to the event object:
+        eventi.add_W_resids(W_residuals_i,W_mean_i,W_std_dev_i)
+        
+        #Append the event object, and the d_predicted to the list:
+        event_list.append(eventi)
+        
+        # Get single mw, for plotting:
+        evmw_i=mw_i[0]
+        
+        #Append to the residual arrays, to use later for plotting:
+        E_evnum.append(evnum_i)
+        E_mw.append(evmw_i)
+        E_residual.append(E_residual_i)
+        
+    #Turn those into arrays:
+    E_evnum=np.array(E_evnum)
+    E_mw=np.array(E_mw)
+    E_residual=np.array(E_residual)
+    
+    #Get stats:
+    E_mean=np.mean(E_residual)
+    E_std_dev=np.std(E_residual)
+    
+    #Write the whole event_list list into a pickle object
+    fname=eo_dir+run_name+'.pckl'
+    flist=open(fname,'w')
+    #Loop over each event in event_list, and dump it into the pickle file:
+    for i in range(len(event_list)):
+        pickle.dump(event_list[i],flist)
+    #close the file
+    flist.close()
+    
+    
+    print 'E_mw is'
+    print E_mw
+    
+    print 'E_residual is'
+    print E_residual
+    
+    ####Plotting####
+    
+    #Get the file path of the output figure:
+    f1figname=fig_dir+run_name+'_E_resids.png'
+    f1pdf=fig_dir+'pdfs/'+run_name+'_E_resids.pdf'
+
+    
+    ##
+    #Set up plot to have histogram adjacent to scatter...
+    ##
+    
+    #definitions for axes
+    fudge_factor=0.02
+    left, width=0.1, 0.70
+    bottom, height=0.1,0.81
+    left_h=left+width+fudge_factor
+    width_h=0.15
+
+    #For titles:
+    E_std_dev_short=np.around(E_std_dev,decimals=2)
+    
+    #Axes:
+    axxlim=resaxlim[0]
+    axylim=resaxlim[1]
+
+    #Color:
+    rgb=np.array([111,168,163])/255.0
+    rgb.astype(float)
+    color=rgb*np.ones((len(E_mw),3))
+
+
+
+    #Plot...    
+    f1=plt.figure()
+    
+    #define axis limits for scatter, and histogram:
+    rect_scatter=[left,bottom,width,height]
+    rect_histy=[left_h,bottom,width_h,height]
+    
+    #define axis tick locations for histogram:
+    hist_xLocator=MultipleLocator(500) 
+    
+    #define axes:
+    axScatter=plt.axes(rect_scatter)
+    axHisty=plt.axes(rect_histy)
+    
+    axScatter.scatter(E_mw,E_residual,edgecolors=color,facecolors='none',lw=0.8)
+
+    #Histogram:
+    #want 4x as many bins as main plot y-axis limit units:
+    nbins=(axylim[1]-axylim[0])*4
+    
+    #set the number of bins, adn the range to be the x axis limits (same as y axis, ln residuals):
+    axHisty.hist(E_residual,bins=nbins,range=[axylim[0],axylim[1]],orientation='horizontal',color=rgb)
+    
+    #Also plot a dashed line at 0:
+    axScatter.plot(axxlim,[0,0],linestyle='--',color='0.75')     
+    
+    #set axis limits:
+    #scatter
+    axScatter.set_xlim(axxlim)
+    axScatter.set_ylim(axylim)
+    #histogram
+    axHisty.set_ylim(axylim)
+    #set axis ticks:
+    axHisty.xaxis.set_major_locator(hist_xLocator)
+    #set no labels on the y axis:
+    axHisty.yaxis.set_ticklabels('')      
+    
+    #Add titles, limits...
+    axScatter.set_xlabel(r"$\mathbf{M}$")
+    axScatter.set_ylabel('ln Residual')
+    ptitle=r"Event Residuals"+"\n"+"Run: "+run_name+", Std Dev: "+np.str(E_std_dev_short)
+    axScatter.set_title(ptitle)
+    
+    #Show...
+    f1.show()
+    
+    #Save:
+    f1.savefig(f1figname)
+    f1.savefig(f1pdf)
+    
+    
+    return f1

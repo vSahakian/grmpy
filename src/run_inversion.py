@@ -221,7 +221,7 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c):
     sta = db.sta
     
     # Run Model
-    log, fixed, event, site = inv.mixed_effects(codehome,home,dbname,pga,mw,rrup,vs30,evnum,sta,vref,c,Mc)
+    me_log, fixed, event, site, d_r_prediction = inv.mixed_effects(codehome,home,dbname,pga,mw,rrup,vs30,evnum,sta,vref,c,Mc)
     
     # Add these to an inversion object....set unused values to nan:
     d = np.log(pga) - 0.6*np.log(vs30/vref)
@@ -252,9 +252,14 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c):
 
     # Get L2norm and VR #
     # Basic stuff:
-    ffdf_factor = np.sqrt(c**2 + rrup**2)
-    prediction = model[0] + (model[1]*mw) + model[2]*((Mc - mw)**2) + model[3]*np.log(ffdf_factor) + model[4]*rrup
-    modelresid = d - prediction
+    
+    # This is bad because the ME makes a prediction including the random effects....so this isn't the full prediction
+    #R = np.sqrt(rrup**2 + c**2)
+    #prediction = model[0] + (model[1]*mw) + model[2]*((Mc - mw)**2) + model[3]*np.log(R) + model[4]*rrup
+    
+    # Instead, use the prediction from R:
+    modelresid = d - d_r_prediction
+    
     
     # L2norm:
     # Square these, sum them, get the square root:
@@ -273,32 +278,36 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c):
     
     ################  RESIDUALS   ############
     # Now also get residuals object to store later per recording:
-    #totalresid = modelresid
-    #total_mean = np.mean(modelresid)
-    #total_std = np.std(modelresid)
-    
-    totalresid = d - prediction
-    total_mean = np.mean(totalresid)
-    total_std = np.std(totalresid)
-    
-    
+    # Consider the "total" residuals to be the traditional total -
+    #   meaning Gm - d.....not th emixed effects residuals, which is
+    #   Gm + An - d   where An represents the site and event effects.
+        
+    # First get event and site terms:    
     # Event
     eventterm = event[:,0]
     eventmean = np.mean(eventterm)
     eventstd = np.std(eventterm)
-    
-    # Within Event:
-    weterm = totalresid - eventterm
-    wemean = np.mean(weterm)
-    westd = np.std(weterm)
     
     # Site/Station term:
     siteterm = site[:,0]
     sitemean = np.mean(siteterm)
     sitestd = np.std(siteterm)
     
+    # Now get the total residual - it's the aleatory residual, from the observed
+    # minus r prediction, plus the event and site terms from r:
+    totalresid = (d - d_r_prediction) + eventterm + siteterm
+    total_mean = np.mean(totalresid)
+    total_std = np.std(totalresid)
+    
+    # Within Event:
+    weterm = totalresid - eventterm
+    wemean = np.mean(weterm)
+    westd = np.std(weterm)
+    
+    
+    
     # Path term plus aleatory per recording:
-    pathterm = totalresid - (eventterm + siteterm)
+    pathterm = totalresid - (eventterm + siteterm)   # Note this is the same as d - d_r_prediction!
     pathmean = np.mean(pathterm)
     pathstd = np.std(pathterm)
     
@@ -330,4 +339,4 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c):
     
     
     # return mixed residuals object:
-    return invdat, invpath, tresid, mixedresid
+    return invdat, invpath, tresid, mixedresid, d_r_prediction, objpath
