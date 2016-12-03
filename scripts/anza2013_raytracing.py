@@ -26,6 +26,7 @@ home=HOME+'/anza/models/residuals/'
 run_name='mixedregr_anza2013_Mc_8.5'
 dbpath=HOME+'/anza/data/databases/anza2013/anza2013_pgrid_5sta.pckl'
 modelpath=HOME+'/anza/models/pckl/anza2013/regr_Mc8.5_0.0_6.5_VR_99.4.pckl'
+residname='mixedregr_anza2013_Mc_8.5_VR_99.9'
 #rayfile_vp='/media/vsahakian/katmai/anza/fm3d/anza2013_Mc8.5_pgrid_5sta/Vp/rays.dat'
 rayfile_vs='/media/vsahakian/katmai/anza/fm3d/anza2013_Mc8.5_pgrid_5sta/Vs/rays.dat'
 faultfile='/media/vsahakian/katmai/anza/data/faults/Holocene_LatestPleistocene_117.5w_115.5w_33n_34n.pckl'
@@ -111,9 +112,9 @@ veltype=[1,2]
 
 #map, and cross sections:
 view=[0,1,2]
-axlims_view0=[[-116.9,-116.35],[33.3,33.75]]
-axlims_view1=[[33.3,33.75],[-25,5]]
-axlims_view2=[[-116.9,-116.35],[-25,5]]
+axlims_view0=[[-118.0,-115.2],[32.3,34.5]]
+axlims_view1=[[32.3,34.5],[-28,5]]
+axlims_view2=[[-118.0,-115.2],[-28,5]]
 axlims=[axlims_view0,axlims_view1,axlims_view2]
 
 stations=1
@@ -125,28 +126,45 @@ cutoff_val=1.0
 
 ###
 #Plot in a loop
-for vel_i in range(len(veltype)):
-    for view_i in range(len(view)):
-        rt.plot_rays(home,run_name,veltype[vel_i],view[view_i],axlims[view_i],stations,events,by_path,mymap,faultfile)
-        print 'Plotted velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
-        plt.close()
-        plt.close()
+#for vel_i in range(len(veltype)):
+#    for view_i in range(len(view)):
+#        rt.plot_rays(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,by_path,mymap,faultfile)
+#        print 'Plotted velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
+#        plt.close()
+#        plt.close()
 
+##Plot with the cutoff value:
+##Plot in a loop
+#for vel_i in range(len(veltype)):
+#    for view_i in range(len(view)):
+#        rt.plot_rays_cutoffval(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,mymap,faultfile,cutoff_val)
+#        print 'Plotted cuttoff value '+str(cutoff_val)+', velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
+#        plt.close()
+#        plt.close()
+        
+# New version for AGU - only plot VS
+vel_i=1
+for view_i in range(len(view)):
+    rt.plot_rays(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,by_path,mymap,faultfile)
+    print 'Plotted velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
+    plt.close()
+    plt.close()
+    
 #Plot with the cutoff value:
 #Plot in a loop
-for vel_i in range(len(veltype)):
-    for view_i in range(len(view)):
-        rt.plot_rays_cutoffval(home,run_name,veltype[vel_i],view[view_i],axlims[view_i],stations,events,mymap,faultfile,cutoff_val)
-        print 'Plotted cuttoff value '+str(cutoff_val)+', velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
-        plt.close()
-        plt.close()
+vel_i=1
+for view_i in range(len(view)):
+    rt.plot_rays_cutoffval(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,mymap,faultfile,cutoff_val)
+    print 'Plotted cuttoff value '+str(cutoff_val)+', velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
+    plt.close()
+    plt.close()
         
 #For the map view, plot the 3d raypaths once, then rotate and save:
 axlims_3d=[[-116.9,-116.35],[33.3,33.75],[-20,1]]
 vtype=2
 
-#plot:
-figure3d=rt.plot_3d_raypaths(home,run_name,vtype,stations,events,axlims_3d,mymap,faultfile)
+##plot:
+#figure3d=rt.plot_3d_raypaths(home,run_name,vtype,stations,events,axlims_3d,mymap,faultfile)
 
 
 ###################################

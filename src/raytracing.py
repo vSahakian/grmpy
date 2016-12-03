@@ -352,13 +352,14 @@ def store_rayinfo(rfile_in,rfile_out,rayfile,veltype,lon_conversion):
 
     
 ##############    
-def plot_rays(home,run_name,veltype,view,axlims,stations,events,by_path,mymap,faultfile):
+def plot_rays(home,run_name,dbname,veltype,view,axlims,stations,events,by_path,mymap,faultfile):
     '''
     Plot the raypaths and save the png and pdf figures
     VJS 8/2016
     Input:
         home:           String with the home directory for the project
         run_name:       String with the run name combo of db and model
+        dbname:         String with the basename of the residuals object
         veltype:        Vp/Vs (1/2)
         view:           Plot view; map/lat vs depth/lon vs depth, 0/1/2
         axlims:         Axis limits [[xmin, xmax],[ymin,ymax]]
@@ -382,7 +383,7 @@ def plot_rays(home,run_name,veltype,view,axlims,stations,events,by_path,mymap,fa
     pdf_dir=fig_dir+'pdfs/'
     
     #Get the residuals object:
-    residfile_old=run_dir+run_name+'_robj.pckl'
+    residfile_old=run_dir+dbname+'_robj.pckl'
     #Get the new name to add on raydat:
     rbase=residfile_old.split('.pckl')
     residfile=rbase[0]+'_raydat.pckl'
@@ -405,13 +406,14 @@ def plot_rays(home,run_name,veltype,view,axlims,stations,events,by_path,mymap,fa
     
     
 ######
-def plot_rays_cutoffval(home,run_name,veltype,view,axlims,stations,events,mymap,faultfile,cutoff_val):
+def plot_rays_cutoffval(home,run_name,dbname,veltype,view,axlims,stations,events,mymap,faultfile,cutoff_val):
     '''
     Plot the raypaths and save the png and pdf figures
     VJS 8/2016
     Input:
         home:           String with the home directory for the project
         run_name:       String with the run name combo of db and model
+        dbname:         STring with the basename of the residuals object
         veltype:        Vp/Vs (1/2)
         view:           Plot view; map/lat vs depth/lon vs depth, 0/1/2
         axlims:         Axis limits [[xmin, xmax],[ymin,ymax]]
@@ -436,7 +438,7 @@ def plot_rays_cutoffval(home,run_name,veltype,view,axlims,stations,events,mymap,
     pdf_dir=fig_dir+'pdfs/'
     
     #Get the residuals object:
-    residfile_old=run_dir+run_name+'_robj.pckl'
+    residfile_old=run_dir+dbname+'_robj.pckl'
     #Get the new name to add on raydat:
     rbase=residfile_old.split('.pckl')
     residfile=rbase[0]+'_raydat.pckl'
