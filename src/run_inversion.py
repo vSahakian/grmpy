@@ -319,7 +319,7 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c):
     mixedresid = cdf.mixed_residuals(db,totalresid,total_mean,total_std,eventterm,eventmean,eventstd,weterm,wemean,westd,siteterm,sitemean,sitestd,pathterm,pathmean,pathstd)
     
     ## Save objects ##
-    basename = 'mixedregr_Mc'+str(Mc)+'_VR_'+np.str(np.around(VR,decimals=1))
+    basename = 'mixedregr_Mc'+dbname+str(Mc)+'_VR_'+np.str(np.around(VR,decimals=1))
     
     ## Save inversion object:
     invpath = home + '/models/pckl/' + dbname + '/' + basename + '.pckl'
