@@ -557,9 +557,11 @@ class station:
         #Get and plot the site term as a dashed line:
         site_line_x=array([axis_lims[0][0],axis_lims[0][1]])
         site_line_y=array([site_term,site_term])
+        site_line_0=array([0,0])
         #plot, with dashed line and mid gray color:
         sta_axis.hold(True)
         sta_axis.plot(site_line_x,site_line_y,linestyle='--',color='0.75')
+        sta_axis.plot(site_line_x,site_line_0,linestyle='-',color='0.75')
         
         #Set axis limits:
         sta_axis.set_xlim((axis_lims[0][0],axis_lims[0][1]))
