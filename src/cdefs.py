@@ -1262,21 +1262,27 @@ class residuals:
         #Add colorbar:
         cb=plt.colorbar(c)
         cb.set_label('Path term (ln residual)')
+        
+        print 'Raypaths plotted'
             
         
-        #If stations are to be plotted:    
-        if stations==1:
-            #Hold on:
-            #plt.hold(True)
-            #Scatter:
-            plt.scatter(stx,sty,color='black',s=100,marker='^',zorder=len(self.mw)+5)
-            
+        #If stations are to be plotted:             
         if events==1:
             #Hold on
             #plt.hold(True)
             #Scatter events:
-            plt.scatter(evx,evy,edgecolors='g',facecolors='none',s=15,linewidths=2,zorder=len(self.mw)+7)
+            plt.scatter(evx,evy,edgecolors='g',facecolors='none',s=15,linewidths=1.5,zorder=len(self.mw)+5)
             
+            print 'Events plotted'
+            
+        if stations==1:
+            #Hold on:
+            #plt.hold(True)
+            #Scatter:
+            plt.scatter(stx,sty,color='black',s=100,marker='^',zorder=len(self.mw)+7)   
+            
+            print 'Stations plotted'
+                    
         #Plot faults, if it's map view:
         if view==0:
             for segment_i in range(len(fault_segments)):
@@ -1482,18 +1488,24 @@ class residuals:
         cb=plt.colorbar(c)
         cb.set_label('Path term (ln residual)')
         
+        print 'Raypaths plotted'
+        
         #If stations are to be plotted:    
-        if stations==1:
-            #Hold on:
-            #plt.hold(True)
-            #Scatter:
-            plt.scatter(stx,sty,color='black',s=100,marker='^',zorder=len(self.mw)+5)
-            
         if events==1:
             #Hold on
             #plt.hold(True)
             #Scatter events:
-            plt.scatter(evx,evy,edgecolors='g',facecolors='none',s=15,linewidths=2,zorder=len(self.mw)+7)
+            plt.scatter(evx,evy,edgecolors='g',facecolors='none',s=15,linewidths=1.5,zorder=len(self.mw)+5)
+        
+            print 'Events plotted'
+        
+        if stations==1:
+            #Hold on:
+            #plt.hold(True)
+            #Scatter:
+            plt.scatter(stx,sty,color='black',s=100,marker='^',zorder=len(self.mw)+7)
+            
+        print 'Stations plotted'
             
         #Plot faults, if it's map view:
         if view==0:

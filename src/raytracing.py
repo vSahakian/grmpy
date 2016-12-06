@@ -461,12 +461,13 @@ def plot_rays_cutoffval(home,run_name,dbname,veltype,view,axlims,stations,events
     
     
 #######
-def plot_3d_raypaths(home,run_name,vtype,stations,events,axlims,colormap,faultfile):
+def plot_3d_raypaths(home,run_name,dbname,vtype,stations,events,axlims,colormap,faultfile):
     '''
     Plot the 3d raypaths for a given object
     Input:
         home:           String with the path to the project home
         run_name:       String with the database/model combination
+        dbname:         STring with the basename of the residuals object
         vtype:          Velocity type to plot: 1/2 = Vp/Vs
         stations:       Plot stations?  0/1=no/yes
         events:         Plot events?    0/1=no/yes
@@ -485,7 +486,7 @@ def plot_3d_raypaths(home,run_name,vtype,stations,events,axlims,colormap,faultfi
     run_dir=path.expanduser(home+run_name+'/')
     
     #Residuals file with raypaths:
-    residpath=run_dir+run_name+'_robj_raydat.pckl'
+    residpath=run_dir+dbname+'_robj_raydat.pckl'
 
     #Open the object:
     rfile=open(residpath,'r')

@@ -41,13 +41,14 @@ def make_material_object(coordspath,materialpath,matobjectpath,lon_convert):
 
 
 #2 - Interpolate ray values through model
-def interp_rays(residualobject,materialobject,interptype):
+def interp_rays(residualobject,materialobject,interptype,raytypes):
     '''
     Interpolate P and S wave rays through the material model
     Input:
         residualobject:         Object with the residuals, ray positions, etc.
         materialobject:         Object with the materialmodel
         interptype:             String with type of interpolation for Rbf (i.e., 'linear')
+        raytypes:               Array with ray types to interpolate: ([0]), or ([0,1]) - 0=Vp, 1=Vs
     Output:
         pvals:                  List of arrays with values of model for P wave rays
         svals:                  List of arrays with values of model for S wave rays
@@ -55,18 +56,53 @@ def interp_rays(residualobject,materialobject,interptype):
     
     import res_analysis as ra
     
+    #Find which rays to interpolate:
+    
+    
     #First run for P-waves:
-    rayflag=0
-    
     #INterpolate:
-    pvals=ra.interpolate_rays(residualobject,materialobject,interptype,rayflag)
     
-    #Now for S-waves:
-    rayflag=1
-    svals=ra.interpolate_rays(residualobject,materialobject,interptype,rayflag)
+    ######   TEST    #########
+    #if (len(raytypes)==2) & (0 in raytypes) & (1 in raytypes):
+    #    pvals=1
+    #    svals=2
+    #    
+    #    return pvals,svals
+    #    
+    #elif (len(raytypes)==1) & (0 in raytypes):
+    #    pvals=1
+    #    
+    #    return pvals
+    #    
+    #elif (len(raytypes)==1) & (1 in raytypes):
+    #    svals=2
+    #    
+    #    return svals
     
-    #Return
-    return pvals, svals
+    
+    
+    if (len(raytypes)==2) & (0 in raytypes) & (1 in raytypes):
+        rayflag=0
+        pvals=ra.interpolate_rays(residualobject,materialobject,interptype,rayflag)
+        
+        rayflag=1
+        svals=ra.interpolate_rays(residualobject,materialobject,interptype,rayflag)
+        
+        return pvals,svals
+        
+    elif (len(raytypes)==1) & (0 in raytypes):
+        rayflag=0
+        pvals=ra.interpolate_rays(residualobject,materialobject,interptype,rayflag)
+        
+        return pvals
+        
+    elif (len(raytypes)==1) & (1 in raytypes):
+        rayflag=1
+        svals=ra.interpolate_rays(residualobject,materialobject,interptype,rayflag)
+        
+        return svals
+    
+
         
 
 #3 - Compute indices
