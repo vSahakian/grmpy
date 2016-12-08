@@ -481,7 +481,128 @@ def plot_terms_colored(home,run_name,robj,term,index,axlims,color_by,cvals,mymap
     
     return f1
     
+ 
+##########
+def plot_terms_colored_condition(home,run_name,condition,robj,robj_x,robj_y,term,index,axlims,color_by,color_by_ind,cvals,mymap):
+    '''
+    Plot path terms vs. some index, with path terms on the x-axis.
+    Input:
+        home:           String with path to the home directory for project
+        run_name:       String with database/inversion combo for residuals
+        condition:      String with condition (for plot and filename)
+        robj:           Residuals object
+        robj_x:         X vector from residuals object
+        robj_y:         Y vector from residuals object
+        term:           String with term to plot: 'site_terms','W_residual','E_residual'
+        index:          STring with index to plot: 'ind'_raytype_modeltype_indextype
+                            raytype=p/s; modeltype=vp/vs/vpvs/qp/qs/qpqs;
+                            indextype=pathint,normpathint,gradpathint
+                            i.e., 'ind_p_vs_normpathint'
+        axlims:         Axis limits: [[xmin,xmax],[ymin,ymax]]
+        color_by:       String with variable to color by: 'r', or 'mw'
+        color_by_ind:   Indices to use for condition, for coloring
+        cvals:          Colorbar limits: [cmin,cmax]
+        mymap:          String with colormap to use (i.e., 'jet')
+    Output:
+        Saves plots to home/run_name/figs/pathterm_index
+    '''
+    from os import path
+    import matplotlib.pyplot as plt
+    from scipy.stats.stats import pearsonr
+    from numpy import array,arange
+    import matplotlib.colors as colors
+    import matplotlib.cm as cm
     
+    #Get run directory, and figure directory:
+    run_dir=path.expanduser(home+run_name+'/')
+    fig_dir=run_dir+'figs/'
+    pdf_dir=fig_dir+'pdfs/'
+    
+    #Get a string for the plot name and title:
+    figbasename=term+index+'_'+color_by+condition
+    
+    #Index type...
+    indtype=index.split('_')[-1]
+    if indtype=='pathint':
+        indname='Path Integral'
+    elif indtype=='normpathint':
+        indname='Normalized Path Integral'
+    elif indtype=='gradpathint':
+        indname='Path Integral of the gradient'
+        
+    #Term type:
+    if term=='site_terms':
+        termname='Site Term (ln residual)'
+        termtitle='Site Term'
+    elif term=='W_residual':
+        termname='Within Event residual (ln residual)'
+        termtitle='Within-Event Residual'
+    elif term=='E_residual':
+        termname='Event residual (ln residual)'
+        termtitle='Event Residual'
+        
+    #What to plot?
+    x=robj_x
+    y=robj_y
+        
+    #get correlation coefficient:
+    pcoeff,tails=pearsonr(x,y)
+    pcoeff=round(pcoeff,2)
+    
+    #Title:
+    ptitle='Plot of '+termtitle+' vs. '+indname+'for '+condition+'\n Pearson coefficient: '+str(pcoeff)
+    
+    #Get colormap
+    #Make colormap:
+    colormap_mwdist=plt.get_cmap(mymap)
+    #Make a normalized colorscale
+    cmin=cvals[0]
+    cmax=cvals[1]
+    cNorm=colors.Normalize(vmin=cmin, vmax=cmax)
+    #Apply normalization to colormap:
+    scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap_mwdist)
+    
+    #Make a fake contour plot for the colorbar:
+    Z=[[0,0],[0,0]]
+    levels=arange(cmin,cmax,0.01)
+    c=plt.contourf(Z, levels, cmap=colormap_mwdist)   
+    
+    #Assign values to colormap
+    colorVal = scalarMap.to_rgba(getattr(robj,color_by)[color_by_ind])
+    
+    #Plot:
+    f1=plt.figure()
+    plt.scatter(x,y,facecolors='none',edgecolors=colorVal,lw=0.9)
+    
+    #Add colorbar:
+    cb=plt.colorbar(c)
+    if color_by=='r':
+        cbarlabel='Distance (km)'
+    elif color_by=='mw':
+        cbarlabel='M'
+    cb.set_label(cbarlabel)
+    
+    #Set axis limits and labels:
+    plt.xlim(axlims[0])
+    plt.ylim(axlims[1])
+    
+    plt.xlabel(termname)
+    plt.ylabel(indname)
+    plt.title(ptitle)
+    
+    #Save figure:
+    pngname=fig_dir+figbasename+'.png'
+    pdfname=pdf_dir+figbasename+'.pdf'
+    plt.savefig(pngname)
+    plt.savefig(pdfname)
+    
+    return f1
+ 
+ 
+ 
+    
+       
+###########################3             
 def grid_path_term(home,run_name,bindims,raytype,stat_type):
     '''
     Average the path terms for every cell on a 3d grid.  Uses run_name_robj_raydat.pckl

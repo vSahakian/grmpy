@@ -203,7 +203,7 @@ for indexi in range(len(index)):
 term='E_residual'
 index=['ind_s_vs_pathint','ind_s_vs_normpathint','ind_s_vs_gradpathint']
 color_by=['r','mw']
-axlims=[[[-4,4],[100,8650]],[[-4,4],[0.66,0.85]],[[-4,4],[0,6.5]]]
+axlims=[[[-5,5],[100,8650]],[[-5,5],[0.66,0.85]],[[-5,5],[0,6.5]]]
 cmap='jet'
 cvals=[[0,140],[1.2,3]]
 
@@ -213,4 +213,67 @@ for indexi in range(len(index)):
 
 ###############
 ##############
+## Even more plots....
+index='ind_s_vs_gradpathint'
+color_by=['r','mw']
+axlims=[[-3,6],[0,6.5]]
+cmap='jet'
+cvals=[[0,140],[1.2,3]]
+condition='gr40km'
 
+# Separate dataset:
+gr40ind=where(robj.r>=40)[0]
+rx40=robj.path_terms[gr40ind]
+ry40=robj.ind_s_vs_gradpathint[gr40ind]
+
+for color_by_i in range(len(color_by)):
+    ra.plot_terms_colored_condition(home,run_name,condition,robj,rx40,ry40,term,index,axlims,color_by[color_by_i],gr40ind,cvals[color_by_i],cmap)
+
+####
+condition='gr40le60km'
+gr40le60ind=where((robj.r>=40) & (robj.r<=60))[0]
+rx4060=robj.path_terms[gr40le60ind]
+ry4060=robj.ind_s_vs_gradpathint[gr40le60ind]
+
+for color_by_i in range(len(color_by)):
+    ra.plot_terms_colored_condition(home,run_name,condition,robj,rx4060,ry4060,term,index,axlims,color_by[color_by_i],gr40le60ind,cvals[color_by_i],cmap)
+    
+#####
+####
+condition='gr60le80km'
+gr60le80ind=where((robj.r>=60) & (robj.r<=80))[0]
+rx6080=robj.path_terms[gr60le80ind]
+ry6080=robj.ind_s_vs_gradpathint[gr60le80ind]
+
+for color_by_i in range(len(color_by)):
+    ra.plot_terms_colored_condition(home,run_name,condition,robj,rx6080,ry6080,term,index,axlims,color_by[color_by_i],gr60le80ind,cvals[color_by_i],cmap)
+    
+####
+###
+condition='gr80le100km'
+gr80le100ind=where((robj.r>=80) & (robj.r<=100))[0]
+rx80100=robj.path_terms[gr80le100ind]
+ry80100=robj.ind_s_vs_gradpathint[gr80le100ind]
+
+for color_by_i in range(len(color_by)):
+    ra.plot_terms_colored_condition(home,run_name,condition,robj,rx80100,ry80100,term,index,axlims,color_by[color_by_i],gr80le100ind,cvals[color_by_i],cmap)
+    
+###
+###
+condition='gr100le120km'
+gr100le120ind=where((robj.r>=100) & (robj.r<=120))[0]
+rx100120=robj.path_terms[gr100le120ind]
+ry100120=robj.ind_s_vs_gradpathint[gr100le120ind]
+
+for color_by_i in range(len(color_by)):
+    ra.plot_terms_colored_condition(home,run_name,condition,robj,rx100120,ry100120,term,index,axlims,color_by[color_by_i],gr100le120ind,cvals[color_by_i],cmap)
+
+###
+###
+condition='gr120km'
+gr120ind=where(robj.r>=120)[0]
+rx120=robj.path_terms[gr120ind]
+ry120=robj.ind_s_vs_gradpathint[gr120ind]
+
+for color_by_i in range(len(color_by)):
+    ra.plot_terms_colored_condition(home,run_name,condition,robj,rx120,ry120,term,index,axlims,color_by[color_by_i],gr120ind,cvals[color_by_i],cmap)
