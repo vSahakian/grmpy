@@ -215,6 +215,7 @@ for indexi in range(len(index)):
 ##############
 ## Even more plots....
 index='ind_s_vs_gradpathint'
+term='path_terms'
 color_by=['r','mw']
 axlims=[[-3,6],[0,6.5]]
 cmap='jet'

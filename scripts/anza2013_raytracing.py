@@ -121,7 +121,7 @@ stations=1
 events=0
 by_path=1
 mymap='jet'
-cutoff_val=1.0
+cutoff_val=1.5
 
 
 ###
@@ -150,14 +150,14 @@ for view_i in range(len(view)):
     plt.close()
     plt.close()
     
-##Plot with the cutoff value:
-##Plot in a loop
-#vel_i=1
-#for view_i in range(len(view)):
-#    rt.plot_rays_cutoffval(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,mymap,faultfile,cutoff_val)
-#    print 'Plotted cuttoff value '+str(cutoff_val)+', velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
-#    plt.close()
-#    plt.close()
+#Plot with the cutoff value:
+#Plot in a loop
+vel_i=1
+for view_i in range(len(view)):
+    rt.plot_rays_cutoffval(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,mymap,faultfile,cutoff_val)
+    print 'Plotted cuttoff value '+str(cutoff_val)+', velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
+    plt.close()
+    plt.close()
 #        
 #For the map view, plot the 3d raypaths once, then rotate and save:
 axlims_3d=[[-118.0,-115.2],[32.3,34.55],[-28,1]]

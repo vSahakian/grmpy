@@ -540,6 +540,9 @@ def plot_terms_colored_condition(home,run_name,condition,robj,robj_x,robj_y,term
     elif term=='E_residual':
         termname='Event residual (ln residual)'
         termtitle='Event Residual'
+    elif term=='path_terms':
+        termname='Path term (ln residuals)'
+        termtitle='Path Term'
         
     #What to plot?
     x=robj_x
