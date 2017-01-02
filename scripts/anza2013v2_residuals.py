@@ -20,9 +20,9 @@ elif what_home==1:
 
 
 home=HOME+'/anza/models/residuals/'
-run_name='anza2013_Mc8.5_pgrid_5sta'
-dbpath=HOME+'/anza/data/databases/anza2013/anza2013_pgrid_5sta.pckl'
-modelpath=HOME+'/anza/models/pckl/anza2013/regr_Mc8.5_0.0_6.5_VR_99.3.pckl'
+run_name='v2anza2013_Mc8.5_pgrid_5sta'
+dbpath=HOME+'/anza/data/databases/v2anza2013/v2anza2013_pgrid_5sta.pckl'
+modelpath=HOME+'/anza/models/pckl/v2anza2013/regr_Mc8.5_0.0_6.5_VR_99.3.pckl'
 rayfile_vp='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vp/rays.dat'
 rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
 
