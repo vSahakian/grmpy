@@ -8,7 +8,7 @@ import raytracing as rt
 #0=desktop
 #1=mac
 
-what_home=1
+what_home=0
 
 if what_home==0:
     #Desktop:
@@ -33,8 +33,8 @@ vref=760
 
 ffdf_flag=0
 Mc=8.5
-resaxlim=[[0,4],[-5,5]]
-resaxlim_dist=[[0,190],[-4,4]]
+resaxlim=[[0,5],[-6,6]]
+resaxlim_dist=[[0,190],[-6,6]]
 
 #Initialize runall as being 1, in case the directory is new:
 runall=1
