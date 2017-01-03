@@ -2,9 +2,16 @@
 
 import cPickle as pickle
 from numpy import where,unique, zeros
+import cdefs as cdf
+import dread as dr
 
 ## Read in file:
 robjpath = '/media/vsahakian/katmai/anza/models/residuals/v2anza2013_Mc8.5_pgrid_5sta/v2anza2013_Mc8.5_pgrid_5sta_robj.pckl'
+
+# Original database path name:
+dbpath_in=''
+# Out path:
+dbpath_out=''
 
 #  Find where residuals are greater than or less than a certain value:
 resvalue = 4
@@ -18,46 +25,47 @@ robj=pickle.load(rfile)
 rfile.close()
 
 # Find where they're greater/less than value:
-reswhere = where(abs(robj.total_residual)>4)[0]
+resless4=where(abs(robj.total_residual)<=4)[0]
+resgreater4=where(abs(robj.total_residual)>4)[0]
 
 # Find the length of this, and what percentage of the original database would be removed:
-reslen = len(reswhere)
+reslen=len(resgreater4)
 
 # Get all values of databse for these indices:
 # The basics...
-evnum=robj.evnum[reswhere]
-elat=robj.elat[reswhere]
-elon=robj.elon[reswhere]
-edepth=robj.edepth[reswhere]
-sta=robj.sta[reswhere]
-stnum=robj.stnum[reswhere]
-ml=robj.ml[reswhere]
-mw=robj.mw[reswhere]
-pga=robj.pga[reswhere]
-pgv=robj.pgv[reswhere]
-pga_pg=robj.pga_pg[reswhere]
-r=robj.r[reswhere]
-vs30=robj.vs30[reswhere]
-ffdf=robj.ffdf[reswhere]
-md_ffdf=robj.md_ffdf[reswhere]
-stlat=robj.stlat[reswhere]
-stlon=robj.stlon[reswhere]
-stelv=robj.stelv[reswhere]
+evnum=robj.evnum[resgreater4]
+elat=robj.elat[resgreater4]
+elon=robj.elon[resgreater4]
+edepth=robj.edepth[resgreater4]
+sta=robj.sta[resgreater4]
+stnum=robj.stnum[resgreater4]
+ml=robj.ml[resgreater4]
+mw=robj.mw[resgreater4]
+pga=robj.pga[resgreater4]
+pgv=robj.pgv[resgreater4]
+pga_pg=robj.pga_pg[resgreater4]
+r=robj.r[resgreater4]
+vs30=robj.vs30[resgreater4]
+ffdf=robj.ffdf[resgreater4]
+md_ffdf=robj.md_ffdf[resgreater4]
+stlat=robj.stlat[resgreater4]
+stlon=robj.stlon[resgreater4]
+stelv=robj.stelv[resgreater4]
         
 # The residuals...
-total_residual=robj.total_residual[reswhere]
-E_residual=robj.E_residual[reswhere]
-E_mean=robj.E_mean[reswhere]
-E_std=robj.E_std[reswhere]
-W_residual=robj.W_residual[reswhere]
-W_mean=robj.W_mean[reswhere]
-W_std=robj.W_std[reswhere]
-site_terms=robj.site_terms[reswhere]
-site_mean=robj.site_mean[reswhere]
-site_std=robj.site_std[reswhere]
-path_terms=robj.path_terms[reswhere]
-path_mean=robj.path_mean[reswhere]
-path_std=robj.path_std[reswhere]
+total_residual=robj.total_residual[resgreater4]
+E_residual=robj.E_residual[resgreater4]
+E_mean=robj.E_mean[resgreater4]
+E_std=robj.E_std[resgreater4]
+W_residual=robj.W_residual[resgreater4]
+W_mean=robj.W_mean[resgreater4]
+W_std=robj.W_std[resgreater4]
+site_terms=robj.site_terms[resgreater4]
+site_mean=robj.site_mean[resgreater4]
+site_std=robj.site_std[resgreater4]
+path_terms=robj.path_terms[resgreater4]
+path_mean=robj.path_mean[resgreater4]
+path_std=robj.path_std[resgreater4]
     
 
 # Redo source and receiver......
@@ -114,8 +122,16 @@ print 'There were %i stations; after pruning there are %i stations' % (nsta_old,
 print 'There were %i events; after pruning there are %i events' % (nev_old,nev_new)
 print 'Removing residuals greater than abs(%f) leaves %f percent of the data' % (resvalue,percent_db_kept)
 
-# Make it into a residual object of its own:
 
+# Sample the original database
+dr.recording_sample(dbpath_in,resless4,dbpath_out)
+
+# Make the rejected residuals into a residual object of its own:
+init_type='notbasic'
+new_robj = cdf.residuals(None,None,None,init_style=init_type,evnum=evnum,elat=elat,elon=elon,edepth=edepth,sta=sta,stnum=stnum,ml=ml,mw=mw,
+                    pga=pga,pgv=pgv,pga_pg=pga_pg,r=r,vs30=vs30,ffdf=ffdf,md_ffdf=md_ffdf,stlat=stlat,
+                    stlon=stlon,stelv=stelv,source_i=source_i,receiver_i=receiver_i,total_residual=total_residual,E_residual=E_residual,
+                    E_mean=E_mean,E_std=E_std,W_residual=W_residual,W_mean=W_mean,W_std=W_std,site_terms=site_terms,site_mean=site_mean,site_std=site_std,
+                    path_terms=path_terms,path_mean=path_mean,path_std=path_std)
 
 # Save that residual object:
-   

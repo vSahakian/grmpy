@@ -366,6 +366,112 @@ def db_station_sample(dbpath_in,numstas,dbpath_out):
     doutfile.close()
     
     
+######
+def recording_sample(dbpath_in,recording_indices,dbpath_out):
+    '''
+    Sample a database to only include events recorded on a minimum number
+    of stations
+    VJS 8/2016
+    
+    Input:
+        dbpath_in:          String with path to the input database
+        recording_indices:  Array with the indices of recordings to KEEP
+        dbpath_out:         STring with path to output database
+    Output:
+        Writes out the sampled database to dbpath_out
+    '''
+    import cPickle as pickle
+    from numpy import unique,where,array,r_,zeros
+    import cdefs as cdf
+    
+    #Read in the original database
+    dbfile=open(dbpath_in,'r')
+    db_orig=pickle.load(dbfile)
+    dbfile.close()
+    
+    #Find how many unique events there are:
+    unique_events_orig=unique(db_orig.evnum)
+    nevents_orig=len(unique_events_orig)
+    
+    unique_sta_orig=unique(db_orig.sta)
+    nevents_sta=len(unique_sta_orig)
+    
+    #Now save just these indices of the "keep" recordings in the database:
+    edepth=db_orig.edepth[recording_indices]
+    elat=db_orig.elat[recording_indices]
+    elon=db_orig.elon[recording_indices]
+    evnum=db_orig.evnum[recording_indices]
+    ffdf=db_orig.ffdf[recording_indices]
+    md_ffdf=db_orig.md_ffdf[recording_indices]
+    ml=db_orig.ml[recording_indices]
+    mw=db_orig.mw[recording_indices]
+    pga=db_orig.pga[recording_indices]
+    pga_pg=db_orig.pga_pg[recording_indices]
+    pgv=db_orig.pgv[recording_indices]
+    r=db_orig.r[recording_indices]
+    sta=db_orig.sta[recording_indices]
+    stlat=db_orig.stlat[recording_indices]
+    stlon=db_orig.stlon[recording_indices]
+    stelv=db_orig.stelv[recording_indices]
+    stnum=db_orig.stnum[recording_indices]
+    vs30=db_orig.vs30[recording_indices]
+    
+    ###Change the source and receiver indices for raytracing...
+    #Get the unique station and event indices:
+    unique_events=unique(evnum)
+    
+    #Zero out source ind array:
+    source_ind=zeros((len(evnum)))
+    #For each event in the record, devent, give it the source index to be used:
+    for event_ind in range(len(unique_events)):
+        eventi=unique_events[event_ind]
+        
+        #Find where in the recordings list the event number is the same as this one:
+        recording_event_ind=where(evnum==eventi)
+        
+        #Set the source ind to be one plus this event, so it indexes with the raytracing program:
+        source_ind[recording_event_ind]=event_ind+1
+        
+    #Now set these to integers...
+    source_i=source_ind.astype('int64')
+    
+    ##
+    ##Next stations:
+    unique_stations=unique(stnum)
+    
+    #Zero out array:
+    receiver_ind=zeros((len(stnum)))
+    #Loop through the unique stations:
+    for station_ind in range(len(unique_stations)):
+        stationi=unique_stations[station_ind]
+        
+        #Find where in the recordings list the station is the same as this one:
+        recording_station_ind=where(stnum==stationi)[0]
+    
+        #Set the receiver ind to be one plus this station, so it indexes with the raytracin gprogram:
+        receiver_ind[recording_station_ind]=station_ind+1    
+        
+    #Set these to integers:
+    receiver_i=receiver_ind.astype('int64')
+    
+    ##BEFORE SAVING:
+    ##cdefs only takes DA and DV in nm/s/s and nm/s...convert to these (currently
+    ##in m/s/s and m/s)
+    #DA=pga/1e-9
+    #DV=pga/1e-9
+    
+    #Make sampled database:
+    db_samp=cdf.db(evnum,sta,stnum,ml,mw,pga,pgv,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i)
+    
+    #Save to file...
+    doutfile=open(dbpath_out,'w')
+    pickle.dump(db_samp,doutfile)
+    doutfile.close()
+    
+    # Print stats:
+    print 'Originally % events, now % events' % (nevents_orig,len(evnum))
+    print 'Originally % stations, now % stations' % (nsta_orig,len(sta))
+    
     
     
 def db_propgrid_sample(dbpath_in,propgrid,dbpath_out):
