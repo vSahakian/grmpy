@@ -10,7 +10,7 @@ import run_res
 #0=desktop
 #1=mac
 
-what_home=1
+what_home=0
 
 if what_home==0:
     #Desktop:
@@ -30,7 +30,7 @@ model_dir=home+'/models/pckl/'+invrun+'/'
 
 
 #Filename:
-dbpath=home+'/data/databases/v2anza2013/v2anza2013_pgrid_5sta.pckl'
+dbpath=home+'/data/databases/v2anza2013/v2anza2013_pgrid_5sta_res4.pckl'
 
 print 'Using database %s' % dbpath
 
