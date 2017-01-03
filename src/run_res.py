@@ -122,18 +122,28 @@ def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
     #Now compute the predicted value of PGA...
     d_predicted=gm.compute_model(model.m,model.rng,db.mw,db.r,db.ffdf,vs30,Mc,vref,mdep_ffdf)
     
-    # Test the mean from the inversion model:
-    #testresiduals = model.G.dot(model.m) - model.d
-    testresiduals = d_predicted - model.d
-    meantest = mean(testresiduals)
-    print 'Mean residual from G and d matrices are %f' % meantest
+    # Get lengths and print, in case the model was made on a dataset different from the database
+    #   being used for residual computation:
+    print 'Length of d_predicted is: %i' % len(d_predicted)
+    print 'Length of data in database is: %i' % len(db.mw)
     
-    #Test that the correted data, outside of rcomp, is the same as what is from inversion:
-    d_comparison = model.d - (log(db.pga_pg) - 0.6*log(vs30/vref))
-    print d_comparison
+    # Test the mean from the inversion model:
+    if len(d_predicted) != len(model.d):
+        print 'The length of the database (# recordings) is not the same as the number used in the model. This is ok, just not printing the total residual information from comparing the inversion model, continuing with residual computation...'
+    else:
+        #testresiduals = model.G.dot(model.m) - model.d
+        testresiduals = d_predicted - model.d
+        meantest = mean(testresiduals)
+        print 'Mean residual from G and d matrices are %f' % meantest
+        
+        #Test that the correted data, outside of rcomp, is the same as what is from inversion:
+        d_comparison = model.d - (log(db.pga_pg) - 0.6*log(vs30/vref))
+        print d_comparison
+    
     
     #Get residuals:
     total_residuals,mean_residual,std_dev=rcomp.total_residual(db,d_predicted,vref)
+    print 'Mean residual is %f, and standard deviation is %f' % (mean_residual,std_dev)
     
     #Plot residuals and save plots:
     allresid=cdf.total_residuals(db.mw,total_residuals,mean_residual,std_dev)

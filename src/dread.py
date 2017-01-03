@@ -381,7 +381,7 @@ def recording_sample(dbpath_in,recording_indices,dbpath_out):
         Writes out the sampled database to dbpath_out
     '''
     import cPickle as pickle
-    from numpy import unique,where,array,r_,zeros
+    from numpy import unique,where,array,r_,zeros,setdiff1d
     import cdefs as cdf
     
     #Read in the original database
@@ -394,7 +394,7 @@ def recording_sample(dbpath_in,recording_indices,dbpath_out):
     nevents_orig=len(unique_events_orig)
     
     unique_sta_orig=unique(db_orig.sta)
-    nevents_sta=len(unique_sta_orig)
+    nsta_orig=len(unique_sta_orig)
     
     #Now save just these indices of the "keep" recordings in the database:
     edepth=db_orig.edepth[recording_indices]
@@ -469,9 +469,17 @@ def recording_sample(dbpath_in,recording_indices,dbpath_out):
     doutfile.close()
     
     # Print stats:
-    print 'Originally % events, now % events' % (nevents_orig,len(evnum))
-    print 'Originally % stations, now % stations' % (nsta_orig,len(sta))
+    print 'Originally %i events, now %i events' % (nevents_orig,len(unique(evnum)))
+    print 'Originally %i stations, now %i stations' % (nsta_orig,len(unique(sta)))
     
+    #   Difference of old and new event sets:
+    event_diff=setdiff1d(unique_events_orig,unique(evnum))
+    sta_diff=setdiff1d(unique_sta_orig,unique(sta))
+    
+    print 'The events removed are: \n'
+    print event_diff
+    print '\n The stations removed are: \n'
+    print sta_diff
     
     
 def db_propgrid_sample(dbpath_in,propgrid,dbpath_out):
