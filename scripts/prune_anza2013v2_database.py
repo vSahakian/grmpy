@@ -8,10 +8,13 @@ import dread as dr
 ## Read in file:
 robjpath = '/media/vsahakian/katmai/anza/models/residuals/v2anza2013_Mc8.5_pgrid_5sta/v2anza2013_Mc8.5_pgrid_5sta_robj.pckl'
 
+# Output rejected residuals file:
+robjpath_out = '/media/vsahakian/katmai/anza/models/residuals/v2anza2013_Mc8.5_pgrid_5sta/v2anza2013_Mc8.5_pgrid_5sta_robj_rejected.pckl'
+
 # Original database path name:
-dbpath_in=''
+dbpath_in='/media/vsahakian/katmai/anza/data/databases/v2anza2013/v2anza2013_pgrid_5sta.pckl'
 # Out path:
-dbpath_out=''
+dbpath_out='/media/vsahakian/katmai/anza/data/databases/v2anza2013/v2anza2013_pgrid_5sta_res4.pckl'
 
 #  Find where residuals are greater than or less than a certain value:
 resvalue = 4
@@ -124,6 +127,7 @@ print 'Removing residuals greater than abs(%f) leaves %f percent of the data' % 
 
 
 # Sample the original database
+print 'Making sampled database'
 dr.recording_sample(dbpath_in,resless4,dbpath_out)
 
 # Make the rejected residuals into a residual object of its own:
@@ -135,3 +139,6 @@ new_robj = cdf.residuals(None,None,None,init_style=init_type,evnum=evnum,elat=el
                     path_terms=path_terms,path_mean=path_mean,path_std=path_std)
 
 # Save that residual object:
+rout = open(robjpath_out,'w')
+pickle.dump(new_robj)
+rout.close()
