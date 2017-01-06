@@ -23,34 +23,34 @@ elif what_home==1:
 
 home=HOME+'/anza/models/residuals/'
 #run_name='anza2013_Mc8.5_pgrid_5sta'
-run_name='mixedregr_anza2013_Mc_8.5'
+run_name='mixedregr_v2anza2013_Mc_8.5_res4'
 dbpath=HOME+'/anza/data/databases/v2anza2013v2/anza2013_pgrid_5sta_res4.pckl'
-modelpath=HOME+'/anza/models/pckl/anza2013/regr_Mc8.5_0.0_6.5_VR_99.4.pckl'
+modelpath=HOME+'/anza/models/pckl/v2anza2013/mixedregr_v2anza2013_Mc_8.5_VR_99.9.pckl'
 residname='mixedregr_anza2013_Mc_8.5_VR_99.9'
 #rayfile_vp='/media/vsahakian/katmai/anza/fm3d/anza2013_Mc8.5_pgrid_5sta/Vp/rays.dat'
 rayfile_vs='/media/vsahakian/katmai/anza/fm3d/anza2013_Mc8.5_pgrid_5sta/Vs/rays.dat'
 faultfile='/media/vsahakian/katmai/anza/data/faults/Holocene_LatestPleistocene_118.0w_115.2w_32.3n_34.5n.pckl'
 
-#########################
-#####Set up Raytracing###
-#########################
-#
-##Set up the sources.in and receivers.in files for Vs.  So far, Vp has been run:
-##in /media/vsahakian/katmai/anza/data/vm/fulltest_Vp
-#
-##Run these with raytracing write_sourcein and write_receiverin
-##Use the directories defined in lines 15 - 33
-##Import raytracing above
-##Set velocity type:
-#veltype=1
-##Set longitude format (here, 241 instead of -118 for lontype=1)
-#lontype=1  #for Malcolm's new propgrid format
-#
-##Write source.in file:
-#rt.write_sourcein(home,run_name,veltype,lontype)
-#
-##Write recievers.in file:
-#rt.write_receiverin(home,run_name,lontype)
+########################
+####Set up Raytracing###
+########################
+
+#Set up the sources.in and receivers.in files for Vs.  So far, Vp has been run:
+#in /media/vsahakian/katmai/anza/data/vm/fulltest_Vp
+
+#Run these with raytracing write_sourcein and write_receiverin
+#Use the directories defined in lines 15 - 33
+#Import raytracing above
+#Set velocity type:
+veltype=1
+#Set longitude format (here, 241 instead of -118 for lontype=1)
+lontype=1  #for Malcolm's new propgrid format
+
+#Write source.in file:
+rt.write_sourcein(home,run_name,veltype,lontype)
+
+#Write recievers.in file:
+rt.write_receiverin(home,run_name,lontype)
 
 
 
@@ -102,69 +102,69 @@ faultfile='/media/vsahakian/katmai/anza/data/faults/Holocene_LatestPleistocene_1
 
 
 
-###############
-###Plot rays###
-###############
-
-
-#Vp and Vs:
-veltype=[1,2]
-
-#map, and cross sections:
-view=[0,1,2]
-axlims_view0=[[-118.0,-115.2],[32.3,34.55]]
-axlims_view1=[[32.3,34.55],[-28,5]]
-axlims_view2=[[-118.0,-115.2],[-28,5]]
-axlims=[axlims_view0,axlims_view1,axlims_view2]
-
-stations=1
-events=0
-by_path=1
-mymap='jet'
-cutoff_val=1.5
-
-
-###
-#Plot in a loop
-#for vel_i in range(len(veltype)):
-#    for view_i in range(len(view)):
-#        rt.plot_rays(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,by_path,mymap,faultfile)
-#        print 'Plotted velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
-#        plt.close()
-#        plt.close()
-
+################
+####Plot rays###
+################
+#
+#
+##Vp and Vs:
+#veltype=[1,2]
+#
+##map, and cross sections:
+#view=[0,1,2]
+#axlims_view0=[[-118.0,-115.2],[32.3,34.55]]
+#axlims_view1=[[32.3,34.55],[-28,5]]
+#axlims_view2=[[-118.0,-115.2],[-28,5]]
+#axlims=[axlims_view0,axlims_view1,axlims_view2]
+#
+#stations=1
+#events=0
+#by_path=1
+#mymap='jet'
+#cutoff_val=1.5
+#
+#
+####
+##Plot in a loop
+##for vel_i in range(len(veltype)):
+##    for view_i in range(len(view)):
+##        rt.plot_rays(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,by_path,mymap,faultfile)
+##        print 'Plotted velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
+##        plt.close()
+##        plt.close()
+#
+###Plot with the cutoff value:
+###Plot in a loop
+##for vel_i in range(len(veltype)):
+##    for view_i in range(len(view)):
+##        rt.plot_rays_cutoffval(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,mymap,faultfile,cutoff_val)
+##        print 'Plotted cuttoff value '+str(cutoff_val)+', velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
+##        plt.close()
+##        plt.close()
+#        
+## New version for AGU - only plot VS
+#vel_i=1
+#for view_i in range(len(view)):
+#    rt.plot_rays(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,by_path,mymap,faultfile)
+#    print 'Plotted velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
+#    plt.close()
+#    plt.close()
+#    
 ##Plot with the cutoff value:
 ##Plot in a loop
-#for vel_i in range(len(veltype)):
-#    for view_i in range(len(view)):
-#        rt.plot_rays_cutoffval(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,mymap,faultfile,cutoff_val)
-#        print 'Plotted cuttoff value '+str(cutoff_val)+', velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
-#        plt.close()
-#        plt.close()
-        
-# New version for AGU - only plot VS
-vel_i=1
-for view_i in range(len(view)):
-    rt.plot_rays(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,by_path,mymap,faultfile)
-    print 'Plotted velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
-    plt.close()
-    plt.close()
-    
-#Plot with the cutoff value:
-#Plot in a loop
-vel_i=1
-for view_i in range(len(view)):
-    rt.plot_rays_cutoffval(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,mymap,faultfile,cutoff_val)
-    print 'Plotted cuttoff value '+str(cutoff_val)+', velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
-    plt.close()
-    plt.close()
-#        
-#For the map view, plot the 3d raypaths once, then rotate and save:
-axlims_3d=[[-118.0,-115.2],[32.3,34.55],[-28,1]]
-vtype=2
-
-#plot:
-figure3d=rt.plot_3d_raypaths(home,run_name,residname,vtype,stations,events,axlims_3d,mymap,faultfile)
+#vel_i=1
+#for view_i in range(len(view)):
+#    rt.plot_rays_cutoffval(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,mymap,faultfile,cutoff_val)
+#    print 'Plotted cuttoff value '+str(cutoff_val)+', velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
+#    plt.close()
+#    plt.close()
+##        
+##For the map view, plot the 3d raypaths once, then rotate and save:
+#axlims_3d=[[-118.0,-115.2],[32.3,34.55],[-28,1]]
+#vtype=2
+#
+##plot:
+#figure3d=rt.plot_3d_raypaths(home,run_name,residname,vtype,stations,events,axlims_3d,mymap,faultfile)
 
 
 ###################################
