@@ -133,7 +133,7 @@ fig1=run_inv.plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,p
 print 'Running mixed effects'
 #Now try with mixed effects:
 #dbname = 'test2013'
-run_name = 'mixedregr_v2anza2013_Mc_8.5_32sta'
+run_name = 'mixedregr_v2anza2013_Mc_8.5_30sta'
 run_home=home+'/models/residuals/'
 resaxlim_r = [[0,180],[-5,5]]
 resaxlim_mw = [[0,4],[-5,5]]
