@@ -3,7 +3,7 @@
 ###  VJS 1/2017
 
 ## Input Info
-what_home=1
+what_home=0
 
 if what_home==0:
     #Desktop:
@@ -12,7 +12,7 @@ elif what_home==1:
     #Mac:
     HOME='/Users/vsahakian'
 
-num_stations = 35
+num_stations = 31
 
 dbpath_in = HOME+'/anza/data/databases/v2anza2013/v2anza2013_pgrid_5sta_res4.pckl'
 dbpath_out = HOME+'/anza/data/databases/v2anza2013/v2anza2013_pgrid_'+str(num_stations)+'sta_res4.pckl'

@@ -23,14 +23,14 @@ elif what_home==1:
 
 #Location to store figures:
 home=HOME+'/anza'
-invrun='v2anza2013'
+invrun='v2anza2013_30sta'
 fig_dir=home+'/models/figs/'+invrun+'/'
 obj_dir=home+'/models/pckl/'+invrun+'/'
 model_dir=home+'/models/pckl/'+invrun+'/'
 
 
 #Filename:
-dbpath=home+'/data/databases/v2anza2013/v2anza2013_pgrid_5sta.pckl'
+dbpath=home+'/data/databases/v2anza2013/v2anza2013_pgrid_30sta_res4.pckl'
 
 print 'Using database %s' % dbpath
 
@@ -47,7 +47,7 @@ dbname=invrun
 #Define the ranges for the inversion - at each range boundary (i.e., between
 #[0:3.3], and [3.3:4.5], the solution will be smoothed so there is no jump at 
 #the range boundary
-rng=np.array([0,6.5])
+rng=np.array([1.5,4])
 
 #Reference Vs30:
 vref=760
@@ -72,6 +72,9 @@ sdist=np.array(range(smin,smax,sstep))
 ##Centering Magnitude for x**2 term
 Mc=8.5
 
+#Number of stations:
+numstas=32
+
 #Smoothing factor
 smth=500
 
@@ -91,7 +94,9 @@ plotdist=np.array([0,20,40,60,120])
 ##################
 #######Setup######
 ##################
-#
+
+#Get the string for the filename, based on the stations:
+
 #Get the string for the filename, based on the ranges:
 for k in range(len(rng)):
     if k==0:
@@ -121,72 +126,72 @@ fig1=run_inv.plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,p
 
 
 
-###################################################################################
-#################                 MIXED EFFECTS                 ###################
-###################################################################################
-#
-#print 'Running mixed effects'
-##Now try with mixed effects:
-##dbname = 'test2013'
-#run_name = 'mixedregr_v2anza2013_Mc_8.5_res4'
-#run_home=home+'/models/residuals/'
-#resaxlim_r = [[0,180],[-5,5]]
-#resaxlim_mw = [[0,4],[-5,5]]
-#
-##Fictitious depth parameter:
-#c=4.5
-#
-##Initialize the residuals directories:
-#inithome=HOME+'/anza/models/residuals/'
-#
-#runall=1
-#
-##Initialize directories:
-#runall=run_res.init(inithome,run_name)
-#
-#if runall==0:
-#    print 'Not clobbering, exiting...'
-#    
-#elif runall==1:
-#    print 'Continuing...'
-#    
-#    
-## Now run mixed effects approach #
-#invdat,invpath,tresid,mixed_residuals,d_r_prediction,mixed_resid_path=run_inv.run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c)
-#
-#print 'Plotting mixed effects model with data'
-## Plot data with model:
-#mixedinv = run_inv.plot_data_model(home,dbpath,dbname,invpath,coeff_file,mdep_ffdf,plotdist,Mc,axlims,bmin,bmax,vref)
-#
-## Get some mean values for the stats file:
-#mean_tot=np.mean(mixed_residuals.total_residual)
-#std_dev_tot=np.std(mixed_residuals.total_residual)
-#
-#E_mean=np.mean(mixed_residuals.E_residual)
-#E_std_dev=np.std(mixed_residuals.E_residual)
-#
-#print 'plotting all residuals'
-## Plot all residuals:
-#run_res.plot_total(tresid,home,run_name,resaxlim_mw)
-#
-#print 'plotting event terms'
-## Plot event terms:
-#eventfig1 = run_res.makeEvents_mixed(run_home,run_name,mixed_resid_path,Mc,vref,mdep_ffdf,resaxlim_mw)
-#
-## Get station objects:
-#station_list=run_res.makeStations_mixed(run_home,run_name,mixed_resid_path)
-#
-## Plot W residuals on one plot:
-#W_mean,W_std_dev = run_res.plot_Wresid(run_home,run_name,resaxlim_mw)
-#
-#print 'plotting station terms'
-## Plot by station:
-#run_res.plot_site_WE(run_home,run_name,resaxlim_mw)
-#
-#print 'plotting path residuals'
-## Plot path residuals:
-#f_mw,f_dist,pterm_mean,pterm_std=run_res.plotPath_mixed(run_home,run_name,mixed_resid_path,resaxlim_mw,resaxlim_r)
-#
-#print 'Writing mixed stats to a file'
-## Writing stats to a file
-#run_res.write_stats_mixed(run_home,run_name,mixed_resid_path,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std)
+##################################################################################
+################                 MIXED EFFECTS                 ###################
+##################################################################################
+
+print 'Running mixed effects'
+#Now try with mixed effects:
+#dbname = 'test2013'
+run_name = 'mixedregr_v2anza2013_Mc_8.5_32sta'
+run_home=home+'/models/residuals/'
+resaxlim_r = [[0,180],[-5,5]]
+resaxlim_mw = [[0,4],[-5,5]]
+
+#Fictitious depth parameter:
+c=4.5
+
+#Initialize the residuals directories:
+inithome=HOME+'/anza/models/residuals/'
+
+runall=1
+
+#Initialize directories:
+runall=run_res.init(inithome,run_name)
+
+if runall==0:
+    print 'Not clobbering, exiting...'
+    
+elif runall==1:
+    print 'Continuing...'
+    
+    
+# Now run mixed effects approach #
+invdat,invpath,tresid,mixed_residuals,d_r_prediction,mixed_resid_path=run_inv.run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c)
+
+print 'Plotting mixed effects model with data'
+# Plot data with model:
+mixedinv = run_inv.plot_data_model(home,dbpath,dbname,invpath,coeff_file,mdep_ffdf,plotdist,Mc,axlims,bmin,bmax,vref)
+
+# Get some mean values for the stats file:
+mean_tot=np.mean(mixed_residuals.total_residual)
+std_dev_tot=np.std(mixed_residuals.total_residual)
+
+E_mean=np.mean(mixed_residuals.E_residual)
+E_std_dev=np.std(mixed_residuals.E_residual)
+
+print 'plotting all residuals'
+# Plot all residuals:
+run_res.plot_total(tresid,home,run_name,resaxlim_mw)
+
+print 'plotting event terms'
+# Plot event terms:
+eventfig1 = run_res.makeEvents_mixed(run_home,run_name,mixed_resid_path,Mc,vref,mdep_ffdf,resaxlim_mw)
+
+# Get station objects:
+station_list=run_res.makeStations_mixed(run_home,run_name,mixed_resid_path)
+
+# Plot W residuals on one plot:
+W_mean,W_std_dev = run_res.plot_Wresid(run_home,run_name,resaxlim_mw)
+
+print 'plotting station terms'
+# Plot by station:
+run_res.plot_site_WE(run_home,run_name,resaxlim_mw)
+
+print 'plotting path residuals'
+# Plot path residuals:
+f_mw,f_dist,pterm_mean,pterm_std=run_res.plotPath_mixed(run_home,run_name,mixed_resid_path,resaxlim_mw,resaxlim_r)
+
+print 'Writing mixed stats to a file'
+# Writing stats to a file
+run_res.write_stats_mixed(run_home,run_name,mixed_resid_path,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std)
