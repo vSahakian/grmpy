@@ -694,3 +694,291 @@ def grid_path_term(home,run_name,bindims,raytype,stat_type):
     return grid_object
     
     
+#####################################################################
+# Initiate directory for comparing residuals...
+def compare_init(home,run_name):
+    '''
+    Initiate directory for comparing residuals
+    Input:
+        home:       String with name to project residuals directory (i.e., '/home/vsahakian/anza/models/residuals')
+        run_name:   String with name for comparison directory ('anza_5sta_compare)
+    '''
+    from shutil import rmtree,copy
+    from os import path,makedirs,environ
+    
+    clob='y'
+    run_dir=path.expanduser(home+run_name+'/')
+    if path.exists(run_dir):    #If the path exists...
+        print 'Run directory is: '+run_dir
+        clob=raw_input('The run directory already exists, are you sure you want to clobber it? (y/n)')
+        if clob is 'y' or clob is 'Y':
+            clob=raw_input('This deletes everything in '+run_dir+', are you sure you want to do that? (y/n)')
+            if clob is 'y' or clob is 'Y':
+                rmtree(run_dir)
+            else:
+                #Don't do anything
+                print 'Aborting mission...not clobbering...'
+        else:
+            #AGain, don't do anything
+            print 'Aborting mission...not clobbering...'
+    if clob is 'y' or clob is 'Y':
+        #Make the main directory
+        makedirs(run_dir)
+        #And the subdirectories:
+        makedirs(run_dir+'figs/')
+        makedirs(run_dir+'figs/pdfs/')
+        
+        #If it's ok to go ahead and clobber, set the run variable to 1:
+        runall=1
+        
+    if clob is 'n' or clob is 'N':
+        #Do not run!!!!
+        #Set the run variable to 0:
+        runall=0
+        
+        
+    return runall
+    
+
+
+##############################################################################
+def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,staaxlim,pathaxlim):
+    #VJS 1/17
+    
+    '''
+    Makes plots to compare residuals for the same database using both mixed and traditional methods 
+    Input:
+        home:           String with path to the home directory for project
+        run_name:       String with name for model comparison directory
+        axlims:         Axis limits: [[xmin,xmax],[ymin,ymax]]
+        color_by:       String with variable to color by: 'r', or 'mw'
+        cvals:          Colorbar limits: [cmin,cmax]
+        mymap:          String with colormap to use (i.e., 'jet')
+    Output:
+        Saves plots to home/run_name/figs/pathterm_index
+        
+    '''
+    import matplotlib.pyplot as plt
+    import cPickle as pickle
+    import numpy as np
+    import matplotlib.colors as colors
+    import matplotlib.cm as cm
+    from os import path    
+
+    
+    #Get run directory, and figure directory:
+    run_dir=path.expanduser(home+run_name+'/')
+    fig_dir=run_dir+'figs/'
+    pdf_dir=fig_dir+'pdfs/'
+    
+    
+    # Import models:
+    tradfile=open(tradpath,'r')
+    trad = pickle.load(tradfile)
+    tradfile.close()
+    
+    mixedfile=open(mixedpath,'r')
+    mixed = pickle.load(mixedfile)
+    mixedfile.close()
+    
+    # Get info to plot:
+    evnums,evind = np.unique(trad.evnum,return_index=True)
+    tradevent = np.array(trad.E_residual)[evind]
+    mixedevent = np.array(mixed.E_residual)[evind]
+    
+    tradpath = mixed.path_terms
+    mixedpath = mixed.path_terms
+    
+    sta,stind = np.unique(trad.sta,return_index=True)
+    stnum=trad.stnum[stind]
+    tradsite = np.array(trad.site_terms)[stind]
+    mixedsite = np.array(mixed.site_terms)[stind]
+    
+    
+    #################################
+    ######  Auxilliary info    ######
+    #################$###############
+    
+    #### How many stations record each unique event? ###
+    # Get an array with the number of stations recording each event:
+    event_numstas = []
+    unique_events,unevind=np.unique(trad.evnum,return_index=True)
+    
+    for eventi in range(len(unique_events)):
+        evwhere = np.where(trad.evnum==unique_events[eventi])[0]
+        numstas = len(evwhere)
+        # append the number of statoin srecording this event to the list:
+        event_numstas.append(numstas)
+        
+    # At the end, now turn into an array:
+    event_numstas = np.array(event_numstas)
+    
+    ################
+    #### How many events are recorded at each station? ###
+    station_numevs = []
+    unique_stas,unstind=np.unique(trad.sta,return_index=True)
+    
+    for stai in range(len(unique_stas)):
+        stwhere = np.where(trad.sta==unique_stas[stai])[0]
+        numevs = len(stwhere)
+        # append the number of events recorded on this station to the list:
+        station_numevs.append(numevs)
+        
+    # Turn into an array:
+    station_numevs = np.array(station_numevs)
+    
+    
+    ##########################################################################################
+    ##########################
+    ######  Plotting    ######
+    #################$########
+    
+    print 'Plotting event terms...'
+    
+    ## First event terms ##
+    # Make a straight line for relationship:
+    xe=np.linspace(evaxlim[0][0],evaxlim[0][1],2)
+    ye=np.linspace(evaxlim[1][0],evaxlim[1][1],2)
+    
+    # Plotting colored by number of stations recording each event:
+    cmin = min(event_numstas)
+    cmax = max(event_numstas)-4
+    
+    ##Plot:
+    #Get colormap
+    #Make colormap:
+    colormap_numstas=plt.get_cmap(mymap)
+    #Make a normalized colorscale
+    cNorm=colors.Normalize(vmin=cmin, vmax=cmax)
+    #Apply normalization to colormap:
+    scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap_numstas)
+    
+    #Make a fake contour plot for the colorbar:
+    Z=[[0,0],[0,0]]
+    levels=np.arange(cmin,cmax,0.01)
+    c=plt.contourf(Z, levels, cmap=colormap_numstas)
+    
+    #Assign values to colormap
+    colorVal = scalarMap.to_rgba(event_numstas)
+    
+    eventfig = plt.figure()
+    #plt.scatter(tradevent,mixedevent,marker='o',s=7,color='#333333')
+    plt.scatter(tradevent,mixedevent,marker='o',s=7,color=colorVal)
+    plt.plot(xe,ye,color='gray',linewidth=1.5)
+    
+    # Colrobar:
+    cb = plt.colorbar(c)
+    cb.set_label('Number of stations per event')
+    
+    # Axis limits:
+    plt.xlim(evaxlim[0][0],evaxlim[0][1])
+    plt.ylim(evaxlim[1][0],evaxlim[1][1])
+    
+    plt.xlabel('Simple inversion event term (ln residual)')
+    plt.ylabel('Mixed effects inversion event term (ln residual)')
+    plt.title('Plot of Simple vs. Mixed effects event terms')
+    
+    #Show the figures
+    eventfig.show()
+    
+    evpngfile = fig_dir+run_name+'_event_comp.png'
+    evpdffile = pdf_dir+run_name+'_event_comp.pdf'
+    
+    print 'Saving event figures'
+    eventfig.savefig(evpngfile)
+    eventfig.savefig(evpdffile)
+    
+    
+    
+    ###############################################
+    ## Then make path terms ##
+    xp=np.linspace(pathaxlim[0][0],pathaxlim[0][1],2)
+    yp=np.linspace(pathaxlim[1][0],pathaxlim[1][1],2)
+    
+    print 'Plotting path terms'
+    pathfig = plt.figure()
+    plt.scatter(tradpath,mixedpath,marker='o',s=11,color='#333333')
+    plt.plot(xp,yp,color='#9C9C9C',linewidth=1.5)
+    
+    # Axis limits:
+    plt.xlim(pathaxlim[0][0],pathaxlim[0][1])
+    plt.ylim(pathaxlim[1][0],pathaxlim[1][1])
+    
+    plt.xlabel('Simple inversion path term (ln residual)')
+    plt.ylabel('Mixed effects inversion path term (ln residual)')
+    plt.title('Plot of Simple vs. Mixed effects path terms')
+    
+    #Show the figure
+    pathfig.show()
+    
+    #Save the figure
+    ppngfile = fig_dir+run_name+'path_comp.png'
+    ppdffile = pdf_dir+run_name+'path_comp.pdf'
+    
+    print 'Saving path figures'
+    pathfig.savefig(ppngfile)
+    pathfig.savefig(ppdffile)
+    
+    
+    ###############################################
+    
+    ## Then site terms: ##
+    xs=np.linspace(staaxlim[0][0],staaxlim[0][1],2)
+    ys=np.linspace(staaxlim[1][0],staaxlim[1][1],2)
+    
+    # Plotting colored by number of events recorded at each station:
+    cmin = min(station_numevs)
+    cmax = max(station_numevs)
+    
+    print 'Plotting the site figure'
+    
+    print 'Making colormap'
+    ##Plot:
+    #Get colormap
+    #Make colormap:
+    colormap_numevs=plt.get_cmap(mymap)
+    #Make a normalized colorscale
+    cNorm=colors.Normalize(vmin=cmin, vmax=cmax)
+    #Apply normalization to colormap:
+    scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap_numevs)
+    
+    print 'Making fake figure for colormap'
+    #Make a fake contour plot for the colorbar:
+    Z=[[0,0],[0,0]]
+    levels=np.arange(cmin,cmax,10)
+    c=plt.contourf(Z, levels, cmap=colormap_numevs)
+    
+    print 'Assigning values to colormap'
+    #Assign values to colormap
+    colorVal = scalarMap.to_rgba(station_numevs)
+    
+    print 'starting figure, plotting...'
+    stafig = plt.figure()
+    #plt.scatter(tradevent,mixedevent,marker='o',s=7,color='#333333')
+    plt.scatter(tradsite,mixedsite,marker='o',s=11,color=colorVal)
+    plt.plot(xs,ys,color='gray',linewidth=1.5)
+    
+    print 'Making colorbar'
+    # Colrobar:
+    cb = plt.colorbar(c)
+    cb.set_label('Number of events per station')
+    
+    print 'Axis limits...'
+    
+    # Axis limits:
+    plt.xlim(staaxlim[0][0],staaxlim[0][1])
+    plt.ylim(staaxlim[1][0],staaxlim[1][1])
+    
+    print 'Labels'
+    plt.xlabel('Simple inversion site term (ln residual)')
+    plt.ylabel('Mixed effects inversion site term (ln residual)')
+    plt.title('Plot of Simple vs. Mixed effects site terms')
+    
+    stafig.show()
+    
+    stpngfile = fig_dir+'station_comp.png'
+    stpdffile = pdf_dir+run_name+'pdfs/station_comp.pdf'
+    
+    print 'Saving station figures'
+    stafig.savefig(stpngfile)
+    stafig.savefig(stpdffile)
