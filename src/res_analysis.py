@@ -742,7 +742,7 @@ def compare_init(home,run_name):
 
 
 ##############################################################################
-def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,staaxlim,pathaxlim):
+def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,staaxlim,pathaxlim,symbol_size,cbins):
     #VJS 1/17
     
     '''
@@ -754,6 +754,8 @@ def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,sta
         color_by:       String with variable to color by: 'r', or 'mw'
         cvals:          Colorbar limits: [cmin,cmax]
         mymap:          String with colormap to use (i.e., 'jet')
+        symbol_size:    Array/list with symbol sizes for plots: [event,path,site]
+        cbins:          Array/list with bin size for colorscale: [event, site]
     Output:
         Saves plots to home/run_name/figs/pathterm_index
         
@@ -855,7 +857,7 @@ def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,sta
     
     #Make a fake contour plot for the colorbar:
     Z=[[0,0],[0,0]]
-    levels=np.arange(cmin,cmax,0.01)
+    levels=np.arange(cmin,cmax,cbins[0])
     c=plt.contourf(Z, levels, cmap=colormap_numstas)
     
     #Assign values to colormap
@@ -863,7 +865,7 @@ def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,sta
     
     eventfig = plt.figure()
     #plt.scatter(tradevent,mixedevent,marker='o',s=7,color='#333333')
-    plt.scatter(tradevent,mixedevent,marker='o',s=7,color=colorVal)
+    plt.scatter(tradevent,mixedevent,marker='o',s=symbol_size[0],color=colorVal)
     plt.plot(xe,ye,color='gray',linewidth=1.5)
     
     # Colrobar:
@@ -897,7 +899,7 @@ def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,sta
     
     print 'Plotting path terms'
     pathfig = plt.figure()
-    plt.scatter(tradpath,mixedpath,marker='o',s=11,color='#333333')
+    plt.scatter(tradpath,mixedpath,marker='o',s=symbol_size[1],color='#333333')
     plt.plot(xp,yp,color='#9C9C9C',linewidth=1.5)
     
     # Axis limits:
@@ -945,7 +947,7 @@ def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,sta
     print 'Making fake figure for colormap'
     #Make a fake contour plot for the colorbar:
     Z=[[0,0],[0,0]]
-    levels=np.arange(cmin,cmax,10)
+    levels=np.arange(cmin,cmax,cbins[1])
     c=plt.contourf(Z, levels, cmap=colormap_numevs)
     
     print 'Assigning values to colormap'
@@ -955,7 +957,7 @@ def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,sta
     print 'starting figure, plotting...'
     stafig = plt.figure()
     #plt.scatter(tradevent,mixedevent,marker='o',s=7,color='#333333')
-    plt.scatter(tradsite,mixedsite,marker='o',s=11,color=colorVal)
+    plt.scatter(tradsite,mixedsite,marker='o',s=symbol_size[2],color=colorVal)
     plt.plot(xs,ys,color='gray',linewidth=1.5)
     
     print 'Making colorbar'
@@ -977,7 +979,7 @@ def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,sta
     stafig.show()
     
     stpngfile = fig_dir+'station_comp.png'
-    stpdffile = pdf_dir+run_name+'pdfs/station_comp.pdf'
+    stpdffile = pdf_dir+run_name+'station_comp.pdf'
     
     print 'Saving station figures'
     stafig.savefig(stpngfile)
