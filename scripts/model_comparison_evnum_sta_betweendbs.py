@@ -12,7 +12,7 @@ from scipy.stats import norm
 #0=desktop
 #1=mac
 
-what_home=0
+what_home=1
 
 if what_home==0:
     #Desktop:
@@ -418,14 +418,14 @@ plt.hist(e_tr_sorted_5sta,bins=50,alpha=0.2,histtype='stepfilled',color='red',no
 plt.hist(e_mi_sorted_5sta,bins=50,alpha=0.2,histtype='stepfilled',color='blue',normed=True)
 
 # Get z test value???
-#e5sta_z, e5sta_p, df = ztest_ind(e_tr_sorted_5sta,e_mi_sorted_5sta)
+e5sta_z = ra.z_test(e_tr_sorted_5sta,e_mi_sorted_5sta)
 
 
 plt.legend(loc='upper right',frameon=False)
 
 plt.xlabel('Event Term (ln residual)')
 plt.ylabel('Probability/Normed count')
-plt.title('Event Terms: Single-mean vs. Mixed effects \n Z-test: %f') # % e5sta_z)
+plt.title('Event Terms: Single-mean vs. Mixed effects \n Z-test: %f'  % e5sta_z)
 
 ev5stafig.savefig(home+comp_dir+'/figs/event_5sta.png')
 
@@ -441,14 +441,14 @@ plt.hist(s_tr_sorted_5sta,bins=50,alpha=0.2,histtype='stepfilled',color='red',no
 plt.hist(s_mi_sorted_5sta,bins=50,alpha=0.2,histtype='stepfilled',color='blue',normed=True)
 
 # Get z test value???
-#s5sta_z, s5sta_p, df = ztest_ind(s_tr_sorted_5sta,s_mi_sorted_5sta)
+s5sta_z  = ra.z_test(s_tr_sorted_5sta,s_mi_sorted_5sta)
 
 
 plt.legend(loc='upper right',frameon=False)
 
 plt.xlabel('Site Term (ln residual)')
 plt.ylabel('Probability/Normed count')
-plt.title('Site Terms: Single-mean vs. Mixed effects \n Z-test: %f') # % s5sta_z)
+plt.title('Site Terms: Single-mean vs. Mixed effects \n Z-test: %f' % s5sta_z)
 
 st5stafig.savefig(home+comp_dir+'/figs/site_5sta.png')
 
@@ -465,13 +465,13 @@ plt.hist(p_tr_sorted_5sta,bins=50,alpha=0.2,histtype='stepfilled',color='red',no
 plt.hist(p_mi_sorted_5sta,bins=50,alpha=0.2,histtype='stepfilled',color='blue',normed=True)
 
 # Get z test value???
-#p5sta_z, p5sta_p, df = ztest_ind(p_tr_sorted_5sta,p_mi_sorted_5sta)
+p5sta_z = ra.z_test(p_tr_sorted_5sta,p_mi_sorted_5sta)
 
 plt.legend(loc='upper right',frameon=False)
 
 plt.xlabel('Path Term (ln residual)')
 plt.ylabel('Probability/Normed count')
-plt.title('Path Terms: Single-mean vs. Mixed effects \n Z-test: %f')  # % p5sta_z)
+plt.title('Path Terms: Single-mean vs. Mixed effects \n Z-test: %f' % p5sta_z)
 
 pa5stafig.savefig(home+comp_dir+'/figs/path_5sta.png')
 

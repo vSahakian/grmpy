@@ -742,55 +742,6 @@ def compare_init(home,run_name):
 
 
 ##############################################################################
-def num_of_randeffects(robj,numev=None,numsta=None):
-    '''
-    Get the number of events recorded on each station, or number of stations recording each event
-    VJS 1/17
-    Input:
-        robj:               Database or residuals object
-        numev:              If True, gets the number of events recorded at each station
-        numsta:             If True, gets the number of statiosn recording each event
-    Return:
-        num_random_effects: Array with requested number of random effects, specified by numev or numsta     
-    '''
-    import numpy as np
-    
-    if numsta==True:
-            
-        #### How many stations record each unique event? ###
-        # Get an array with the number of stations recording each event:
-        event_numstas = []
-        unique_events,unevind=np.unique(robj.evnum,return_index=True)
-        
-        for eventi in range(len(unique_events)):
-            evwhere = np.where(robj.evnum==unique_events[eventi])[0]
-            numstas = len(evwhere)
-            # append the number of statoin srecording this event to the list:
-            event_numstas.append(numstas)
-            
-        # At the end, now turn into an array:
-        event_numstas = np.array(event_numstas)
-        
-        return event_numstas
-    
-    elif numev==True:
-        ################
-        #### How many events are recorded at each station? ###
-        station_numevs = []
-        unique_stas,unstind=np.unique(robj.sta,return_index=True)
-        
-        for stai in range(len(unique_stas)):
-            stwhere = np.where(robj.sta==unique_stas[stai])[0]
-            numevs = len(stwhere)
-            # append the number of events recorded on this station to the list:
-            station_numevs.append(numevs)
-            
-        # Turn into an array:
-        station_numevs = np.array(station_numevs)
-        
-        return station_numevs
-
-##############################################################################
 def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,staaxlim,pathaxlim,symbol_size,cbins):
     #VJS 1/17
     
@@ -925,9 +876,9 @@ def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,sta
     plt.xlim(evaxlim[0][0],evaxlim[0][1])
     plt.ylim(evaxlim[1][0],evaxlim[1][1])
     
-    plt.xlabel('Single-mean model event term (ln residual)')
-    plt.ylabel('Mixed effects model event term (ln residual)')
-    plt.title('Plot of Single-mean vs. Mixed effects event terms')
+    plt.xlabel('Simple inversion event term (ln residual)')
+    plt.ylabel('Mixed effects inversion event term (ln residual)')
+    plt.title('Plot of Simple vs. Mixed effects event terms')
     
     #Show the figures
     eventfig.show()
@@ -955,9 +906,9 @@ def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,sta
     plt.xlim(pathaxlim[0][0],pathaxlim[0][1])
     plt.ylim(pathaxlim[1][0],pathaxlim[1][1])
     
-    plt.xlabel('Single-mean model path term (ln residual)')
-    plt.ylabel('Mixed effects model path term (ln residual)')
-    plt.title('Plot of Single-mean vs. Mixed effects path terms')
+    plt.xlabel('Simple inversion path term (ln residual)')
+    plt.ylabel('Mixed effects inversion path term (ln residual)')
+    plt.title('Plot of Simple vs. Mixed effects path terms')
     
     #Show the figure
     pathfig.show()
@@ -1021,9 +972,9 @@ def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,sta
     plt.ylim(staaxlim[1][0],staaxlim[1][1])
     
     print 'Labels'
-    plt.xlabel('Single-mean model site term (ln residual)')
-    plt.ylabel('Mixed effects model site term (ln residual)')
-    plt.title('Plot of Single-mean vs. Mixed effects site terms')
+    plt.xlabel('Simple inversion site term (ln residual)')
+    plt.ylabel('Mixed effects inversion site term (ln residual)')
+    plt.title('Plot of Simple vs. Mixed effects site terms')
     
     stafig.show()
     
@@ -1035,47 +986,31 @@ def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,sta
     stafig.savefig(stpdffile)
     
     
-##################################################################################
-def compare_models_2dhist(residuals,num_randeffect,nbins,pltaxis,mymap,axlims,clims,xlabel_toggle,ylabel_toggle):
-        '''
-        
-        Input:
-            residuals:      Array with the residuals (unique event terms, site terms, etc.)
-            num_randeffect: Array with the number of stations recording each event, or number of events recorded on each station
-            nbins:          [number of bins for residuals, number of bins for random effect]
-            pltaxis:        Axes to plot on. Can use this to plot iteratively
-            mymap:          Colormap RGB values to plot arr([r,g,b])
-            axlims:         Array with axis limits: [[xmin, xmax],[ymin,ymax]]
-            clims:          Limits for colorbar [cmin, cmax]
-            xlabel_toggle:  String with instructions to add x label: 'event'/'site'
-            ylabel_toggle:  String with instructions to add y label: 'sta_per_ev'/'ev_per_sta'
-        Returns:
-            
-        '''
-        
-        from mpl_toolkits.mplot3d import Axes3D
-        import matplotlib.pyplot as plt
-        import numpy as np
-        
-        
-        
-        pltaxis.hist2d(residuals, num_randeffect, nbins, range=axlims, cmin=clims[0],cmax=clims[1],cmap=mymap)
-        #pltaxis.colorbar()
-        
-        
-        #  If it's plotting event terms:
-        if xlabel_toggle=='event':
-            pltaxis.set_xlabel('Event Term - ln Residuals')
-        elif xlabel_toggle=='site':
-            pltaxis.set_xlabel('Site Term - ln Residuals')
-        
-        if ylabel_toggle=='sta_per_ev':
-            pltaxis.set_ylabel('Number of Stations per Event')
-        elif ylabel_toggle=='ev_per_sta':
-            pltaxis.set_ylabel('Number of Events per Station')
-        
-        
-
-        
-        
-        
+###########
+def z_test(sample1,sample2):
+    #VJS 1/2017
+    '''
+    Get a z-value showing if the two samples/distributions are the same distribution or not.  
+    If the Z-statistic is less than 2, the two samples are the same. 
+    If the Z-statistic is between 2.0 and 2.5, the two samples are marginally different 
+    If the Z-statistic is between 2.5 and 3.0, the two samples are significantly different 
+    If the Z-statistic is more then 3.0, the two samples are highly signficantly different
+    
+    Input:
+        sample1:        Array with values of the first sample from distribution1
+        sample2:        Array with values of the second sample from distribution2
+    Returns:
+        z_value:        The z-statistic to show how similar distributions are (read above)
+    '''
+    
+    from numpy import mean, std, sqrt
+    mean1 = mean(sample1)
+    mean2 = mean(sample2)
+    
+    std_norm1 = std(sample1)/sqrt(len(sample1))
+    std_norm2 = std(sample2)/sqrt(len(sample2))
+    
+    z_value = (mean1 - mean2)/(sqrt(std_norm1**2 + std_norm2**2))
+    
+    return z_value
+    
