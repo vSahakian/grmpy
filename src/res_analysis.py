@@ -739,6 +739,85 @@ def compare_init(home,run_name):
         
     return runall
     
+##############################################################################################
+def get_comparison_indices(larger_db,smaller_db):
+    '''
+    VJS 1/17
+    Get the indices in the larger database that correspond to the smaller database. 
+    Input:
+        larger_db:             Database or residual object to compare with more recordings
+        smaller_db:            Databse or residual object to compare with fewer recordings
+    Output:
+        comparison_indices:    Array with indices of the larger database that match the property in teh smaller
+    '''
+    
+    import numpy as np
+    
+    # Initiate comparison index array as a list:
+    comparison_indices=[]
+    
+    # Find where in the larger database do the event/site combos match the smaller:
+    for recording_i in range(len(smaller_db.evnum)):
+        recording_index=np.where((larger_db.evnum==smaller_db.evnum[recording_i]) & (larger_db.sta==smaller_db.sta[recording_i]))[0]
+        # Append to the comparision index list:
+        comparison_indices.append(recording_index)
+        
+    # Turn comparison_indices into an array
+    comparison_indices=np.array(comparison_indices)
+    
+    # Return:
+    return comparison_indices
+    
+    
+    
+##############################################################################
+def num_of_randeffects(robj,numev=None,numsta=None):
+    '''
+    Get the number of events recorded on each station, or number of stations recording each event
+    VJS 1/17
+    Input:
+        robj:               Database or residuals object
+        numev:              If True, gets the number of events recorded at each station
+        numsta:             If True, gets the number of statiosn recording each event
+    Return:
+        num_random_effects: Array with requested number of random effects, specified by numev or numsta     
+    '''
+    import numpy as np
+    
+    if numsta==True:
+            
+        #### How many stations record each unique event? ###
+        # Get an array with the number of stations recording each event:
+        event_numstas = []
+        unique_events,unevind=np.unique(robj.evnum,return_index=True)
+        
+        for eventi in range(len(unique_events)):
+            evwhere = np.where(robj.evnum==unique_events[eventi])[0]
+            numstas = len(evwhere)
+            # append the number of statoin srecording this event to the list:
+            event_numstas.append(numstas)
+            
+        # At the end, now turn into an array:
+        event_numstas = np.array(event_numstas)
+        
+        return event_numstas
+    
+    elif numev==True:
+        ################
+        #### How many events are recorded at each station? ###
+        station_numevs = []
+        unique_stas,unstind=np.unique(robj.sta,return_index=True)
+        
+        for stai in range(len(unique_stas)):
+            stwhere = np.where(robj.sta==unique_stas[stai])[0]
+            numevs = len(stwhere)
+            # append the number of events recorded on this station to the list:
+            station_numevs.append(numevs)
+            
+        # Turn into an array:
+        station_numevs = np.array(station_numevs)
+        
+        return station_numevs
 
 
 ##############################################################################
@@ -788,7 +867,7 @@ def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,sta
     tradevent = np.array(trad.E_residual)[evind]
     mixedevent = np.array(mixed.E_residual)[evind]
     
-    tradpath = mixed.path_terms
+    tradpath = trad.path_terms
     mixedpath = mixed.path_terms
     
     sta,stind = np.unique(trad.sta,return_index=True)
@@ -828,6 +907,16 @@ def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,sta
         
     # Turn into an array:
     station_numevs = np.array(station_numevs)
+    
+    ### Standard Deviations for plot info:
+    trad_path_std = np.std(tradpath)
+    mixed_path_std = np.std(mixedpath)
+    
+    trad_event_std = np.std(tradevent)
+    mixed_event_std = np.std(mixedevent)
+    
+    trad_site_std = np.std(tradsite)
+    mixed_site_std = np.std(mixedsite)
     
     
     ##########################################################################################
@@ -876,9 +965,9 @@ def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,sta
     plt.xlim(evaxlim[0][0],evaxlim[0][1])
     plt.ylim(evaxlim[1][0],evaxlim[1][1])
     
-    plt.xlabel('Simple inversion event term (ln residual)')
-    plt.ylabel('Mixed effects inversion event term (ln residual)')
-    plt.title('Plot of Simple vs. Mixed effects event terms')
+    plt.xlabel('Single-mean event term (ln residual) \n Std. Dev: %.2f' % trad_event_std)
+    plt.ylabel('Mixed effects inversion event term (ln residual) \n Std. Dev: %.2f' % mixed_event_std)
+    plt.title('Plot of Single-mean vs. Mixed effects event terms')
     
     #Show the figures
     eventfig.show()
@@ -906,9 +995,9 @@ def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,sta
     plt.xlim(pathaxlim[0][0],pathaxlim[0][1])
     plt.ylim(pathaxlim[1][0],pathaxlim[1][1])
     
-    plt.xlabel('Simple inversion path term (ln residual)')
-    plt.ylabel('Mixed effects inversion path term (ln residual)')
-    plt.title('Plot of Simple vs. Mixed effects path terms')
+    plt.xlabel('Single-mean inversion path term (ln residual) \n Std Dev: %.2f' % trad_path_std)
+    plt.ylabel('Mixed effects inversion path term (ln residual) \n Std Dev: %.2f' % mixed_path_std)
+    plt.title('Plot of Single-mean vs. Mixed effects path terms')
     
     #Show the figure
     pathfig.show()
@@ -972,9 +1061,9 @@ def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,sta
     plt.ylim(staaxlim[1][0],staaxlim[1][1])
     
     print 'Labels'
-    plt.xlabel('Simple inversion site term (ln residual)')
-    plt.ylabel('Mixed effects inversion site term (ln residual)')
-    plt.title('Plot of Simple vs. Mixed effects site terms')
+    plt.xlabel('Single-mean inversion site term (ln residual) \n Std Dev: %.2f' % trad_site_std)
+    plt.ylabel('Mixed effects inversion site term (ln residual) \n Std Dev: %.2f' % mixed_site_std)
+    plt.title('Plot of Single-mean vs. Mixed effects site terms')
     
     stafig.show()
     
@@ -986,6 +1075,47 @@ def compare_mixed_traditional(home,run_name,tradpath,mixedpath,mymap,evaxlim,sta
     stafig.savefig(stpdffile)
     
     
+##################################################################################
+def compare_models_2dhist(residuals,num_randeffect,nbins,pltaxis,mymap,axlims,clims,xlabel_toggle,ylabel_toggle):
+        '''
+        
+        Input:
+            residuals:      Array with the residuals (unique event terms, site terms, etc.)
+            num_randeffect: Array with the number of stations recording each event, or number of events recorded on each station
+            nbins:          [number of bins for residuals, number of bins for random effect]
+            pltaxis:        Axes to plot on. Can use this to plot iteratively
+            mymap:          Colormap RGB values to plot arr([r,g,b])
+            axlims:         Array with axis limits: [[xmin, xmax],[ymin,ymax]]
+            clims:          Limits for colorbar [cmin, cmax]
+            xlabel_toggle:  String with instructions to add x label: 'event'/'site'
+            ylabel_toggle:  String with instructions to add y label: 'sta_per_ev'/'ev_per_sta'
+        Returns:
+            
+        '''
+        
+        from mpl_toolkits.mplot3d import Axes3D
+        import matplotlib.pyplot as plt
+        import numpy as np
+        
+        
+        
+        pltaxis.hist2d(residuals, num_randeffect, nbins, range=axlims, cmin=clims[0],cmax=clims[1],cmap=mymap)
+        #pltaxis.colorbar()
+        
+        
+        #  If it's plotting event terms:
+        if xlabel_toggle=='event':
+            pltaxis.set_xlabel('Event Term - ln Residuals')
+        elif xlabel_toggle=='site':
+            pltaxis.set_xlabel('Site Term - ln Residuals')
+        
+        if ylabel_toggle=='sta_per_ev':
+            pltaxis.set_ylabel('Number of Stations per Event')
+        elif ylabel_toggle=='ev_per_sta':
+            pltaxis.set_ylabel('Number of Events per Station')
+
+
+
 ###########
 def z_test(sample1,sample2):
     #VJS 1/2017
@@ -1014,3 +1144,279 @@ def z_test(sample1,sample2):
     
     return z_value
     
+    
+
+##############################################################################################
+def plot_method_method(home,run_name,method_type,largerpath,smallerpath,largername,smallername,comp_indices,mymap,evaxlim,staaxlim,pathaxlim,symbol_size,cbins,clims):
+    '''
+    VJS 1/2017
+    Plot the single-mean vs. single-mean, or mixed vs. mixed terms (event,site,path) for two databases
+    Input:
+        home:           String with path to project home
+        run_name:       String with the comparison directory name
+        method_type:    String with the type of method plotting: 'single-mean'/'mixed'
+        largerpath:     String with the path to the database/res object with more recordings
+        smallerpath:    String with the path to the database/res object with fewer recordings
+        largername:     String with the name of the larger db for plotting
+        smallername:    String with the name of the smaller db for plotting
+        comp_indices:   Indices for matching the db's (see the function ra.get_comparison_indices)
+        mymap:          String with the colormap
+        evaxlim:        Axis limits for the event plot [[xmin,xmax],[ymin,ymax]]
+        staaxlim:       Axis limits for the station plot[[xmin,xmax],[ymin,ymax]]
+        pathaxlim:      Axis limits for the path plot [[xmin,xmax],[ymin,ymax]]
+        symbolsize:     Array/list with symbol sizes for plots: [event,path,site]
+        cbins:          Array/list with bin size for colorscale: [event, site]
+        clims:          Limits for colorbar [[cmin_event,cmax_event],[cmin_sta,cmax_sta]]
+    Returns:
+        
+    '''
+        
+    import res_analysis as ra
+    import numpy as np
+    from os import path
+    import matplotlib.pyplot as plt
+    import cPickle as pickle
+    import matplotlib.colors as colors
+    import matplotlib.cm as cm
+
+    
+    # 3.  event
+    # 4.  path...
+    # 5.  station...
+     
+    #Get run directory, and figure directory:
+    run_dir=path.expanduser(home+run_name+'/')
+    fig_dir=run_dir+'figs/'
+    pdf_dir=fig_dir+'pdfs/'
+    
+    ## Open objects:
+    largerfile=open(largerpath,'r')
+    lobj=pickle.load(largerfile)
+    largerfile.close()
+    
+    smallerfile=open(smallerpath,'r')
+    sobj=pickle.load(smallerfile)
+    smallerfile.close()
+    
+    # Color by the smaller database. Get number of events perstation, and number of stations per event for color...
+    numev_persta_smaller=ra.num_of_randeffects(sobj,numev=True)
+    numsta_perev_smaller=ra.num_of_randeffects(sobj,numsta=True)
+    
+    #### Get the stuff to plot ####
+    # Event stuff:
+    ev_unique,ev_uniq_ind = np.unique(lobj.evnum[comp_indices],return_index=True)
+    larger_event = np.array(lobj.E_residual)[comp_indices][ev_uniq_ind]
+    smaller_event = np.array(sobj.E_residual)[ev_uniq_ind]
+    
+    larger_ev_std = np.std(larger_event)
+    smaller_ev_std = np.std(smaller_event)
+    
+    # Path stuff:
+    larger_path = np.array(lobj.path_terms)[comp_indices]
+    smaller_path = np.array(sobj.path_terms)
+    
+    larger_pa_std = np.std(larger_path)
+    smaller_pa_std = np.std(smaller_path)
+    
+    # Site stuff:
+    st_unique,st_uniq_ind = np.unique(lobj.sta[comp_indices],return_index=True)
+    larger_site = np.array(lobj.site_terms)[comp_indices][st_uniq_ind]
+    smaller_site = np.array(sobj.site_terms)[st_uniq_ind]
+    
+    larger_st_std = np.std(larger_site)
+    smaller_st_std = np.std(smaller_site)
+    
+    
+    ####################    
+    ######  Event ######
+    ####################
+    
+    print 'Plotting event terms...'
+    
+    ## First event terms ##
+    # Make a straight line for relationship:
+    xe=np.linspace(evaxlim[0][0],evaxlim[0][1],2)
+    ye=np.linspace(evaxlim[1][0],evaxlim[1][1],2)
+    
+    # Plotting colored by number of stations recording each event:
+    cmin = clims[0][0]
+    cmax = clims[0][1]
+    
+    ##Plot:
+    #Get colormap
+    #Make colormap:
+    colormap_numstas=plt.get_cmap(mymap)
+    #Make a normalized colorscale
+    cNorm=colors.Normalize(vmin=cmin, vmax=cmax)
+    #Apply normalization to colormap:
+    scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap_numstas)
+    
+    #Make a fake contour plot for the colorbar:
+    Z=[[0,0],[0,0]]
+    levels=np.arange(cmin,cmax,cbins[0])
+    c=plt.contourf(Z, levels, cmap=colormap_numstas)
+    
+    #Assign values to colormap
+    colorVal = scalarMap.to_rgba(numsta_perev_smaller)
+    print 'max of numsta_perev is %f' % max(numsta_perev_smaller)
+    print 'min of numsta_perev is %f' % min(numsta_perev_smaller)
+    
+    eventfig = plt.figure()
+    #plt.scatter(tradevent,mixedevent,marker='o',s=7,color='#333333')
+    plt.scatter(smaller_event,larger_event,marker='o',s=symbol_size[0],color=colorVal)
+    plt.plot(xe,ye,color='gray',linewidth=1.5)
+    
+    # Colrobar:
+    cb = plt.colorbar(c)
+    cb.set_label('Number of stations per event')
+    
+    # Axis limits:
+    plt.xlim(evaxlim[0][0],evaxlim[0][1])
+    plt.ylim(evaxlim[1][0],evaxlim[1][1])
+    
+    if method_type=='single-mean':
+        plt.xlabel('Single-mean event term, %s (ln residual) \n Std. Dev: %.2f' % (smallername,smaller_ev_std))
+        plt.ylabel('Single-mean event term, %s (ln residual) \n Std. Dev: %.2f' % (largername,larger_ev_std))
+        plt.title('Plot of Single-mean vs. Single-mean event terms')
+    
+        evpngfile = fig_dir+run_name+'_'+smallername+'_'+largername+'_event_single_comp.png'
+        evpdffile = pdf_dir+run_name+'_'+smallername+'_'+largername+'_event_single_comp.pdf'
+        print 'Saving figure to %s' % evpngfile
+        
+    elif method_type=='mixed':
+        plt.xlabel('Mixed event term, %s (ln residual) \n Std. Dev: %.2f' % (smallername,smaller_ev_std))
+        plt.ylabel('Mixed event term, %s (ln residual) \n Std. Dev: %.2f' % (largername,larger_ev_std))
+        plt.title('Plot of Mixed vs. Mixed event terms')
+    
+        evpngfile = fig_dir+run_name+'_'+smallername+'_'+largername+'_event_mixed_comp.png'
+        evpdffile = pdf_dir+run_name+'_'+smallername+'_'+largername+'_event_mixed_comp.pdf'
+        print 'Saving figure to %s' % evpngfile
+    
+    print 'Saving event figures'
+    eventfig.savefig(evpngfile)
+    eventfig.savefig(evpdffile)
+    
+    #Show the figures
+    eventfig.show()
+    
+    
+    ####################
+    ###### Station #####
+    ####################
+    
+    print 'Plotting station terms...'
+    
+    ## First event terms ##
+    # Make a straight line for relationship:
+    xs=np.linspace(staaxlim[0][0],staaxlim[0][1],2)
+    ys=np.linspace(staaxlim[1][0],staaxlim[1][1],2)
+    
+    # Plotting colored by number of stations recording each event:
+    cmin = clims[1][0]
+    cmax = clims[1][1]
+    
+    ##Plot:
+    #Get colormap
+    #Make colormap:
+    colormap_numevs=plt.get_cmap(mymap)
+    #Make a normalized colorscale
+    cNorm=colors.Normalize(vmin=cmin, vmax=cmax)
+    #Apply normalization to colormap:
+    scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap_numevs)
+    
+    #Make a fake contour plot for the colorbar:
+    Z=[[0,0],[0,0]]
+    levels=np.arange(cmin,cmax,cbins[1])
+    c=plt.contourf(Z, levels, cmap=colormap_numevs)
+    
+    #Assign values to colormap
+    colorVal = scalarMap.to_rgba(numev_persta_smaller)
+    print 'max of numev_persta is %f' % max(numev_persta_smaller)
+    print 'min of numev_persta is %f' % min(numev_persta_smaller)
+    
+    stafig = plt.figure()
+    #plt.scatter(tradevent,mixedevent,marker='o',s=7,color='#333333')
+    plt.scatter(smaller_site,larger_site,marker='o',s=symbol_size[0],color=colorVal)
+    plt.plot(xs,ys,color='gray',linewidth=1.5)
+    
+    # Colrobar:
+    cb = plt.colorbar(c)
+    cb.set_label('Number of events per station')
+    
+    # Axis limits:
+    plt.xlim(staaxlim[0][0],staaxlim[0][1])
+    plt.ylim(staaxlim[1][0],staaxlim[1][1])
+    
+    if method_type=='single-mean':
+        plt.xlabel('Single-mean site term, %s (ln residual) \n Std. Dev: %.2f' % (smallername,smaller_st_std))
+        plt.ylabel('Single-mean site term, %s (ln residual) \n Std. Dev: %.2f' % (largername,larger_st_std))
+        plt.title('Plot of Single-mean vs. Single-mean site terms')
+    
+        stpngfile = fig_dir+run_name+'_'+smallername+'_'+largername+'_site_single_comp.png'
+        stpdffile = pdf_dir+run_name+'_'+smallername+'_'+largername+'_site_single_comp.pdf'
+        print 'Saving figure to %s' % stpngfile
+        
+    elif method_type=='mixed':
+        plt.xlabel('Mixed site term, %s (ln residual) \n Std. Dev: %.2f' % (smallername,smaller_st_std))
+        plt.ylabel('Mixed site term, %s (ln residual) \n Std. Dev: %.2f' % (largername,larger_st_std))
+        plt.title('Plot of Mixed vs. Mixed site terms')
+    
+        stpngfile = fig_dir+run_name+'_'+smallername+'_'+largername+'_site_mixed_comp.png'
+        stpdffile = pdf_dir+run_name+'_'+smallername+'_'+largername+'_site_mixed_comp.pdf'
+        print 'Saving figure to %s' % stpngfile
+        
+    print 'Saving site figures'
+    stafig.savefig(stpngfile)
+    stafig.savefig(stpdffile)
+    
+    #Show the figures
+    stafig.show()
+    
+    
+    
+    ####################
+    ####### Path #######
+    ####################
+    
+    print 'Plotting path terms...'
+    
+    ## First event terms ##
+    # Make a straight line for relationship:
+    xp=np.linspace(pathaxlim[0][0],pathaxlim[0][1],2)
+    yp=np.linspace(pathaxlim[1][0],pathaxlim[1][1],2)
+    
+    # Path
+    pafig = plt.figure()
+    #plt.scatter(tradevent,mixedevent,marker='o',s=7,color='#333333')
+    plt.scatter(smaller_path,larger_path,marker='o',s=symbol_size[0],color='#333333')
+    plt.plot(xp,yp,color='gray',linewidth=1.5)
+    
+    
+    # Axis limits:
+    plt.xlim(pathaxlim[0][0],pathaxlim[0][1])
+    plt.ylim(pathaxlim[1][0],pathaxlim[1][1])
+    
+    if method_type=='single-mean':
+        plt.xlabel('Single-mean path term, %s (ln residual) \n Std. Dev: %.2f' % (smallername,smaller_pa_std))
+        plt.ylabel('Single-mean path term, %s (ln residual) \n Std. Dev: %.2f' % (largername,larger_pa_std))
+        plt.title('Plot of Single-mean vs. Single-mean path terms')
+    
+        papngfile = fig_dir+run_name+'_'+smallername+'_'+largername+'_path_single_comp.png'
+        papdffile = pdf_dir+run_name+'_'+smallername+'_'+largername+'_path_single_comp.pdf'
+        print 'Saving figure to %s' % papngfile
+        
+    elif method_type=='mixed':
+        plt.xlabel('Mixed path term, %s (ln residual) \n Std. Dev: %.2f' % (smallername,smaller_pa_std))
+        plt.ylabel('Mixed path term, %s (ln residual) \n Std. Dev: %.2f' % (largername,larger_pa_std))
+        plt.title('Plot of Mixed vs. Mixed path terms')
+        
+        papngfile = fig_dir+run_name+'_'+smallername+'_'+largername+'_path_mixed_comp.png'
+        papdffile = pdf_dir+run_name+'_'+smallername+'_'+largername+'_path_mixed_comp.pdf'
+        print 'Saving figure to %s' % papngfile
+    
+    print 'Saving path figures'
+    pafig.savefig(papngfile)
+    pafig.savefig(papdffile)
+    
+    #Show the figures
+    pafig.show()
