@@ -296,7 +296,7 @@ def store_rayinfo(rfile_in,rfile_out,rayfile,veltype,lon_conversion):
     
     from os import path
     import cPickle as pickle
-    from numpy import where,append,degrees
+    from numpy import where,append,degrees,array
     
     #Load the residuals object:
     rfile=open(rfile_in,'r')
@@ -316,7 +316,13 @@ def store_rayinfo(rfile_in,rfile_out,rayfile,veltype,lon_conversion):
         source_i=robj.source_i[recording_i]
         receiver_i=robj.receiver_i[recording_i]
         
+        print robj.source_i[recording_i]
+        
         #Find which raypath entry corresponds to this recording:
+        #print source_i
+        #print src_id
+        #print receiver_i
+        #print rec_id
         ray_ind=where((source_i==src_id) & (receiver_i==rec_id))[0]
         
         #Convert the ray info to depth/lat degrees/lon degrees:
