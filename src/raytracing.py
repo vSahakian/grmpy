@@ -248,6 +248,10 @@ def parse_rayfile(rayfile):
         receiver_id=r_[receiver_id,int(line.split()[0])]
         source_id=r_[source_id,int(line.split()[1])]
         
+        #DEBUGGING...
+        print int(line.split()[0])
+        print int(line.split()[1])
+        
         #Next line has number of elements in the path
         line=f.readline()
         Nelements=int(line.split()[0])
@@ -266,7 +270,7 @@ def parse_rayfile(rayfile):
             else:
                 path_coordinates=r_[path_coordinates,element]
             
-        #Append to stupid list
+        #Append to list
         path_list.append(path_coordinates)
 
     f.close()
@@ -298,6 +302,8 @@ def store_rayinfo(rfile_in,rfile_out,rayfile,veltype,lon_conversion):
     import cPickle as pickle
     from numpy import where,append,degrees,array
     
+    print rfile_in
+    
     #Load the residuals object:
     rfile=open(rfile_in,'r')
     robj=pickle.load(rfile)
@@ -324,6 +330,7 @@ def store_rayinfo(rfile_in,rfile_out,rayfile,veltype,lon_conversion):
         #print receiver_i
         #print rec_id
         ray_ind=where((source_i==src_id) & (receiver_i==rec_id))[0]
+        print ray_ind
         
         #Convert the ray info to depth/lat degrees/lon degrees:
         ray_depth_i=path_list[ray_ind][:,0]-6371   #minus the radius of the earth
