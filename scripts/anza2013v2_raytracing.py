@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 #0=desktop
 #1=mac
 
-what_home=0
+what_home=1
 
 if what_home==0:
     #Desktop:

@@ -152,7 +152,7 @@ def write_receiverin(home,run_name,lontype):
         receiveri=sobjs[rec_ind]
         
         # Some of the residuals objects are made such that stlat is: array([[1,2,3,...,n]]).  If this is the case,
-        #   shape(receiveri.stlat) = (1,n)
+        #   shape(receiveri.stlat) = (1,n), and a [0] needs to be added on to indexing:
         if shape(receiveri.stlat)[0]==1:
             #Get info:
             #station info
@@ -166,6 +166,11 @@ def write_receiverin(home,run_name,lontype):
                 rlat=receiveri.stlat[0][0]
                 rlon=receiveri.stlon[0][0]+360
 
+            #number of paths to receiver
+            npaths=len(receiveri.source_i[0])
+            #The source of each path:
+            sourcei=receiveri.source_i[0]
+        
         
         # Otherwise, receiveri.stlat = array([1,2,3,...,n]), in which case
         #   shape(receiveri.stlat) = (n,), and don't need the extra 0...
@@ -182,10 +187,10 @@ def write_receiverin(home,run_name,lontype):
                 rlat=receiveri.stlat[0]
                 rlon=receiveri.stlon[0]+360
             
-        #number of paths to receiver
-        npaths=len(receiveri.source_i)
-        #The source of each path:
-        sourcei=receiveri.source_i
+            #number of paths to receiver
+            npaths=len(receiveri.source_i)
+            #The source of each path:
+            sourcei=receiveri.source_i
 
         #The number of the source for each path - here it's always 1, since 
         #we're just raytracing through one layer...make them integers:
@@ -200,9 +205,9 @@ def write_receiverin(home,run_name,lontype):
         #First the source number:
         for source in range(len(sourcei)):
             if source==0:
-                sourceiline=str(sourcei[source][0])
+                sourceiline=str(sourcei[source])
             else:
-                sourceiline=sourceiline+' '+str(sourcei[source][0])
+                sourceiline=sourceiline+' '+str(sourcei[source])
         #end it:
         sourceiline=sourceiline+'\t\t the source of each path\n'
         
