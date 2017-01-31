@@ -1256,7 +1256,7 @@ def makeStations_mixed(home,run_name,resfile):
     run_dir=path.expanduser(home+run_name+'/')
     so_dir=run_dir+'sta_objs/'
     
-    #REad database object:
+    #REad mixed residuals database object, from mixed regr:
     #Filename:
     fname=resfile
     datobj=open(fname,'r')
@@ -1284,95 +1284,44 @@ def makeStations_mixed(home,run_name,resfile):
         #Station name:
         station_name_i=unique_stas[sta_ind]
         
-        #Zero out the lists/arrays that will be used to add to the station object for htis statioN:
-        evnum=[]
-        ml=[]
-        mw=[]
-        pga_pg=[]
-        pga=[]
-        pgv=[]
-        r=[]
-        ffdf=[]
-        md_ffdf=[]
-        elat=[]
-        elon=[]
-        edepth=[]
-        stlat=[]
-        stlon=[]
-        stelv=[]
-        source_i=[]
-        receiver_i=[]
-        #Total residual:
-        total_residual=[]
-        #Event residuals:
-        E_residual=[]
-        #Within-event residuals:
-        W_residual=[]
-        # Site terms:
-        site_terms=[]
-        
         # Now find which indices in teh residuals object these station are at:
         station_res_ind=np.where(db.stnum==station_num_i)[0]
         
         # Get the data for these:
-        vs30=db.vs30[station_res_ind]
-        evnum.append(db.evnum[station_res_ind])
-        ml.append(db.ml[station_res_ind])
-        mw.append(db.mw[station_res_ind])
-        pga_pg.append(db.pga_pg[station_res_ind])
-        pgv.append(db.pgv[station_res_ind])    
-        r.append(db.r[station_res_ind])    
-        ffdf.append(db.ffdf[station_res_ind])
-        md_ffdf.append(db.md_ffdf[station_res_ind])
-        elat.append(db.elat[station_res_ind])
-        elon.append(db.elon[station_res_ind])
-        edepth.append(db.edepth[station_res_ind])
-        stlat.append(db.stlat[station_res_ind])
-        stlon.append(db.stlon[station_res_ind])
-        stelv.append(db.stelv[station_res_ind])
-        source_i.append(db.source_i[station_res_ind])
-        receiver_i.append(db.receiver_i[station_res_ind])
-        total_residual.append(db.total_residual[station_res_ind])
-
-        W_residual.append(db.W_residual[station_res_ind])
         
-        #event and site residual in station object should be one number, so append [0]:
-        E_residual.append(db.E_residual[station_res_ind][0])
-        site_terms.append(db.site_terms[station_res_ind][0])        
-                
-            
-        #AFter looping over all events, convert these lists into arrays, to put
-        #into a station object:
-        #Vs30 stays as just one number
-        evnum=np.array(evnum)
-        ml=np.array(ml)
-        mw=np.array(mw)
-        pga_pg=np.array(pga_pg)
-        pgv=np.array(pgv)
-        r=np.array(r)
-        ffdf=np.array(ffdf)
-        md_ffdf=np.array(md_ffdf)
-        elat=np.array(elat)
-        elon=np.array(elon)
-        edepth=np.array(edepth)
-        stlat=np.array(stlat)
-        stlon=np.array(stlon)
-        stelv=np.array(stelv)
-        source_i=np.array(source_i)
-        receiver_i=np.array(receiver_i)
-        total_residual=np.array(total_residual)
-        E_residual=np.array(E_residual)
-        W_residual=np.array(W_residual)[0]
+        #vs30 is one number (since same for the station regardless of event)
+        vs30=db.vs30[station_res_ind][0]
         
-        # But don't convert the site residual since there's only one...
-        #       instead, take only one of them, since they are now an array:
-        site_terms=site_terms[0]
+        evnum=db.evnum[station_res_ind]
+        ml=db.ml[station_res_ind]
+        mw=db.mw[station_res_ind]
+        pga=db.pga[station_res_ind]
+        pga_pg=db.pga_pg[station_res_ind]
+        pgv=db.pgv[station_res_ind]
+        r=db.r[station_res_ind]    
+        ffdf=db.ffdf[station_res_ind]
+        md_ffdf=db.md_ffdf[station_res_ind]
+        elat=db.elat[station_res_ind]
+        elon=db.elon[station_res_ind]
+        edepth=db.edepth[station_res_ind]
+        stlat=db.stlat[station_res_ind]
+        stlon=db.stlon[station_res_ind]
+        stelv=db.stelv[station_res_ind]
+        source_i=db.source_i[station_res_ind]
+        receiver_i=db.receiver_i[station_res_ind]
+        
+        total_residual=db.total_residual[station_res_ind]
+        W_residual=db.W_residual[station_res_ind]
+        E_residual=db.E_residual[station_res_ind][0]
+        
+        #site residual in station object should be one number, so append [0]:
+        site_term=db.site_terms[station_res_ind][0]        
         
         #Put into a station object...
-        station_i=cdf.station(station_name_i,station_num_i,vs30[0],evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,total_residual,E_residual,W_residual)
+        station_i=cdf.station(station_name_i,station_num_i,vs30,evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,total_residual,E_residual,W_residual)
         
         #Get the site residual:
-        station_i.add_site_resid(site_terms)
+        station_i.add_site_resid(site_term)
         
         #Append to the station list...
         station_list.append(station_i)

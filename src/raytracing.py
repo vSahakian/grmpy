@@ -120,7 +120,7 @@ def write_receiverin(home,run_name,lontype):
     from os import path
     import cPickle as pickle
     import dread
-    from numpy import str,ones,int64
+    from numpy import str,ones,int64,shape
     
     #Get the path to the run directory:
     run_dir=path.expanduser(home+run_name+'/')
@@ -151,22 +151,42 @@ def write_receiverin(home,run_name,lontype):
     for rec_ind in range(len(sobjs)):
         receiveri=sobjs[rec_ind]
         
-        #Get info:
-        #station info
-        #Receiver elevation should be negative (station elevation as written is positive in database objects)
-        rdepth=-1*receiveri.stelv[0][0]
-        #get lat/lon - use lontype flag:
-        if lontype==0:
-            rlat=receiveri.stlat[0][0]
-            rlon=receiveri.stlon[0][0]
-        elif lontype==1:
-            rlat=receiveri.stlat[0][0]
-            rlon=receiveri.stlon[0][0]+360
+        # Some of the residuals objects are made such that stlat is: array([[1,2,3,...,n]]).  If this is the case,
+        #   shape(receiveri.stlat) = (1,n)
+        if shape(receiveri.stlat)[0]==1:
+            #Get info:
+            #station info
+            #Receiver elevation should be negative (station elevation as written is positive in database objects)
+            rdepth=-1*receiveri.stelv[0][0]
+            #get lat/lon - use lontype flag:
+            if lontype==0:
+                rlat=receiveri.stlat[0][0]
+                rlon=receiveri.stlon[0][0]
+            elif lontype==1:
+                rlat=receiveri.stlat[0][0]
+                rlon=receiveri.stlon[0][0]+360
+
+        
+        # Otherwise, receiveri.stlat = array([1,2,3,...,n]), in which case
+        #   shape(receiveri.stlat) = (n,), and don't need the extra 0...
+        else:
+            #Get info:
+            #station info
+            #Receiver elevation should be negative (station elevation as written is positive in database objects)
+            rdepth=-1*receiveri.stelv[0]
+            #get lat/lon - use lontype flag:
+            if lontype==0:
+                rlat=receiveri.stlat[0]
+                rlon=receiveri.stlon[0]
+            elif lontype==1:
+                rlat=receiveri.stlat[0]
+                rlon=receiveri.stlon[0]+360
             
         #number of paths to receiver
         npaths=len(receiveri.source_i)
         #The source of each path:
         sourcei=receiveri.source_i
+
         #The number of the source for each path - here it's always 1, since 
         #we're just raytracing through one layer...make them integers:
         npsource=ones((len(sourcei)))

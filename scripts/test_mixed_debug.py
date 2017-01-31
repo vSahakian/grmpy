@@ -23,7 +23,8 @@ elif what_home==1:
 
 #Location to store figures:
 home=HOME+'/anza'
-invrun='v2anza2013'
+#invrun='v2anza2013'
+invrun='debugtest'
 fig_dir=home+'/models/figs/'+invrun+'/'
 obj_dir=home+'/models/pckl/'+invrun+'/'
 model_dir=home+'/models/pckl/'+invrun+'/'
@@ -127,7 +128,9 @@ plotdist=np.array([0,20,40,60,120])
 
 print 'Running mixed effects'
 #Now try with mixed effects:
-run_name = 'mixedregr_v2anza2013_Mc_8.5_res4'
+#dbname = 'test2013'
+#run_name = 'mixedregr_v2anza2013_Mc_8.5_res4'
+run_name = 'debugtest'
 run_home=home+'/models/residuals/'
 resaxlim_r = [[0,180],[-5,5]]
 resaxlim_mw = [[0,4],[-5,5]]
