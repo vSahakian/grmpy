@@ -218,22 +218,25 @@ class db:
         
         return f1
         
-    def plot_rpga_withmodel(self,bmin,bmax,mw,d_ln,rng,sdist,axlims,VR,nga_mw=True,nga_pred=True,vref=True):
+    def plot_rpga_withmodel(self,bmin,bmax,mw,d_ln,rng,sdist,ask_dist,axlims,VR,nga_mw=True,nga_pred=True,vref=True,annotate_mag=4,rotation_angle=35):
         '''
         Plots log10 PGA, for various distance ranges specified by bmin, bmax,
         and step.
         Input:
-            bmin:       Min value for bins for data
-            bmax:       Max balue for bins for data
-            mw:         Mw array from gmpe.compute_model_fixeddist
-            d_ln:       d array from compute_model_fixeddist - IN LN PGA!!
-            rng:        Magnitude ranges, same array used for inversion
-            sdist:      Distances array used for inversion
-            axlims:     Array with lims: [[xmin,xmax],[ymin,ymax]]
-            VR:         Variance Reduction from inversion
-            vref:       Reference vs30 value (Default: 760 m/s)
-            nga_mw:     mw range for NGA plotting, if provided
-            nga_pred:   prediction array for NGA plotting, if provided
+            bmin:           Min value for bins for data
+            bmax:           Max balue for bins for data
+            mw:             Mw array from gmpe.compute_model_fixeddist
+            d_ln:           d array from compute_model_fixeddist - IN LN PGA!!
+            rng:            Magnitude ranges, same array used for inversion
+            sdist:          Distances array used for inversion
+            ask_dist:       Distance at which ASK is plotted
+            axlims:         Array with lims: [[xmin,xmax],[ymin,ymax]]
+            VR:             Variance Reduction from inversion
+            nga_mw:         mw range for NGA plotting, if provided
+            nga_pred:       prediction array for NGA plotting, if provided
+            vref:           Reference vs30 value (Default: 760 m/s)
+            annotate_mag:   Magnitue at which to annotate.  Default is M 4.
+            rotation_angle: Rotation angle for text.  Default is 35 degrees 
         '''
         
         from matplotlib import pyplot as plt
@@ -285,21 +288,31 @@ class db:
         
         for j in range(len(sdist)):
             #Label for plot:
-            lab="R="+np.str(sdist[j])+"km"
+            #lab="R="+np.str(sdist[j])+"km"
+            lab=np.str(sdist[j])+" km"
+
             
             mw_dist=mw[:,j]
             d_dist=d[:,j]
             
             #Plot
-            plt.plot(mw_dist,d_dist,color=colors_gmpe[j],linewidth=2,label=lab)
+            #plt.plot(mw_dist,d_dist,color=colors_gmpe[j],linewidth=2,label=lab)
+            plt.plot(mw_dist,d_dist,'--',c='#313332',linewidth=1.7)
             
-        ##Plot dummy object
-        #xdumdum=array([1e99,1e99])
-        #ydumdum=array([1e99,1e99])
-        #zdumdum=array([1e99,1e99])
-        #dummy=plt.scatter(xdumdum,ydumdum,c=zdumdum,cmap=colors)
-        #print colors
-        #plt.colorbar(colors)
+            #Now annotate the lines.  
+            #First find what is the value of PGA for my annotation magnitude, and this plotting distance:
+            mag_where = np.argmin(abs(mw_dist - annotate_mag))
+            
+            #Make the x,y coordinates of where it annotates
+            x_annotate = annotate_mag
+            y_annotate = d_dist[mag_where]
+            
+            #Make annotation text:
+            text_annotate = lab
+            
+            #plot it:
+            #plt.annotate(text_annotate,xy=(x_annotate,y_annotate),rotation=rotation_angle)
+            plt.text(x_annotate,y_annotate,text_annotate,rotation=rotation_angle,va='center',ha='center',backgroundcolor='w',fontsize=8,color='k')
         
         #Limits:
         xlims=axlims[0]
@@ -318,10 +331,23 @@ class db:
             return f
         #Otherwise, plot the NGA data:
         else:
-            plt.plot(nga_mw,nga_pred,linestyle='--',linewidth=2,color='#C0C0C0',label='ASK2014')
+            plt.plot(nga_mw,nga_pred,linestyle='-.',linewidth=2.5,color='#C0C0C0',label='ASK2014')
             
-            #Add legend:
-            plt.legend(loc=4)  
+            #Now annotate the lines.  
+            #First find what is the value of PGA for my annotation magnitude, and this plotting distance:
+            # Add 0.5 to annotate_ma so its 0.5 M away from the normal line annotations and doesn't impinge on them
+            mag_where = np.argmin(abs(nga_mw - (annotate_mag + 0.6)))
+            
+            #Make the x,y coordinates of where it annotates
+            # Again , ad 0.5 to annotate_mag in x_annotate so the ASK label is not on top of the normal labels
+            x_annotate = annotate_mag + 0.6
+            y_annotate = nga_pred[mag_where]
+            
+            #Make annotation text:
+            text_annotate = 'ASK %.0fkm' % ask_dist
+            
+            # Plot it
+            plt.text(x_annotate,y_annotate,text_annotate,rotation=rotation_angle-5,va='center',ha='center',fontsize=8,color='k')
             
             plt.show(f)
             return f          

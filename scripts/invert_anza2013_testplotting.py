@@ -23,7 +23,7 @@ elif what_home==1:
 
 #Location to store figures:
 home=HOME+'/anza'
-invrun='v2anza2013'
+invrun='test_plotting'
 fig_dir=home+'/models/figs/'+invrun+'/'
 obj_dir=home+'/models/pckl/'+invrun+'/'
 model_dir=home+'/models/pckl/'+invrun+'/'
@@ -60,9 +60,7 @@ bmax=120
 ncoeff=5
 
 #Axis limits for plotting:
-#axlims=[[0,6],[-8,-0.5]]
-axlims=[[0,5.5],[-7,-0.5]]
-
+axlims=[[0,6],[-8,-0.5]]
 
 #Number of distances to include in smoothing - there will be this many extra
 #equations added on at each range boundary
@@ -82,15 +80,11 @@ smth=500
 mdep_ffdf=0
 
 #Plotting distances:
-#plotdist=np.array([0,20,40,60,120])
-plotdist=np.array([0,10,20,40,80,160,220])
+plotdist=np.array([0,10,20,40,90,150,200])
 
 # plotting distance for ASK:
 ask_dist=10
 
-# For plotting only:
-setmodel='/Users/vsahakian/anza/models/pckl/v2anza2013/regr_Mc8.5_0.0_6.5_VR_99.3.pckl'
-setmixedmodel='/Users/vsahakian/anza/models/pckl/v2anza2013/mixedregr_v2anza2013_Mc_8.5_VR_99.9.pckl'
 
 #####################################################
 ###########Run Inversion and plot:###################
@@ -112,28 +106,21 @@ for k in range(len(rng)):
 #Invert#
 ########
 
-#print 'Setting up inversion'
-#inv_dat=run_inv.setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf)
-#
-#print inv_dat
+print 'Setting up inversion'
+inv_dat=run_inv.setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf)
 
-##Get basename for model:
-#basename='regr_Mc'+str(Mc)+'_'+strname+'_VR_'+str(np.around(inv_dat.VR,decimals=1))
-##basename='regr_'+strname+'_VR_'+np.str(np.around(inv_dat.VR,decimals=1))
-#modelpath=model_dir+basename+'.pckl'
-#
-#print 'Will read in '+modelpath
+print inv_dat
 
-#print 'plotting...'
-##Plot:
-##fig1=run_inv.plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,plotdist,Mc,axlims,bmin,bmax,vref)
-#fig1=run_inv.plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,plotdist,ask_dist,Mc,axlims,bmin,bmax,vref)
+#Get basename for model:
+basename='regr_Mc'+str(Mc)+'_'+strname+'_VR_'+str(np.around(inv_dat.VR,decimals=1))
+#basename='regr_'+strname+'_VR_'+np.str(np.around(inv_dat.VR,decimals=1))
+modelpath=model_dir+basename+'.pckl'
 
+print 'Will read in '+modelpath
 
-# If you just want to plot with a certain model:
-modelpath=setmodel
+print 'plotting...'
+#Plot:
 fig1=run_inv.plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,plotdist,ask_dist,Mc,axlims,bmin,bmax,vref)
-
 
 
 
@@ -173,12 +160,6 @@ fig1=run_inv.plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,p
 ## Plot data with model:
 #mixedinv = run_inv.plot_data_model(home,dbpath,dbname,invpath,coeff_file,mdep_ffdf,plotdist,Mc,axlims,bmin,bmax,vref)
 #
-
-### If just plotting:
-##invpath=setmixedmodel
-##mixedinv = run_inv.plot_data_model(home,dbpath,dbname,invpath,coeff_file,mdep_ffdf,plotdist,ask_dist,Mc,axlims,bmin,bmax,vref)
-
-
 ## Get some mean values for the stats file:
 #mean_tot=np.mean(mixed_residuals.total_residual)
 #std_dev_tot=np.std(mixed_residuals.total_residual)

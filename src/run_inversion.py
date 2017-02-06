@@ -87,7 +87,7 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ff
     
     
 ############
-def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,Mc,axlims,bmin,bmax,vref):
+def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,ask_dist,Mc,axlims,bmin,bmax,vref):
     '''
     Plot the data with the model, and ASK 2014
     Input:
@@ -98,6 +98,7 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,Mc,a
         coeff_file:     String with path to the coefficient file
         mdep_ffdf:      Flag for using mag dependent ffdf (0/1=off/on)
         sdist:          Array with distances to plot in model
+        ask_dist:       One number with the distance to plot ASK
         Mc:             M squared centering term (8.5 in ASK 2014)
         axlims:         Axis limits for plotting [[xmin,xmax],[ymin,ymax]]
         bmin:           Minimum value for distance bins
@@ -109,7 +110,7 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,Mc,a
     
     import gmpe as gm
     import cPickle as pickle
-    from numpy import ones,str,around,isnan
+    from numpy import ones,str,around,isnan,linspace
     
     #Get directories for things:
     fig_dir=home+'/models/figs/'+dbname+'/'
@@ -150,10 +151,15 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,Mc,a
     #Get the NGA predictions to plot on the same figure:
     #Coefficient file:
     coeff_file=coeff_file=home+'/data/coeffs/ASK14_coeffs.m'
+
+    # get the magnitude at which to compute:
+    ask_mw=linspace(axlims[0][0],axlims[0][1])
+    
     #Do it just for one distance for now, say R=5km.  
-    Rrup=5*ones(db.r.shape)
+    Rrup=ask_dist*ones(ask_mw.shape)
+    
     #Get the NGA predictions...
-    freq1,M_sort,freq1_sort=gm.ask2014_pga(db.mw,Rrup,coeff_file,1,[0,0])
+    freq1,M_sort,freq1_sort=gm.ask2014_pga(ask_mw,Rrup,coeff_file,0,[0,0])
 
 
     ############
@@ -162,7 +168,7 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,Mc,a
     
     #Plotting params...
     #Plot against data to check:
-    fig1=db.plot_rpga_withmodel(bmin,bmax,mw_model,d_model,model.rng,sdist,axlims,model.VR,M_sort,freq1_sort,vref)
+    fig1=db.plot_rpga_withmodel(bmin,bmax,mw_model,d_model,model.rng,sdist,ask_dist,axlims,model.VR,M_sort,freq1_sort,vref)
 
 
     #Save figure as pdf and png:
