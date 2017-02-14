@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 #0=desktop
 #1=mac
 
-what_home=1
+what_home=0
 
 if what_home==0:
     #Desktop:
@@ -28,86 +28,86 @@ dbpath=HOME+'/anza/data/databases/v2anza2013v2/v2anza2013_pgrid_5sta_res4.pckl'
 modelpath=HOME+'/anza/models/pckl/v2anza2013/mixedregr_v2anza2013_Mc_8.5_VR_99.9.pckl'
 residname='mixedregr_v2anza2013_Mc_8.5_VR_99.9'
 
-#rayfile_vp='/media/vsahakian/katmai/anza/fm3d/v2anza2013_Mc8.5_pgrid_5sta_res4/Vp/rays.dat'
-#rayfile_vs='/media/vsahakian/katmai/anza/fm3d/v2anza2013_Mc8.5_pgrid_5sta_res4/Vs/rays.dat'
-#faultfile='/media/vsahakian/katmai/anza/data/faults/Holocene_LatestPleistocene_118.0w_115.2w_32.3n_34.5n.pckl'
-
-rayfile_vp='/Users/vsahakian/anza/fm3d/v2anza2013_Mc8.5_pgrid_5sta_res4/Vp/rays.dat'
-rayfile_vs='/Users/vsahakian/anza/fm3d/v2anza2013_Mc8.5_pgrid_5sta_res4/Vs/rays.dat'
-faultfile='/Users/vsahakian/anza/data/faults/Holocene_LatestPleistocene_118.0w_115.2w_32.3n_34.5n.pckl'
+if what_home==0:
+    rayfile_vp='/media/vsahakian/katmai/anza/fm3d/v2anza2013_Mc8.5_pgrid_5sta_res4/Vp/rays.dat'
+    rayfile_vs='/media/vsahakian/katmai/anza/fm3d/v2anza2013_Mc8.5_pgrid_5sta_res4/Vs/rays.dat'
+    faultfile='/media/vsahakian/katmai/anza/data/faults/Holocene_LatestPleistocene_118.0w_115.2w_32.3n_34.5n.pckl'
+elif what_home==1:
+    rayfile_vp='/Users/vsahakian/anza/fm3d/v2anza2013_Mc8.5_pgrid_5sta_res4/Vp/rays.dat'
+    rayfile_vs='/Users/vsahakian/anza/fm3d/v2anza2013_Mc8.5_pgrid_5sta_res4/Vs/rays.dat'
+    faultfile='/Users/vsahakian/anza/data/faults/Holocene_LatestPleistocene_118.0w_115.2w_32.3n_34.5n.pckl'
 
 
 #######################
 ###Set up Raytracing###
 #######################
 
-#Set up the sources.in and receivers.in files for Vs.  So far, Vp has been run:
-#in /media/vsahakian/katmai/anza/data/vm/fulltest_Vp
-
-#Run these with raytracing write_sourcein and write_receiverin
-#Use the directories defined in lines 15 - 33
-#Import raytracing above
-#Set velocity type:
-veltype=1
-#Set longitude format (here, 241 instead of -118 for lontype=1)
-lontype=1  #for Malcolm's new propgrid format
-
-##Write source.in file:
-#rt.write_sourcein(home,run_name,veltype,lontype)
-
-#Write recievers.in file:
-rt.write_receiverin(home,run_name,lontype)
-
-
-
-
-#######################
-#####Store ray files###
-#######################
+##Set up the sources.in and receivers.in files for Vs.  
 #
-###Get the "in" and "out" residual object file names:
-###"In" is the original residuals object:
-##
-##Get the run directory:
-#run_dir=path.expanduser(home+run_name+'/')
-##Get the residuals object:
-##residfile_in=run_dir+run_name+'_robj.pckl'
-#residfile_in=run_dir+run_name+'_VR_99.9_robj.pckl'
-#
-## Here (above), if this isn't hte same as the name in the directory of the residual file, 
-##    could do:    residfile_in=run_dir+residname
-##    as residname is defined above (define based on what is in directory)  
-#
-##"Out" is the _raydat.pckl object - also serves as the "in" for the second:
-#rbase=residfile_in.split('.pckl')
-##residfile_out=rbase[0]+'_raydat.pckl'
-#residfile_out=rbase[0]+'_raydat.pckl'
-#
-###Longitude conversion?  
-##Yes - these rayfiles are in positive west, convert to negative west (so flag =1)
-#lonconvert=1
-#
-##For vp:
-#rayfile=rayfile_vp
+##Run these with raytracing write_sourcein and write_receiverin
+##Use the directories defined in lines 15 - 33
+##Import raytracing above
+##Set velocity type:
 #veltype=1
+##Set longitude format (here, 241 instead of -118 for lontype=1)
+#lontype=1  #for Malcolm's new propgrid format
 #
+###Write source.in file:
+##rt.write_sourcein(home,run_name,veltype,lontype)
+#
+##Write recievers.in file:
+#rt.write_receiverin(home,run_name,lontype)
+
+
+
+
+########################
+######Store ray files###
+########################
+#
+##Get the "in" and "out" residual object file names:
+##"In" is the original residuals object:
+#
+#Get the run directory:
+run_dir=path.expanduser(home+run_name+'/')
+#Get the residuals object:
+#residfile_in=run_dir+run_name+'_robj.pckl'
+residfile_in=run_dir+run_name+'_VR_99.9_robj.pckl'
+
+# Here (above), if this isn't hte same as the name in the directory of the residual file, 
+#    could do:    residfile_in=run_dir+residname
+#    as residname is defined above (define based on what is in directory)  
+
+#"Out" is the _raydat.pckl object - also serves as the "in" for the second:
+rbase=residfile_in.split('.pckl')
+#residfile_out=rbase[0]+'_raydat.pckl'
+residfile_out=rbase[0]+'_raydat.pckl'
+
+##Longitude conversion?  
+#Yes - these rayfiles are in positive west, convert to negative west (so flag =1)
+lonconvert=1
+
+#For vp:
+rayfile=rayfile_vp
+veltype=1
+
+#Read in:
+rt.store_rayinfo(residfile_in,residfile_out,rayfile,veltype,lonconvert)
+print 'Stored Vp rays in the residuals object'
+
+####
+
+#For vs:
+rayfile=rayfile_vs
+veltype=2
+
 ##Read in:
-#rt.store_rayinfo(residfile_in,residfile_out,rayfile,veltype,lonconvert)
-#print 'Stored Vp rays in the residuals object'
-#
-#####
-#
-##For vs:
-#rayfile=rayfile_vs
-#veltype=2
-#
-###Read in:
-##rt.store_rayinfo(residfile_out,residfile_out,rayfile,veltype,lonconvert)
-##print 'Stored Vs rays in the residuals object'
-#
-##Read in:
-#rt.store_rayinfo(residfile_in,residfile_out,rayfile,veltype,lonconvert)
+#rt.store_rayinfo(residfile_out,residfile_out,rayfile,veltype,lonconvert)
 #print 'Stored Vs rays in the residuals object'
+
+#Read in:
+rt.store_rayinfo(residfile_in,residfile_out,rayfile,veltype,lonconvert)
+print 'Stored Vs rays in the residuals object'
 
 
 

@@ -273,9 +273,9 @@ def parse_rayfile(rayfile):
         receiver_id=r_[receiver_id,int(line.split()[0])]
         source_id=r_[source_id,int(line.split()[1])]
         
-        #DEBUGGING...
-        print int(line.split()[0])
-        print int(line.split()[1])
+        ##DEBUGGING...
+        #print int(line.split()[0])
+        #print int(line.split()[1])
         
         #Next line has number of elements in the path
         line=f.readline()
