@@ -10,7 +10,7 @@ import run_res
 #0=desktop
 #1=mac
 
-what_home=0
+what_home=1
 
 if what_home==0:
     #Desktop:
@@ -80,8 +80,15 @@ smth=500
 mdep_ffdf=0
 
 #Plotting distances:
-plotdist=np.array([0,20,40,60,120])
+#plotdist=np.array([0,20,40,60,120])
+plotdist=np.array([0,10,20,40,80,160,220])
 
+# plotting distance for ASK:
+ask_dist=10
+
+# For plotting only:
+setmodel='/Users/vsahakian/anza/models/pckl/v2anza2013/regr_Mc8.5_0.0_6.5_VR_99.3.pckl'
+setmixedmodel='/Users/vsahakian/anza/models/pckl/v2anza2013/mixedregr_v2anza2013_Mc_8.5_VR_99.9.pckl'
 
 #####################################################
 ###########Run Inversion and plot:###################
@@ -118,75 +125,87 @@ for k in range(len(rng)):
 #print 'plotting...'
 ##Plot:
 #fig1=run_inv.plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,plotdist,Mc,axlims,bmin,bmax,vref)
+#fig1=run_inv.plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,plotdist,ask_dist,Mc,axlims,bmin,bmax,vref)
+
+
+# If you just want to plot with a certain model:
+modelpath=setmodel
+fig1=run_inv.plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,plotdist,ask_dist,Mc,axlims,bmin,bmax,vref)
 
 
 
-##################################################################################
-################                 MIXED EFFECTS                 ###################
-##################################################################################
+###################################################################################
+#################                 MIXED EFFECTS                 ###################
+###################################################################################
+#
+#print 'Running mixed effects'
+##Now try with mixed effects:
+##dbname = 'test2013'
+#run_name = 'mixedregr_v2anza2013_Mc_8.5_res4'
+#run_home=home+'/models/residuals/'
+#resaxlim_r = [[0,180],[-5,5]]
+#resaxlim_mw = [[0,4],[-5,5]]
+#
+##Fictitious depth parameter:
+#c=4.5
+#
+##Initialize the residuals directories:
+#inithome=HOME+'/anza/models/residuals/'
+#
+#runall=1
+#
+##Initialize directories:
+#runall=run_res.init(inithome,run_name)
+#
+#if runall==0:
+#    print 'Not clobbering, exiting...'
+#    
+#elif runall==1:
+#    print 'Continuing...'
+#    
+#    
+## Now run mixed effects approach #
+#invdat,invpath,tresid,mixed_residuals,d_r_prediction,mixed_resid_path=run_inv.run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c)
+#
+#print 'Plotting mixed effects model with data'
+## Plot data with model:
+#mixedinv = run_inv.plot_data_model(home,dbpath,dbname,invpath,coeff_file,mdep_ffdf,plotdist,Mc,axlims,bmin,bmax,vref)
 
-print 'Running mixed effects'
-#Now try with mixed effects:
-#dbname = 'test2013'
-run_name = 'mixedregr_v2anza2013_Mc_8.5_res4'
-run_home=home+'/models/residuals/'
-resaxlim_r = [[0,180],[-5,5]]
-resaxlim_mw = [[0,4],[-5,5]]
+### If just plotting:
+##invpath=setmixedmodel
+##mixedinv = run_inv.plot_data_model(home,dbpath,dbname,invpath,coeff_file,mdep_ffdf,plotdist,ask_dist,Mc,axlims,bmin,bmax,vref)
 
-#Fictitious depth parameter:
-c=4.5
 
-#Initialize the residuals directories:
-inithome=HOME+'/anza/models/residuals/'
-
-runall=1
-
-#Initialize directories:
-runall=run_res.init(inithome,run_name)
-
-if runall==0:
-    print 'Not clobbering, exiting...'
-    
-elif runall==1:
-    print 'Continuing...'
-    
-    
-# Now run mixed effects approach #
-invdat,invpath,tresid,mixed_residuals,d_r_prediction,mixed_resid_path=run_inv.run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c)
-
-print 'Plotting mixed effects model with data'
-# Plot data with model:
-mixedinv = run_inv.plot_data_model(home,dbpath,dbname,invpath,coeff_file,mdep_ffdf,plotdist,Mc,axlims,bmin,bmax,vref)
-
-# Get some mean values for the stats file:
-mean_tot=np.mean(mixed_residuals.total_residual)
-std_dev_tot=np.std(mixed_residuals.total_residual)
-
-E_mean=np.mean(mixed_residuals.E_residual)
-E_std_dev=np.std(mixed_residuals.E_residual)
-
-print 'plotting all residuals'
-# Plot all residuals:
-run_res.plot_total(tresid,home,run_name,resaxlim_mw)
-
-print 'plotting event terms'
-# Plot event terms:
-eventfig1 = run_res.makeEvents_mixed(run_home,run_name,mixed_resid_path,Mc,vref,mdep_ffdf,resaxlim_mw)
-
-# Get station objects:
-station_list=run_res.makeStations_mixed(run_home,run_name,mixed_resid_path)
-
-# Plot W residuals on one plot:
-W_mean,W_std_dev = run_res.plot_Wresid(run_home,run_name,resaxlim_mw)
-
-print 'plotting station terms'
-# Plot by station:
-run_res.plot_site_WE(run_home,run_name,resaxlim_mw)
-
-print 'plotting path residuals'
-# Plot path residuals:
-f_mw,f_dist,pterm_mean,pterm_std=run_res.plotPath_mixed(run_home,run_name,mixed_resid_path,resaxlim_mw,resaxlim_r)
-
-print 'Writing mixed stats to a file'
-# Writing stats to a file
-run_res.write_stats_mixed(run_home,run_name,mixed_resid_path,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std)
+#
+## Get some mean values for the stats file:
+#mean_tot=np.mean(mixed_residuals.total_residual)
+#std_dev_tot=np.std(mixed_residuals.total_residual)
+#
+#E_mean=np.mean(mixed_residuals.E_residual)
+#E_std_dev=np.std(mixed_residuals.E_residual)
+#
+#print 'plotting all residuals'
+## Plot all residuals:
+#run_res.plot_total(tresid,home,run_name,resaxlim_mw)
+#
+#print 'plotting event terms'
+## Plot event terms:
+#eventfig1 = run_res.makeEvents_mixed(run_home,run_name,mixed_resid_path,Mc,vref,mdep_ffdf,resaxlim_mw)
+#
+## Get station objects:
+#station_list=run_res.makeStations_mixed(run_home,run_name,mixed_resid_path)
+#
+## Plot W residuals on one plot:
+#W_mean,W_std_dev = run_res.plot_Wresid(run_home,run_name,resaxlim_mw)
+#
+#print 'plotting station terms'
+## Plot by station:
+#run_res.plot_site_WE(run_home,run_name,resaxlim_mw)
+#
+#print 'plotting path residuals'
+## Plot path residuals:
+#f_mw,f_dist,pterm_mean,pterm_std=run_res.plotPath_mixed(run_home,run_name,mixed_resid_path,resaxlim_mw,resaxlim_r)
+#
+#print 'Writing mixed stats to a file'
+## Writing stats to a file
+#run_res.write_stats_mixed(run_home,run_name,mixed_resid_path,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std)

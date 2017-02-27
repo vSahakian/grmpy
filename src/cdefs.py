@@ -352,8 +352,43 @@ class db:
             plt.show(f)
             return f          
             
+            
+            
+    def plot_histogram(self,axlims,nbins,type_flag):
+        '''
+        Plot a histogram of distance or magnitude for this database
+        Input:
+            axlims:         Axis limits for plot [[xmin,xmax],[ymin,ymax]] 
+            nbins:          Number of bins for the histogram
+            type_flag:      Plot distance or M?  0=Rrup/1=M
+        Output:
+            f1:             Plot with histogram
+            
+        '''
         
+        import matplotlib.pyplot as plt
         
+        # Get quantity for histogram:
+        if type_flag==0:
+            histquantity = self.r
+            histname = 'Rrup'
+        elif type_flag==1:
+            histquantity = self.mw
+            histname = 'M'
+            
+            
+        # Initiate figure:
+        fhist = plt.figure()
+        plt.hist(histquantity,nbins)
+        
+        plt.xlim(axlims[0])
+        plt.ylim(axlims[1])
+        
+        plt.xlabel(histname)
+        plt.ylabel('# Counts')
+        plt.title('Histogram of %s' % histname)
+        
+        return fhist
         
 class invinfo:
     '''

@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 #0=desktop
 #1=mac
 
-what_home=0
+what_home=1
 
 if what_home==0:
     #Desktop:
@@ -38,6 +38,30 @@ elif what_home==1:
     faultfile='/Users/vsahakian/anza/data/faults/Holocene_LatestPleistocene_118.0w_115.2w_32.3n_34.5n.pckl'
 
 
+##########################
+### Get residfile dirs ###
+##########################
+
+##Get the "in" and "out" residual object file names:
+##"In" is the original residuals object:
+#
+#Get the run directory:
+run_dir=path.expanduser(home+run_name+'/')
+#Get the residuals object:
+#residfile_in=run_dir+run_name+'_robj.pckl'
+residfile_in=run_dir+run_name+'_VR_99.9_robj.pckl'
+
+# Here (above), if this isn't hte same as the name in the directory of the residual file, 
+#    could do:    residfile_in=run_dir+residname
+#    as residname is defined above (define based on what is in directory)  
+
+#"Out" is the _raydat.pckl object - also serves as the "in" for the second:
+rbase=residfile_in.split('.pckl')
+#residfile_out=rbase[0]+'_raydat.pckl'
+residfile_out_vp=rbase[0]+'_raydatVp.pckl'
+residfile_out_vpvs=rbase[0]+'_raydatVpVs.pckl'
+
+
 #######################
 ###Set up Raytracing###
 #######################
@@ -61,56 +85,39 @@ elif what_home==1:
 
 
 
-#########################
-#######Store ray files###
-#########################
+##########################
+########Store ray files###
+##########################
+##
+
 #
-##Get the "in" and "out" residual object file names:
-##"In" is the original residuals object:
+###Longitude conversion?  
+##Yes - these rayfiles are in positive west, convert to negative west (so flag =1)
+#lonconvert=1
 #
-#Get the run directory:
-run_dir=path.expanduser(home+run_name+'/')
-#Get the residuals object:
-#residfile_in=run_dir+run_name+'_robj.pckl'
-residfile_in=run_dir+run_name+'_VR_99.9_robj.pckl'
-
-# Here (above), if this isn't hte same as the name in the directory of the residual file, 
-#    could do:    residfile_in=run_dir+residname
-#    as residname is defined above (define based on what is in directory)  
-
-#"Out" is the _raydat.pckl object - also serves as the "in" for the second:
-rbase=residfile_in.split('.pckl')
-#residfile_out=rbase[0]+'_raydat.pckl'
-residfile_out_vp=rbase[0]+'_raydatVp.pckl'
-residfile_out_vpvs=rbase[0]+'_raydatVpVs.pckl'
-
-##Longitude conversion?  
-#Yes - these rayfiles are in positive west, convert to negative west (so flag =1)
-lonconvert=1
-
-#For vp:
-rayfile=rayfile_vp
-veltype=1
-
-#Read in:
-rt.store_rayinfo(residfile_in,residfile_out_vp,rayfile,veltype,lonconvert)
-print 'Stored Vp rays in the residuals object'
-
-#####
+##For vp:
+#rayfile=rayfile_vp
+#veltype=1
 #
-#For vs:
-rayfile=rayfile_vs
-veltype=2
-
-#Read in:
-rt.store_rayinfo(residfile_out_vp,residfile_out_vpvs,rayfile,veltype,lonconvert)
-print 'Stored Vs rays in the residuals object'
-
-
-####Only run if doing just Vs.....
 ##Read in:
-#rt.store_rayinfo(residfile_in,residfile_out,rayfile,veltype,lonconvert)
+#rt.store_rayinfo(residfile_in,residfile_out_vp,rayfile,veltype,lonconvert)
+#print 'Stored Vp rays in the residuals object'
+#
+######
+##
+##For vs:
+#rayfile=rayfile_vs
+#veltype=2
+#
+##Read in:
+#rt.store_rayinfo(residfile_out_vp,residfile_out_vpvs,rayfile,veltype,lonconvert)
 #print 'Stored Vs rays in the residuals object'
+#
+#
+#####Only run if doing just Vs.....
+###Read in:
+##rt.store_rayinfo(residfile_in,residfile_out,rayfile,veltype,lonconvert)
+##print 'Stored Vs rays in the residuals object'
 
 
 
@@ -138,46 +145,37 @@ cutoff_val=1.5
 
 
 ###
-#Plot in a loop
-for vel_i in range(len(veltype)):
-    for view_i in range(len(view)):
-        rt.plot_rays(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,by_path,mymap,faultfile)
-        print 'Plotted velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
-        plt.close()
-        plt.close()
+##Plot in a loop
+#for vel_i in range(len(veltype)):
+#    for view_i in range(len(view)):
+#        rt.plot_rays(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,by_path,mymap,faultfile,residfilepath=residfile_out_vpvs)
+#        print 'Plotted velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
+#        plt.close()
+#        plt.close()
 
-#Plot with the cutoff value:
-#Plot in a loop
-for vel_i in range(len(veltype)):
-    for view_i in range(len(view)):
-        rt.plot_rays_cutoffval(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,mymap,faultfile,cutoff_val)
-        print 'Plotted cuttoff value '+str(cutoff_val)+', velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
-        plt.close()
-        plt.close()
-        
-## New version for AGU - only plot VS
-#vel_i=1
-#for view_i in range(len(view)):
-#    rt.plot_rays(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,by_path,mymap,faultfile)
-#    print 'Plotted velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
-#    plt.close()
-#    plt.close()
-#    
+
+# Plot all views and veltypes at once, iteratively (instead of reopening object each time....)
+rt.plot_rays_together(home,run_name,residname,veltype,view,axlims,stations,events,by_path,mymap,faultfile,residfilepath=residfile_out_vpvs)
+
+
 ##Plot with the cutoff value:
 ##Plot in a loop
-#vel_i=1
-#for view_i in range(len(view)):
-#    rt.plot_rays_cutoffval(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,mymap,faultfile,cutoff_val)
-#    print 'Plotted cuttoff value '+str(cutoff_val)+', velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
-#    plt.close()
-#    plt.close()
-#        
-#For the map view, plot the 3d raypaths once, then rotate and save:
-axlims_3d=[[-118.0,-115.2],[32.3,34.55],[-28,1]]
-vtype=2
-
-#plot:
-figure3d=rt.plot_3d_raypaths(home,run_name,residname,vtype,stations,events,axlims_3d,mymap,faultfile)
+#for vel_i in range(len(veltype)):
+#    for view_i in range(len(view)):
+#        rt.plot_rays_cutoffval(home,run_name,residname,veltype[vel_i],view[view_i],axlims[view_i],stations,events,mymap,faultfile,cutoff_val,residfilepath=residfile_out_vpvs)
+#        print 'Plotted cuttoff value '+str(cutoff_val)+', velocity type '+str(veltype[vel_i])+', view '+str(view[view_i])
+#        plt.close()
+#        plt.close()
+        
+        
+#  
+      
+##For the map view, plot the 3d raypaths once, then rotate and save:
+#axlims_3d=[[-118.0,-115.2],[32.3,34.55],[-28,1]]
+#vtype=2
+#
+##plot:
+#figure3d=rt.plot_3d_raypaths(home,run_name,residname,vtype,stations,events,axlims_3d,mymap,faultfile)
 
 
 ###################################

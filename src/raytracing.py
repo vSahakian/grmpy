@@ -390,7 +390,7 @@ def store_rayinfo(rfile_in,rfile_out,rayfile,veltype,lon_conversion):
 
     
 ##############    
-def plot_rays(home,run_name,dbname,veltype,view,axlims,stations,events,by_path,mymap,faultfile):
+def plot_rays(home,run_name,dbname,veltype,view,axlims,stations,events,by_path,mymap,faultfile,residfilepath='none'):
     '''
     Plot the raypaths and save the png and pdf figures
     VJS 8/2016
@@ -406,6 +406,7 @@ def plot_rays(home,run_name,dbname,veltype,view,axlims,stations,events,by_path,m
         by_path:        Color raypaths by path?  no/yes=0/1
         mymap:          String with the python colormap to use
         faultfile:      String to the path of the pckl file with faults to plot
+        residfilepath:  String with path to the residuals file, if it doesn't follow the typical _raydat.pckl format
     Output: 
         figure          Prints a png and pdf version of the figure to the run fig directory
     '''
@@ -421,10 +422,13 @@ def plot_rays(home,run_name,dbname,veltype,view,axlims,stations,events,by_path,m
     pdf_dir=fig_dir+'pdfs/'
     
     #Get the residuals object:
-    residfile_old=run_dir+dbname+'_robj.pckl'
-    #Get the new name to add on raydat:
-    rbase=residfile_old.split('.pckl')
-    residfile=rbase[0]+'_raydat.pckl'
+    if residfilepath=='none':
+        residfile_old=run_dir+dbname+'_robj.pckl'
+        #Get the new name to add on raydat:
+        rbase=residfile_old.split('.pckl')
+        residfile=rbase[0]+'_raydat.pckl'
+    else:
+        residfile=residfilepath
     
     #Load the residuals object:
     rfile=open(residfile,'r')
@@ -443,8 +447,75 @@ def plot_rays(home,run_name,dbname,veltype,view,axlims,stations,events,by_path,m
     figure.savefig(pdffile)
     
     
+    
+##############    
+def plot_rays_together(home,run_name,dbname,veltype,view,axlims,stations,events,by_path,mymap,faultfile,residfilepath='none'):
+    '''
+    Plot the raypaths and save the png and pdf figures
+    VJS 8/2016
+    Input:
+        home:           String with the home directory for the project
+        run_name:       String with the run name combo of db and model
+        dbname:         String with the basename of the residuals object
+        veltype:        Array or list with the velocity types to plot: 0 = Vp, 1 = Vs
+        view:           Array or list with view types to plot: map=0, lat vs depth=1, lon vs depth=2
+        axlims:         Axis limits for each view type, 1 - n: [[[xmin1, xmax1],[ymin1,ymax1]],...,[[xmin_n, xmax_n],[ymin_n,ymax_n]]]
+        stations:       Plot stations?  no/yes = 0/1
+        events:         Plot events?  no/yes = 0/1
+        by_path:        Color raypaths by path?  no/yes=0/1
+        mymap:          String with the python colormap to use
+        faultfile:      String to the path of the pckl file with faults to plot
+        residfilepath:  String with path to the residuals file, if it doesn't follow the typical _raydat.pckl format
+    Output: 
+        figure          Prints a png and pdf version of the figure to the run fig directory
+    '''
+    
+    from os import path
+    import cPickle as pickle
+    from numpy import str
+    
+    #Get the run directory:
+    run_dir=path.expanduser(home+run_name+'/')
+    
+    #And the figure directories:
+    fig_dir=run_dir+'figs/'
+    pdf_dir=fig_dir+'pdfs/'
+    
+    #Get the residuals object:
+    if residfilepath=='none':
+        residfile_old=run_dir+dbname+'_robj.pckl'
+        #Get the new name to add on raydat:
+        rbase=residfile_old.split('.pckl')
+        residfile=rbase[0]+'_raydat.pckl'
+    else:
+        residfile=residfilepath
+    
+    #Load the residuals object:
+    rfile=open(residfile,'r')
+    robj=pickle.load(rfile)
+    rfile.close()
+    
+    for vtype_i in range(len(veltype)):
+        for view_i in range(len(view)):
+                figure=robj.plot_raypaths(veltype[vtype_i],view[view_i],axlims[view_i],stations,events,by_path,mymap,faultfile)
+    
+                #Save the figures:
+                #Get the figure name:
+                pngfile=fig_dir+run_name+'_vtype'+str(veltype[vtype_i])+'_view'+str(view[view_i])+'_sta'+str(stations)+'_ev'+str(events)+'.png'
+                pdffile=pdf_dir+run_name+'_vtype'+str(veltype[vtype_i])+'_view'+str(view[view_i])+'_sta'+str(stations)+'_ev'+str(events)+'.pdf'
+                #Save png:
+                figure.savefig(pngfile)
+                #save pdf:
+                figure.savefig(pdffile)
+                
+                printstring = 'plotted and saved raypaths for view ' + str(view[view_i]) + ', and velocity type ' + veltype[vtype_i]
+                print printstring
+    
+    
+    
+    
 ######
-def plot_rays_cutoffval(home,run_name,dbname,veltype,view,axlims,stations,events,mymap,faultfile,cutoff_val):
+def plot_rays_cutoffval(home,run_name,dbname,veltype,view,axlims,stations,events,mymap,faultfile,cutoff_val,residfilepath='none'):
     '''
     Plot the raypaths and save the png and pdf figures
     VJS 8/2016
@@ -461,6 +532,8 @@ def plot_rays_cutoffval(home,run_name,dbname,veltype,view,axlims,stations,events
         mymap:          String with the python colormap to use
         faultfile:      String to the path of the pckl file with faults to plot
         cutoff_val:     Value above/below which to color raypath; otherwise the path is gray (plots if abs(path_term)>=cutoff_val)
+        residfilepath:  String with path to the residuals file, if it doesn't follow the typical _raydat.pckl format
+
     Output: 
         figure          Prints a png and pdf version of the figure to the run fig directory
     '''
@@ -475,11 +548,15 @@ def plot_rays_cutoffval(home,run_name,dbname,veltype,view,axlims,stations,events
     fig_dir=run_dir+'figs/'
     pdf_dir=fig_dir+'pdfs/'
     
+    
     #Get the residuals object:
-    residfile_old=run_dir+dbname+'_robj.pckl'
-    #Get the new name to add on raydat:
-    rbase=residfile_old.split('.pckl')
-    residfile=rbase[0]+'_raydat.pckl'
+    if residfilepath=='none':
+        residfile_old=run_dir+dbname+'_robj.pckl'
+        #Get the new name to add on raydat:
+        rbase=residfile_old.split('.pckl')
+        residfile=rbase[0]+'_raydat.pckl'
+    else:
+        residfile=residfilepath
     
     #Load the residuals object:
     rfile=open(residfile,'r')
