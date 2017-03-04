@@ -2,21 +2,23 @@
 #VJS 9/2016
 
 
-def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf):
+def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parameter='pga',data_correct=1):
     '''
     Make the necessary matrices, invert, and save model output
     Input:
-        home:           String with project home (i.e., anza)
-        dbpath:             String to database path
-        dbname:         String with database path name (i.e., db2013 for pckl/db2013/)
-        ncoeff:         Number of coefficients used in inversion
-        rng:            Array of ranges to use in constraining the inversion
-        sdist:          Number of distances to include in smoothing - there will be this many extra
-                        equations added on at each range boundary
-        Mc:             M squared centering term (8.5 in ASK2014)
-        smth:           Smoothing
-        vref:           Reference vs30 value (like 760 m/s)
-        mdep_ffdf:      Flag to add mag dependent ffdf (0/1=no/yes)
+        home:                   String with project home (i.e., anza)
+        dbpath:                 String to database path
+        dbname:                 String with database path name (i.e., db2013 for pckl/db2013/)
+        ncoeff:                 Number of coefficients used in inversion
+        rng:                    Array of ranges to use in constraining the inversion
+        sdist:                  Number of distances to include in smoothing - there will be this many extra
+                                   equations added on at each range boundary
+        Mc:                     M squared centering term (8.5 in ASK2014)
+        smth:                   Smoothing
+        vref:                   Reference vs30 value (like 760 m/s)
+        mdep_ffdf:              Flag to add mag dependent ffdf (0/1=no/yes)
+        predictive_parameter:   Default is pga.  Else, 'pgv', or...
+        data_correct:           Correct data for a term?  0/1 = no/yes - vs30 term DEFAULT: vs30 correct
     Output: 
         inversion object:   Stored in model path, based on ranges etc. used in inversion
         
@@ -40,7 +42,7 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ff
                 
     #Invert:
     #Make matrices
-    G,d=inv.iinit_pga(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf)
+    G,d=inv.iinit_predparam(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parameter,data_correct)
     #Invert
     m, resid, L2norm, VR, rank, svals=inv.invert(G,d)
 
@@ -75,11 +77,10 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ff
     model_coeff_file = obj_dir + 'coeff_' + basename + '.txt'
     coeff=open(model_coeff_file,'w')
     coeff.write('Model Coefficients for inversion' + basename + ':')
-    coeff.write('\n a1 = ' + str(m[0]))
-    coeff.write('\n a2 = ' + str(m[1]))
-    coeff.write('\n a3 = ' + str(m[2]))
-    coeff.write('\n a4 = ' + str(m[3]))
-    coeff.write('\n a5 = ' + str(m[4]))
+    
+    for coeff_i in range(ncoeff):
+        coeff.write('\n a' + str(coeff_i+1) + ' = ' + str(m[coeff_i]))
+        
     coeff.close()
     
     #Return the model info...
@@ -87,23 +88,26 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ff
     
     
 ############
-def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,ask_dist,Mc,axlims,bmin,bmax,vref):
+def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,ask_dist,Mc,axlims,bmin,bmax,vref,predictive_parameter='pga',ncoeff,data_correct=1):
     '''
     Plot the data with the model, and ASK 2014
     Input:
-        home:           String with path to the project directory (ie., Anza)
-        dbpath:         String with path to the database object
-        dbname:         String with database path name (i.e., db2013 for pckl/db2013/)
-        modelpath:      String with path to the model object
-        coeff_file:     String with path to the coefficient file
-        mdep_ffdf:      Flag for using mag dependent ffdf (0/1=off/on)
-        sdist:          Array with distances to plot in model
-        ask_dist:       One number with the distance to plot ASK
-        Mc:             M squared centering term (8.5 in ASK 2014)
-        axlims:         Axis limits for plotting [[xmin,xmax],[ymin,ymax]]
-        bmin:           Minimum value for distance bins
-        bmax:           Maximum value for distance bins
-        vref:           Vs30 reference value for computing prediction
+        home:                   String with path to the project directory (ie., Anza)
+        dbpath:                 String with path to the database object
+        dbname:                 String with database path name (i.e., db2013 for pckl/db2013/)
+        modelpath:              String with path to the model object
+        coeff_file:             String with path to the coefficient file
+        mdep_ffdf:              Flag for using mag dependent ffdf (0/1=off/on)
+        sdist:                  Array with distances to plot in model
+        ask_dist:               One number with the distance to plot ASK
+        Mc:                     M squared centering term (8.5 in ASK 2014)
+        axlims:                 Axis limits for plotting [[xmin,xmax],[ymin,ymax]]
+        bmin:                   Minimum value for distance bins
+        bmax:                   Maximum value for distance bins
+        vref:                   Vs30 reference value for computing prediction
+        predictive_parameter:   Predictive parameter. 'pga', or 'pgv'.  Default: 'pga'
+        ncoeff:                 Number of coefficients that were inverted for
+        data_correct:           Correct data?  0/1 = no/by vs30 term
     Output: 
         figure:         Figure with data and model (saves to /figs directory)
     '''
@@ -135,10 +139,10 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,ask_
     # Get basename for figure file, depending on if it's mixed or not:
     # If it's a normal inversion, it will have a rank:
     if isnan(model.rank) == False:
-        basename = 'regr_Mc'+str(Mc)+'_'+strname+'_VR_'+str(around(model.VR,decimals=1))
+        basename = 'regr_'+predictive_parameter+'_Mc'+str(Mc)+'_'+strname+'_VR_'+str(around(model.VR,decimals=1))
     #If it's from mixed effects, this is set to NaN:
     elif isnan(model.rank) == True:
-        basename = 'mixedregr_Mc'+str(Mc)+'_VR_'+str(around(model.VR,decimals=1))
+        basename = 'mixedregr_'+predictive_parameter+'_Mc'+str(Mc)+'_VR_'+str(around(model.VR,decimals=1))
 
 
     ############################################
@@ -146,7 +150,7 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,ask_
     ############################################
     
     #Compute the magnitude/log10pga for each distance, to plot on top of data:
-    mw_model,d_model=gm.compute_model_fixeddist(model.m,model.rng,sdist,Mc,mdep_ffdf)
+    mw_model,d_model=gm.compute_model_fixeddist(model.m,model.rng,sdist,Mc,mdep_ffdf,ncoeff)
 
     #Get the NGA predictions to plot on the same figure:
     #Coefficient file:

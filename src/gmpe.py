@@ -3,7 +3,7 @@
 #VJS 6/2016
 
 
-def compute_model(m,rng,mw,r,ffdf,vs30,Mc,vref,mdep_ffdf):
+def compute_model(m,rng,mw,r,ffdf,vs30,Mc,vref,mdep_ffdf,ncoeff):
     '''
     Compute the predicted value for a certain mw and Rrup 
     Input:
@@ -16,8 +16,9 @@ def compute_model(m,rng,mw,r,ffdf,vs30,Mc,vref,mdep_ffdf):
         Mc:             Value to center squared magnitude term around (i.e., 8.5 or 8.1, etc.)
         vref:           Vref value
         mdep_ffdf:      Magnitude dependent fictitious depth flag
+        ncoeff:         Number of coefficients inverted for.
     Output:
-        d_predicted:    Predicted value of ln(PGA) at that data point    
+        d_predicted:    Predicted value of ln(predictive parameter) at that data point    
     '''
     import numpy as np
     
@@ -31,11 +32,14 @@ def compute_model(m,rng,mw,r,ffdf,vs30,Mc,vref,mdep_ffdf):
     #For each range, get the coefficients:
     for range_i in range(len(rng)-1):
         #Get the coefficients of the model for this magnitude range:
-        a1=m[range_i*5]
-        a2=m[(range_i*5)+1]
-        a3=m[(range_i*5)+2]
-        a4=m[(range_i*5)+3]
-        a5=m[(range_i*5)+4]
+        a1=m[range_i*ncoeff]
+        a2=m[(range_i*ncoeff)+1]
+        a3=m[(range_i*ncoeff)+2]
+        a4=m[(range_i*ncoeff)+3]
+        a5=m[(range_i*ncoeff)+4]
+        
+        if ncoeff==6:
+            a6=m[(range_i*ncoeff)+5]
         
     
         #Where is mw in this range?
@@ -48,9 +52,13 @@ def compute_model(m,rng,mw,r,ffdf,vs30,Mc,vref,mdep_ffdf):
         ffdf_rangei=ffdf[bin_i]
         vs30_rangei=vs30[bin_i]
         
-        #Now compute the predicted value:        
-        d_predicted_i=a1+a2*mw_rangei + a3*(Mc-mw_rangei)**2 + a4*np.log(ffdf_rangei) + \
-                a5*r_rangei #+ 0.6*np.log(vs30_rangei/vref) 
+        #Now compute the predicted value:    
+        if ncoeff==5:
+            d_predicted_i=a1+a2*mw_rangei + a3*(Mc-mw_rangei)**2 + a4*np.log(ffdf_rangei) + \
+                a5*r_rangei 
+        elif ncoeff==6:
+            d_predicted_i=a1+a2*mw_rangei + a3*(Mc-mw_rangei)**2 + a4*np.log(ffdf_rangei) + \
+                a5*r_rangei + a6*np.log(vs30_rangei/vref) 
         
         #d_predicted_i=a1+a2*mw_rangei + a3*(Mc-mw_rangei)**2 + a4*np.log(ffdf_rangei) + \
         #        a5*r_rangei + 0.6*np.log(vs30_rangei/vref)  
@@ -65,7 +73,7 @@ def compute_model(m,rng,mw,r,ffdf,vs30,Mc,vref,mdep_ffdf):
 
 
 ###############################################################################
-def compute_model_fixeddist(m,rng,sdist,Mc,mdep_ffdf):
+def compute_model_fixeddist(m,rng,sdist,Mc,mdep_ffdf,ncoeff):
     '''
     Compute the model values given the coefficients resulting from an inversion;
     Obtain values for given distances.
@@ -76,6 +84,7 @@ def compute_model_fixeddist(m,rng,sdist,Mc,mdep_ffdf):
         sdist:      Array with distances at which to compute the model
         Mc:         Magnitude squred term (i.e., 8.5 or 8.1)
         mdep_ffdf:  Flag for fictitious depth mag-dependence; 0=no, 1=yes
+        ncoeff:     Number of coefficients inverted for.
     Output:
         mw_out:     Array of mw
         d_out:      Predicted ln(PGA)
@@ -128,11 +137,12 @@ def compute_model_fixeddist(m,rng,sdist,Mc,mdep_ffdf):
                 R=np.sqrt(sdist[j]**2 + c**2)
             
             #Get the coefficients for this range:
-            a1=m[i*5]
-            a2=m[(i*5)+1]
-            a3=m[(i*5)+2]
-            a4=m[(i*5)+3]
-            a5=m[(i*5)+4]
+            a1=m[i*ncoeff]
+            a2=m[(i*ncoeff)+1]
+            a3=m[(i*ncoeff)+2]
+            a4=m[(i*ncoeff)+3]
+            a5=m[(i*ncoeff)+4]
+        
             
             #    GMPE:    #
             # This now predicts lnPGA, but it goes into somethign that plots log10PGA...
@@ -158,7 +168,7 @@ def compute_model_fixeddist(m,rng,sdist,Mc,mdep_ffdf):
 
 
 ###############################################################################
-def ask2014_pga(M,Rrup,coeff_file,mdep_ffdf,dist_ranges):
+def ask2014_pga(M,Rrup,coeff_file,mdep_ffdf,dist_ranges,ncoeff,predictive_parameter='pga'):
     '''
     Compute the predicted ground motionsfor a given set of events using the
     Abrahamson, Silva, and Kamai 2014 model.
@@ -168,6 +178,8 @@ def ask2014_pga(M,Rrup,coeff_file,mdep_ffdf,dist_ranges):
         coeff_file:     Path to the file with ASK2014 coefficients
         mdep_ffdf:      Use magnitude dependent fictitous depth?  no=0, yes=1
         dist_ranges:    
+        ncoeff:         Number of coefficients in inversion
+        predictive_parameter:   Predictive parameter: 'pga', or 'pgv'.  Default: 'pga'
     Output:
         M:              Magnitude
         PGA:            Predicted PGA
@@ -241,14 +253,15 @@ def ask2014_pga(M,Rrup,coeff_file,mdep_ffdf,dist_ranges):
     #Frv, Fn, Fas, Fhw are flags to turn on/off reverse faulting, normal faulting, and aftershocks, respectively.
     
     #Basic model:
-    def basic(M,Rrup,t_flag):
+    def basic(M,Rrup,t_flag,ncoeff):
         '''
         Basic form in computing the predictive paramater (here, PGA) using 
         Abrahamson, Silva, and Kamai 2014's model.
         Input:
             M:          Moment Magnitude
             Rrup:       Closest distance to rupture
-            t_flag:     Flag for predictive parameter. 0=PGA.
+            t_flag:     Flag for predictive parameter. 0=PGA, 1=PGV
+            ncoeff:     Number of coefficients in version
         Output: 
             f1 (log10(predictive parameter)), 
             to put into full functional form or use alone

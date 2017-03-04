@@ -3,7 +3,7 @@
 
 #Make the d and G matrices.....
 
-def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf):
+def iinit_predparam(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parameter='pga',data_correct=1):
     '''
     Make the d and G matrices for the inversion.  Can use ranges, where the 
     coefficients from teh inversion must be smooth at the edges of the ranges.
@@ -15,18 +15,20 @@ def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf):
     their contributions affect resulting coefficients.
     
     Input:
-        db:         Object of class database, from cdefs, with:
-                    mw:     Moment magnitude array (n x 1)
-                    r:      Distance array (n x 1)
-                    pga:    log10pga array (n x 1)
-        ncoeff:     Number of coefficients
-        rng:        Array with limits of M ranges, 
-                    i.e.: [0, 2, 5] means two ranges: M0 - M2, M2 - M5.
-        sdist:      Array with distances to include for smoothing (i.e, [1,5,10]
-        Mc:         M squared centering term (8.5 in ASK2014)
-        smth:       Smoothing value
-        vref:       Reference Vs30 value (like 760 m/s)
-        mdep_ffdf:  Magnitude-dependent fictitious depth param: 0=off, 1=on
+        db:                             Object of class database, from cdefs, with:
+                                        mw:     Moment magnitude array (n x 1)
+                                        r:      Distance array (n x 1)
+                                        pga:    log10pga array (n x 1)
+        ncoeff:                         Number of coefficients (a1 - a5, or a6...)
+        rng:                            Array with limits of M ranges, 
+                                        i.e.: [0, 2, 5] means two ranges: M0 - M2, M2 - M5.
+        sdist:                          Array with distances to include for smoothing (i.e, [1,5,10]
+        Mc:                             M squared centering term (8.5 in ASK2014)
+        smth:                           Smoothing value
+        vref:                           Reference Vs30 value (like 760 m/s)
+        mdep_ffdf:                      Magnitude-dependent fictitious depth param: 0=off, 1=on
+        predictive_parameter:           Default is pga.  Else, 'pgv', or...
+        data_correct:                   Correct data for a term?  0/1 = no/yes - vs30 term DEFAULT: vs30 correct
         
             
     '''
@@ -35,12 +37,13 @@ def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf):
     ######*****************************************************************######
     ###Solving:                                                               ###
     ###                                                                       ###                  
-    ###  a1 + a2*M + a3*(Mc - M)^2 + a4*ln(R) + a5*Rrup                       ###
+    ###  a1 + a2*M + a3*(Mc - M)^2 + a4*ln(R) + a5*Rrup + (a6*ln(vs30/vref)   ###
     ###  where R = np.sqrt(R^2 + c^2),                                        ###
     ###  where c is "fictitious depth" or "finite fault dimension factor"     ###
-    ###  and is magnitude dependent:                                          ###
+    ###  and can be magnitude dependent:                                      ###
     ###        =4.5 for M >5, =4.5 - (4.5 - 1)*(5 - M) for 4<LM<=5,           ###
     ###         =1 for M<=4)                                                  ###
+    ###  and a6*ln(vs30/vref) is optional                                     ###
     ######*****************************************************************######
     
     print '\n vref is ' + str(vref)
@@ -76,15 +79,20 @@ def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf):
     numsmooth=len(sdist)
     numrng=len(rng)-1
     
-    #What are the sizes of G and d:
-    #How many data points?
-    pgalen=len(db.pga_pg)
+    if predictive_parameter=='pga':
+        #What are the sizes of G and d:
+        #How many data points?
+        predparam_len=len(db.pga_pg)
+        predparam = db.pga_pg
+    elif predictive_parameter=='pgv':
+        predparam_len=len(db.pgv)
+        predparam = db.pgv
     
     #How many smoothing equations, overall? One set per range boundary, so do 
     #numrng - 1...  
     numeq=((numrng-1)*numsmooth)
     #How long will d be then?  Add num of data points and number of smoothing eq
-    dlen=pgalen+numeq
+    dlen=predparam_len+numeq
     
     #Initiate G and d:
     #d is n x 1, where n was defined above...
@@ -115,7 +123,7 @@ def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf):
     ccol=0
     for j in range(len(rng)-1):
         
-        #Find where the digitize index, dig_i, is equal to the range we're in:
+        #Find where (indices in dig_i) the digitize index, dig_i, is equal to the range we're in:
         bin_i=np.where(dig_i==j+1)[0]
         
         print 'length of bin_i = %f' % len(bin_i)
@@ -129,15 +137,15 @@ def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf):
             iffdf=db.md_ffdf[bin_i]
         else:
             print 'Magnitude dependent fictitious depth flag missing.  on = 1, off =0'
-        ipga=db.pga_pg[bin_i]
+        ipredparam=predparam[bin_i]
         ivs30=0.6*(np.log(db.vs30[bin_i]/vref))
 
         print 'vref is %i' % vref
-        print 'ipga is '
-        print ipga
+        print 'i predictive parameter is '
+        print ipredparam
         
-        print 'ln ipga is '
-        print np.log(ipga)
+        print 'ln i predictive parameter is '
+        print np.log(ipredparam)
         
         print 'ivs30 is'
         print ivs30
@@ -159,11 +167,25 @@ def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf):
         a3=(Mc-imw)**2
         a4=np.log(iffdf)
         a5=ir
+        # Prepare vs30 term in case it's being inverted for...
+        a6=ivs30
         
         #Define:
-        G[r_beg:r_end,c_beg:c_end]=np.c_[a1, a2, a3, a4, a5] 
-        # Remove vs30 from the data before inverting:
-        d[r_beg:r_end]=np.log(ipga) - ivs30
+        if ncoeff == 5:
+            G[r_beg:r_end,c_beg:c_end]=np.c_[a1, a2, a3, a4, a5] 
+        elif ncoeff == 6: 
+            G[r_beg:r_end,c_beg:c_end]=np.c_[a1, a2, a3, a4, a5, a6]
+            print 'Inverting for the vs30 coefficient'
+        else:
+            print 'number of coefficients you provided is not currently supported'
+            
+        if data_correct==0:
+            print 'Not correcting data for vs30 term'
+            d[r_beg:r_end]=np.log(ipredparam)
+        elif data_correct==1:
+            print 'Correcting data for vs30 term (ln(vs30/vref))'
+            # Remove vs30 from the data before inverting:
+            d[r_beg:r_end]=np.log(ipredparam) - ivs30
         
         print 'd is '
         print d
@@ -192,28 +214,39 @@ def iinit_pga(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf):
             elif mdep_ffdf==1:
                 a4=np.log(Rsdist[j+1])
             a5=sdist
+            a6=np.zeros((numsmooth))
             
             #Define G, d smoothing:
-            G[r_beg:r_end, c_beg:c_end]=smth*(np.c_[a1, a2, a3, a4, a5, 
-                -1*a1, -1*a2, -1*a3, -1*a4, -1*a5]) 
-            d[r_beg:r_end]=np.zeros((numsmooth))
+            if ncoeff==5:
+                G[r_beg:r_end, c_beg:c_end]=smth*(np.c_[a1, a2, a3, a4, a5, 
+                    -1*a1, -1*a2, -1*a3, -1*a4, -1*a5]) 
+                d[r_beg:r_end]=np.zeros((numsmooth))
+            elif ncoeff==6:
+                G[r_beg:r_end, c_beg:c_end]=smth*(np.c_[a1, a2, a3, a4, a5, a6, 
+                    -1*a1, -1*a2, -1*a3, -1*a4, -1*a5, -1*a6]) 
+                d[r_beg:r_end]=np.zeros((numsmooth))
+            else:
+                print 'Number of coefficients provided, '+np.str(ncoeff)+', is not currently supported'
             
         else:
             print 'No smoothing ranges; smoothing not applied'
             
+        
         #To the counter indices, add on:
         #To the rows, add what we are past - so the number of recordings in this
         #range, plus the number of smoothing equations added on, -1 because j
         #increases by 1:
         crow=crow+looplen+numsmooth-1
+        
+        # However the columns are dependent on the number of coefficients:
         #To the columns, add what we are past - we are now once range past, so 
         #we are an extra 5 columns deep (on to the next 5 coefficients), minus
         #one since j increases by 1:
-        ccol=ccol+4
+        ccol=ccol+(ncoeff - 1)
     
     ##Save d and v s30 for debugging:
-    #print '\n saving d, ivs30, ipga, and dbvs30 to file /Users/vsahakian/Desktop/inversiond_vs30.npz'
-    #np.savez('/Users/vsahakian/Desktop/inversiond_vs30.npz',d=d, ivs30=ivs30, ipga=ipga, dbvs30=db.vs30[bin_i])
+    #print '\n saving d, ivs30, ipredparam, and dbvs30 to file /Users/vsahakian/Desktop/inversiond_vs30.npz'
+    #np.savez('/Users/vsahakian/Desktop/inversiond_vs30.npz',d=d, ivs30=ivs30, ipredparam=ipredparam, dbvs30=db.vs30[bin_i])
     
     return G, d
     
