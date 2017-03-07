@@ -23,7 +23,7 @@ elif what_home==1:
 
 #Location to store figures:
 home=HOME+'/anza'
-invrun='v2anza2013_pgv_vs30'
+invrun='v2anza2013_pga_vs30'
 fig_dir=home+'/models/figs/'+invrun+'/'
 obj_dir=home+'/models/pckl/'+invrun+'/'
 model_dir=home+'/models/pckl/'+invrun+'/'
@@ -44,7 +44,7 @@ print 'Using database %s' % dbpath
 dbname=invrun
 
 # Invert for?
-predictive_parameter='pgv'
+predictive_parameter='pga'
 
 # Correct the data by vs30?
 vs30_correct=0    # 0 = no, 1 = yes
@@ -95,7 +95,7 @@ plotdist=np.array([0,10,20,40,80,160,220])
 ask_dist=10
 
 ## For plotting only:
-setmodel='/Users/vsahakian/anza/models/pckl/v2anza2013_pgv_vs30/regr_Mc8.5_0.0_6.5_VR_99.4.pckl'
+setmodel='/Users/vsahakian/anza/models/pckl/v2anza2013_pga_vs30/regr_pga_Mc8.5_0.0_6.5_VR_99.4.pckl'
 #setmixedmodel='/Users/vsahakian/anza/models/pckl/v2anza2013/mixedregr_v2anza2013_Mc_8.5_VR_99.9.pckl'
 
 
@@ -115,7 +115,7 @@ for k in range(len(rng)):
 ########
 
 print 'Setting up inversion'
-inv_dat=run_inv.setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parameter=predictive_parameter,data_correct=vs30_correct)
+inv_dat=run_inv.setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parameter='pga',data_correct=vs30_correct)
 
 
 # Plot the data and model now:

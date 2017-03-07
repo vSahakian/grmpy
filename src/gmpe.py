@@ -73,7 +73,7 @@ def compute_model(m,rng,mw,r,ffdf,vs30,Mc,vref,mdep_ffdf,ncoeff):
 
 
 ###############################################################################
-def compute_model_fixeddist(m,rng,sdist,Mc,mdep_ffdf,ncoeff):
+def compute_model_fixeddist(m,rng,sdist,Mc,mdep_ffdf,ncoeff=5):
     '''
     Compute the model values given the coefficients resulting from an inversion;
     Obtain values for given distances.
@@ -84,7 +84,7 @@ def compute_model_fixeddist(m,rng,sdist,Mc,mdep_ffdf,ncoeff):
         sdist:      Array with distances at which to compute the model
         Mc:         Magnitude squred term (i.e., 8.5 or 8.1)
         mdep_ffdf:  Flag for fictitious depth mag-dependence; 0=no, 1=yes
-        ncoeff:     Number of coefficients inverted for.
+        ncoeff:     Number of coefficients inverted for. Default: 5
     Output:
         mw_out:     Array of mw
         d_out:      Predicted ln(PGA)
@@ -168,17 +168,17 @@ def compute_model_fixeddist(m,rng,sdist,Mc,mdep_ffdf,ncoeff):
 
 
 ###############################################################################
-def ask2014_pga(M,Rrup,coeff_file,mdep_ffdf,dist_ranges,ncoeff,predictive_parameter='pga'):
+def ask2014(M,Rrup,coeff_file,mdep_ffdf,dist_ranges,ncoeff=5,predictive_parameter='pga'):
     '''
     Compute the predicted ground motionsfor a given set of events using the
     Abrahamson, Silva, and Kamai 2014 model.
     Input:
-        M:              Array with moment magnitudes
-        Rrup:           Array with Rrup, same size as M
-        coeff_file:     Path to the file with ASK2014 coefficients
-        mdep_ffdf:      Use magnitude dependent fictitous depth?  no=0, yes=1
+        M:                      Array with moment magnitudes
+        Rrup:                   Array with Rrup, same size as M
+        coeff_file:             Path to the file with ASK2014 coefficients
+        mdep_ffdf:              Use magnitude dependent fictitous depth?  no=0, yes=1
         dist_ranges:    
-        ncoeff:         Number of coefficients in inversion
+        ncoeff:                 Number of coefficients in inversion.  Default: 5
         predictive_parameter:   Predictive parameter: 'pga', or 'pgv'.  Default: 'pga'
     Output:
         M:              Magnitude
@@ -196,7 +196,7 @@ def ask2014_pga(M,Rrup,coeff_file,mdep_ffdf,dist_ranges,ncoeff,predictive_parame
     n=1.5
     
     
-    #Get the PGA coefficients:
+    #Get the coefficients:
     #Coefficients for median ground motions
     T=ask2014[:,0]
     M1=ask2014[:,1]
@@ -359,6 +359,10 @@ def ask2014_pga(M,Rrup,coeff_file,mdep_ffdf,dist_ranges,ncoeff,predictive_parame
             
     
     ####TEMPORARY....JUST FOR GETTING THE BASIC FORM...###
-    f1,M_sort,f1_sort=basic(M,Rrup,0)
+    if predictive_parameter=='pga':
+        #Set t_flag to 0 (pga)
+        f1,M_sort,f1_sort=basic(M,Rrup,0,ncoeff)
+    elif predictive_parameter=='pgv':
+        f1,M_sort,f1_sort=basic(M,Rrup,1,ncoeff)
     
     return f1,M_sort,f1_sort

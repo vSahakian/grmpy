@@ -218,7 +218,7 @@ class db:
         
         return f1
         
-    def plot_rpga_withmodel(self,bmin,bmax,mw,d_ln,rng,sdist,ask_dist,axlims,VR,nga_mw=True,nga_pred=True,vref=True,annotate_mag=4,rotation_angle=35):
+    def plot_rpga_withmodel(self,bmin,bmax,mw,d_ln,rng,sdist,ask_dist,axlims,VR,nga_mw=True,nga_pred=True,vref=True,annotate_mag=4,rotation_angle=35,predictive_parameter='pga'):
         '''
         Plots log10 PGA, for various distance ranges specified by bmin, bmax,
         and step.
@@ -226,7 +226,7 @@ class db:
             bmin:           Min value for bins for data
             bmax:           Max balue for bins for data
             mw:             Mw array from gmpe.compute_model_fixeddist
-            d_ln:           d array from compute_model_fixeddist - IN LN PGA!!
+            d_ln:           d array from compute_model_fixeddist - IN LN PGA or PGV!!
             rng:            Magnitude ranges, same array used for inversion
             sdist:          Distances array used for inversion
             ask_dist:       Distance at which ASK is plotted
@@ -237,6 +237,7 @@ class db:
             vref:           Reference vs30 value (Default: 760 m/s)
             annotate_mag:   Magnitue at which to annotate.  Default is M 4.
             rotation_angle: Rotation angle for text.  Default is 35 degrees 
+            predictive_parameter:   Predictive parameter: 'pga', or 'pgv'.  Default: 'pga'
         '''
         
         from matplotlib import pyplot as plt
@@ -250,6 +251,12 @@ class db:
             
         # Convert d_ln to log10 for plotting with data:
         d = np.log10(np.exp(d_ln))
+        
+        # What's the predictive parameter to plot?  Whatever it is, convert to log10 for plotting:
+        if predictive_parameter=='pga':
+            log10predparam=np.log10(self.pga_pg)
+        elif predictive_parameter=='pgv':
+            log10predparam=np.log10(self.pgv)
         
         #Get colormap
         mymap='jet'
@@ -271,7 +278,7 @@ class db:
         #get colorvalue to plot
         colorVal=scalarMap.to_rgba(self.r)
         
-        plt.scatter(self.mw,np.log10(self.pga_pg),edgecolors=colorVal,facecolors='none',lw=0.5)
+        plt.scatter(self.mw,log10predparam,edgecolors=colorVal,facecolors='none',lw=0.5)
         
         #Add colorbar:
         cb=plt.colorbar(c)
@@ -279,13 +286,19 @@ class db:
 
         #Label the plot - Mbold on the x, log10PGA on the y, 
         plt.xlabel(r"$\mathbf{M}$")
-        plt.ylabel(r"$\log_{10} PGA$")
+        
+        if predictive_parameter=='pga':
+            plt.ylabel(r"$\log_{10} PGA$")
+        elif predictive_parameter=='pgv':
+            plt.ylabel(r"$\log_{10} PGV$")
+            
         plt.title(r"PGA vs. $\mathbf{M}$, binned by distance" + "\n" + \
             "M Ranges: " + np.str(rng)+ ", Var Red="+np.str(np.around(VR,decimals=1)))
         
-        #Colors for GMPE:
-        colors_gmpe=plt.cm.rainbow(sdist.astype(float)/sdist.max())
+        ##Colors for GMPE:
+        #colors_gmpe=plt.cm.rainbow(sdist.astype(float)/sdist.max())
         
+        # Plot GMPE as dashed lines with annotations
         for j in range(len(sdist)):
             #Label for plot:
             #lab="R="+np.str(sdist[j])+"km"

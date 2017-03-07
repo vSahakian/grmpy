@@ -42,7 +42,7 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ff
                 
     #Invert:
     #Make matrices
-    G,d=inv.iinit_predparam(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parameter,data_correct)
+    G,d=inv.iinit_predparam(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parameter=predictive_parameter,data_correct=data_correct)
     #Invert
     m, resid, L2norm, VR, rank, svals=inv.invert(G,d)
 
@@ -60,7 +60,7 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ff
         else:
             strname=strname+'_'+np.str(rng[k])
         
-    basename='regr_Mc'+str(Mc)+'_'+strname+'_VR_'+np.str(np.around(VR,decimals=1))
+    basename='regr_' + predictive_parameter + '_Mc'+str(Mc)+'_'+strname+'_VR_'+np.str(np.around(VR,decimals=1))
     
     # This is a normal inversion, so set stderror and tvalue to "NaN", since they do not apply:
     stderror = float('NaN')
@@ -88,7 +88,7 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ff
     
     
 ############
-def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,ask_dist,Mc,axlims,bmin,bmax,vref,predictive_parameter='pga',ncoeff,data_correct=1):
+def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,ask_dist,Mc,axlims,bmin,bmax,vref,predictive_parameter='pga',ncoeff=5,data_correct=1):
     '''
     Plot the data with the model, and ASK 2014
     Input:
@@ -106,8 +106,8 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,ask_
         bmax:                   Maximum value for distance bins
         vref:                   Vs30 reference value for computing prediction
         predictive_parameter:   Predictive parameter. 'pga', or 'pgv'.  Default: 'pga'
-        ncoeff:                 Number of coefficients that were inverted for
-        data_correct:           Correct data?  0/1 = no/by vs30 term
+        ncoeff:                 Number of coefficients that were inverted for.  Default: 5
+        data_correct:           Correct data?  0/1 = no/by vs30 term.  Default: 1
     Output: 
         figure:         Figure with data and model (saves to /figs directory)
     '''
@@ -150,7 +150,7 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,ask_
     ############################################
     
     #Compute the magnitude/log10pga for each distance, to plot on top of data:
-    mw_model,d_model=gm.compute_model_fixeddist(model.m,model.rng,sdist,Mc,mdep_ffdf,ncoeff)
+    mw_model,d_model=gm.compute_model_fixeddist(model.m,model.rng,sdist,Mc,mdep_ffdf,ncoeff=ncoeff)
 
     #Get the NGA predictions to plot on the same figure:
     #Coefficient file:
@@ -163,7 +163,7 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,ask_
     Rrup=ask_dist*ones(ask_mw.shape)
     
     #Get the NGA predictions...
-    freq1,M_sort,freq1_sort=gm.ask2014_pga(ask_mw,Rrup,coeff_file,0,[0,0])
+    freq1,M_sort,freq1_sort=gm.ask2014(ask_mw,Rrup,coeff_file,0,[0,0])
 
 
     ############
@@ -172,7 +172,7 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,ask_
     
     #Plotting params...
     #Plot against data to check:
-    fig1=db.plot_rpga_withmodel(bmin,bmax,mw_model,d_model,model.rng,sdist,ask_dist,axlims,model.VR,M_sort,freq1_sort,vref)
+    fig1=db.plot_rpga_withmodel(bmin,bmax,mw_model,d_model,model.rng,sdist,ask_dist,axlims,model.VR,M_sort,freq1_sort,vref,predictive_parameter=predictive_parameter)
 
 
     #Save figure as pdf and png:
