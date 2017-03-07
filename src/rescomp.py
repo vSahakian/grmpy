@@ -2,12 +2,16 @@
 #VJS 6/2016
 
 
-def total_residual(db,d_predicted_ln,vref):
+def total_residual(db,d_predicted_ln,vref,predictive_parameter='pga',ncoeff=5,data_correct=1):
     '''
     Compute the total residual and standard deviation for a dataset
     Input:
-        db:                  Database object with data to compute
-        d_predicted_ln:      Array with predicted value          
+        db:                      Database object with data to compute
+        d_predicted_ln:          Array with predicted value        
+        vref:                    Value of reference vs30 
+        predictive_parameter:    Predictive parameter. 'pga', or 'pgv'.  Default: 'pga'
+        ncoeff:                  Number of coefficients that were inverted for.  Default: 5
+        data_correct:            Correct data?  0/1 = no/by vs30 term.  Default: 1 
     Output:
         total_residuals:     Array with residual for each data point
         mean_resid:          Mean residual for dataset
@@ -15,14 +19,27 @@ def total_residual(db,d_predicted_ln,vref):
     '''
     from numpy import mean,std,log
     
-    #Subtract the two... do it in natural log space.
-    #The PGA from the event object is units of g...not in log10 space.
-    pga=db.pga_pg
-    # Get vs30 and vref:
-    vs30correct=0.6*log(db.vs30/vref)
+    # Get the data for the parameter being used for the residuals:
+    if predictive_parameter=='pga':
+        predparam_precorrection=db.pga_pg
+    elif predictive_parameter=='pgv':
+        predparam_precorrection=db.pgv
+        
+    #Subtract the prediction from observation... do it in natural log space.
     
-    # Get corrected PGA, or d_observed:
-    d_observed_ln = log(pga) - vs30correct
+    #The PGA from the event object is units of g...not in log10 space.
+    if data_correct==0:
+        d_observed_ln=log(predparam_precorrection)
+        print '\n Using data without any correction \n '
+        print '\n d_observed_ln from predictive parameter is: \n'
+        print d_observed_ln
+    elif data_correct==1 & predictive_parameter=='pga':
+        vs30correct=0.6*log(db.vs30/vref)
+        d_observed_ln=log(predparam_precorrection)-vs30correct
+        print '\n Correcting PGA data by 0.6*ln(vs30/vref) \n'
+    else:
+        print 'You provided PGV data with a vs30 correction...not sure what coefficient to use...exiting'
+    
     
     print 'ln dobserved is '
     print d_observed_ln

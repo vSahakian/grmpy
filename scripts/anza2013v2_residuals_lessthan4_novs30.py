@@ -2,7 +2,6 @@
 
 import run_res
 from os import path
-import raytracing as rt
 
 #Change this parameter depending on where you run:
 #0=desktop
@@ -20,14 +19,15 @@ elif what_home==1:
 
 
 home=HOME+'/anza/models/residuals/'
-run_name='v2anza2013_Mc8.5_pgrid_5sta_res4'
+run_name='v2anza2013_pga_no_vs30_Mc8.5_pgrid_5sta_res4'
 dbpath=HOME+'/anza/data/databases/v2anza2013/v2anza2013_pgrid_5sta_res4.pckl'
-modelpath=HOME+'/anza/models/pckl/v2anza2013/regr_Mc8.5_0.0_6.5_VR_99.3.pckl'
-rayfile_vp='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vp/rays.dat'
-rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
+modelpath=HOME+'/anza/models/pckl/v2anza2013_pga_vs30/regr_pga_Mc8.5_0.0_6.5_VR_99.4.pckl'
+
 
 vref=760
-
+predictive_parameter='pga'
+ncoeff=6
+vs30_correct=0
 
 ########
 
@@ -49,7 +49,7 @@ elif runall==1:
     print 'Continuing...'
     
     #Get total residuals and plots:
-    tr_mw,tot_resid,mean_tot,std_dev_tot=run_res.get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim)
+    tr_mw,tot_resid,mean_tot,std_dev_tot=run_res.get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim,predictive_parameter=predictive_parameter,ncoeff=ncoeff,data_correct=vs30_correct)
     
     #Get event/within-event residuals:
     E_evnum,E_mw,E_residual,E_mean,E_std_dev=run_res.getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,vref,ffdf_flag,resaxlim)
@@ -65,14 +65,6 @@ elif runall==1:
     
     #Write to an overall residuals plus more object, get path residual...
     f_mw,f_dist,allresiduals,pterm_mean,pterm_std=run_res.get_path_resid_make_object(home,run_name,dbpath,resaxlim,resaxlim_dist)
-    
-    #Put this stuff in play res
-    ##Read in the Vp and Vs ray info from teh rayfile:
-    #vp_path_list,rec_id,src_id=rt.parse_rayfile(rayfile_vp)
-    #vs_path_list,rec_id,src_id=rt.parse_rayfile(rayfile_vs)
-    #
-    ##Store the ray info in the residuals object:
-    #allresiduals
     
     #Write to file:
     run_res.write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std)

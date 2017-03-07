@@ -47,7 +47,7 @@ dbname=invrun
 predictive_parameter='pga'
 
 # Correct the data by vs30?
-vs30_correct=0    # 0 = no, 1 = yes
+vs30_correct=0    # 0 = no correction, 1 = yes, vs30 correction
 
 
 #Define the ranges for the inversion - at each range boundary (i.e., between
@@ -115,7 +115,7 @@ for k in range(len(rng)):
 ########
 
 print 'Setting up inversion'
-inv_dat=run_inv.setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parameter='pga',data_correct=vs30_correct)
+inv_dat=run_inv.setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parameter=predictive_parameter,data_correct=vs30_correct)
 
 
 # Plot the data and model now:

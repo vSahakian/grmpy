@@ -37,6 +37,10 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ff
     db=pickle.load(dbfile)
     dbfile.close()
         
+    ###  DEBUGGING...
+    print 'ncoeff is %i, predictive parameter is %s, and data_correct is %i' % (ncoeff,predictive_parameter,data_correct)
+    #####    
+        
         
     print 'smth is %i, vref is %i' % (smth,vref)
                 
@@ -65,6 +69,13 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ff
     # This is a normal inversion, so set stderror and tvalue to "NaN", since they do not apply:
     stderror = float('NaN')
     tvalue = float('NaN')
+    
+    #### DEBUGGING....
+    print '\n ln the data, pga, are: \n'
+    print np.log(db.pga_pg)
+    print '\n the model, what goes into model.d, is: \n'
+    print d
+    
     
     #Put into an inversion object:
     invdat=cdf.invinfo(G,d,m,resid,L2norm,VR,rank,svals,rng,sdist,smth,stderror,tvalue)

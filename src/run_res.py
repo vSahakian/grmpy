@@ -59,17 +59,20 @@ def init(home,run_name):
     return runall
         
         
-def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
+def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim,predictive_parameter='pga',ncoeff=5,data_correct=1):
     '''
     Get the total residuals for a database.
     Input:
-        home:            STring with home path
-        run_name:        String with name of the run
-        dbpath:          String with path to a pickle database object
-        modelpath:       String with path to a gmpe model pickle object
-        Mc:              Value aroudn which to center the magnitude squred term (like 8.1 or 8.5, etc.)
-        ffdf_flag:       Flag for mag dependent ffdf.  0=off, 1=on
-        resaxlim:        Array with axis limits for the resid plot: [[xmin,xmax],[ymin,ymax]]
+        home:                    STring with home path
+        run_name:                String with name of the run
+        dbpath:                  String with path to a pickle database object
+        modelpath:               String with path to a gmpe model pickle object
+        Mc:                      Value aroudn which to center the magnitude squred term (like 8.1 or 8.5, etc.)
+        ffdf_flag:               Flag for mag dependent ffdf.  0=off, 1=on
+        resaxlim:                Array with axis limits for the resid plot: [[xmin,xmax],[ymin,ymax]]
+        predictive_parameter:    Predictive parameter. 'pga', or 'pgv'.  Default: 'pga'
+        ncoeff:                  Number of coefficients that were inverted for.  Default: 5
+        data_correct:            Correct data?  0/1 = no/by vs30 term.  Default: 1
         
     Output:
         total_residuals:    Array with total residuals
@@ -103,7 +106,8 @@ def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
     model=pickle.load(datobj)
     datobj.close()
     
-    print 'Opened model %s' % modelpath
+    print '\n Opened model %s' % modelpath
+    print '\n Using database %s ' % dbpath
     
     #Overall residual, 
     #In some places, vs30 is 0.  Set these to vref.
@@ -120,30 +124,35 @@ def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim):
     #####Get Total Residuals######
     
     #Now compute the predicted value of PGA...
-    d_predicted=gm.compute_model(model.m,model.rng,db.mw,db.r,db.ffdf,vs30,Mc,vref,mdep_ffdf)
+    d_predicted=gm.compute_model(model.m,model.rng,db.mw,db.r,db.ffdf,vs30,Mc,vref,mdep_ffdf,ncoeff)
     
-    # Get lengths and print, in case the model was made on a dataset different from the database
-    #   being used for residual computation:
-    print 'Length of d_predicted is: %i' % len(d_predicted)
-    print 'Length of data in database is: %i' % len(db.mw)
+    # Print the predicted valeus from gm.compute model:
+    print '\n predicted values from gmpe.compute_model are: \n'
+    print d_predicted
+    
+    print '\n observed values that go into inversion, model.d, are: \n'
+    print model.d
     
     # Test the mean from the inversion model:
     if len(d_predicted) != len(model.d):
-        print 'The length of the database (# recordings) is not the same as the number used in the model. This is ok, just not printing the total residual information from comparing the inversion model, continuing with residual computation...'
+        print '\n The length of the database (# recordings) is not the same as the number used in the model. This is ok, just not printing the total residual information from comparing the inversion model, continuing with residual computation...'
     else:
         #testresiduals = model.G.dot(model.m) - model.d
         testresiduals = d_predicted - model.d
         meantest = mean(testresiduals)
-        print 'Mean residual from G and d matrices are %f' % meantest
+        print '\n Mean residual from G and d matrices are %f' % meantest
+        print '\n d_predicted (gm.coputemodel) - model.d is: \n'
+        print testresiduals
         
         #Test that the correted data, outside of rcomp, is the same as what is from inversion:
-        d_comparison = model.d - (log(db.pga_pg) - 0.6*log(vs30/vref))
+        d_comparison = model.d - log(db.pga_pg)
         print d_comparison
+        print mean(d_comparison)
     
     
     #Get residuals:
-    total_residuals,mean_residual,std_dev=rcomp.total_residual(db,d_predicted,vref)
-    print 'Mean residual is %f, and standard deviation is %f' % (mean_residual,std_dev)
+    total_residuals,mean_residual,std_dev=rcomp.total_residual(db,d_predicted,vref,predictive_parameter=predictive_parameter,ncoeff=ncoeff,data_correct=data_correct)
+    print '\n Mean residual is %f, and standard deviation is %f' % (mean_residual,std_dev)
     
     #Plot residuals and save plots:
     allresid=cdf.total_residuals(db.mw,total_residuals,mean_residual,std_dev)

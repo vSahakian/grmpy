@@ -40,7 +40,6 @@ def compute_model(m,rng,mw,r,ffdf,vs30,Mc,vref,mdep_ffdf,ncoeff):
         
         if ncoeff==6:
             a6=m[(range_i*ncoeff)+5]
-        
     
         #Where is mw in this range?
         bin_i=np.where(dig_i==range_i+1)
@@ -56,9 +55,13 @@ def compute_model(m,rng,mw,r,ffdf,vs30,Mc,vref,mdep_ffdf,ncoeff):
         if ncoeff==5:
             d_predicted_i=a1+a2*mw_rangei + a3*(Mc-mw_rangei)**2 + a4*np.log(ffdf_rangei) + \
                 a5*r_rangei 
+            print 'predicting with just 5 coefficients...'
+            print '%f, %f, %f, %f, %f ' % (a1, a2, a3, a4, a5)
         elif ncoeff==6:
             d_predicted_i=a1+a2*mw_rangei + a3*(Mc-mw_rangei)**2 + a4*np.log(ffdf_rangei) + \
                 a5*r_rangei + a6*np.log(vs30_rangei/vref) 
+            print 'predicting with 6 coefficients...'
+            print '%f, %f, %f, %f, %f, %f ' % (a1, a2, a3, a4, a5, a6)
         
         #d_predicted_i=a1+a2*mw_rangei + a3*(Mc-mw_rangei)**2 + a4*np.log(ffdf_rangei) + \
         #        a5*r_rangei + 0.6*np.log(vs30_rangei/vref)  

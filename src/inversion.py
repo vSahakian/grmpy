@@ -137,8 +137,10 @@ def iinit_predparam(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parame
             iffdf=db.md_ffdf[bin_i]
         else:
             print 'Magnitude dependent fictitious depth flag missing.  on = 1, off =0'
+        
+        # Get the predictive parameter and vs30 for this bin
         ipredparam=predparam[bin_i]
-        ivs30=0.6*(np.log(db.vs30[bin_i]/vref))
+        ivs30=np.log(db.vs30[bin_i]/vref)
 
         print 'vref is %i' % vref
         print 'i predictive parameter is '
@@ -185,9 +187,9 @@ def iinit_predparam(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parame
         elif data_correct==1:
             print 'Correcting data for vs30 term (ln(vs30/vref))'
             # Remove vs30 from the data before inverting:
-            d[r_beg:r_end]=np.log(ipredparam) - ivs30
+            d[r_beg:r_end]=np.log(ipredparam) - 0.6*ivs30
         
-        print 'd is '
+        print '\n d is \n'
         print d
         
         #SMOOTHING:
