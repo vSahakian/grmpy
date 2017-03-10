@@ -174,7 +174,7 @@ def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim,predictiv
     
     
     
-def getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,vref,ffdf_flag,resaxlim):
+def getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,vref,ffdf_flag,resaxlim,predictive_parameter='pga',ncoeff=5,data_correct=-0.6):
     '''
     Get the Event and Within-Event Residuals, and store in Event objects
     Input:
@@ -187,13 +187,16 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,vref,ffdf_flag,resaxlim):
         ffdf_flag:       Flag for mag dependent ffdf.  0=off, 1=on
         resaxlim:        Array with axis limits for the resid plot: [[xmin,xmax],[ymin,ymax]]
     Output:
-        E_evnum:                Array of event numbers
-        E_mw:                   Array of event magnitudes
-        E_residual:             Array of event residuals for db
-        E_mean:                 Mean event residual for db
-        E_std_dev:              Standard deviation for all event residuals in db
-        Event_list_object:      An object, saved to run_dir/event_objs/run_name.pckl, 
-                                with a list of all event objects for the databases
+        E_evnum:                 Array of event numbers
+        E_mw:                    Array of event magnitudes
+        E_residual:              Array of event residuals for db
+        E_mean:                  Mean event residual for db
+        E_std_dev:               Standard deviation for all event residuals in db
+        Event_list_object:       An object, saved to run_dir/event_objs/run_name.pckl, 
+                                  with a list of all event objects for the databases
+        predictive_parameter:    Predictive parameter. 'pga', or 'pgv'.  Default: 'pga'
+        ncoeff:                  Number of coefficients that were inverted for.  Default: 5
+        data_correct:            Correct data?  0/data_correct = no/by vs30 correction term.  Default: -0.6
     '''
     
     import numpy as np
@@ -238,7 +241,7 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,vref,ffdf_flag,resaxlim):
     vs30[vs30_0ind]=vref
     
     #Now compute the predicted value of PGA...
-    d_predicted_ln=gm.compute_model(model.m,model.rng,db.mw,db.r,db.ffdf,vs30,Mc,vref,mdep_ffdf)
+    d_predicted_ln=gm.compute_model(model.m,model.rng,db.mw,db.r,db.ffdf,vs30,Mc,vref,mdep_ffdf,ncoeff)
 
     ###
     ##Get unique events:
@@ -303,13 +306,13 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,vref,ffdf_flag,resaxlim):
         eventi.add_total_resid(total_residual)
         
         #Compute the event terms:
-        evnum_i,evmw_i,E_residual_i,std_dev_i=rcomp.event_residual(eventi,d_predicted_i,vref)
+        evnum_i,evmw_i,E_residual_i,std_dev_i=rcomp.event_residual(eventi,d_predicted_i,vref,predictive_parameter=predictive_parameter,ncoeff=ncoeff,data_correct=data_correct)
         
         #Add the residual information to the event object:
         eventi.add_E_resid(E_residual_i,std_dev_i)
         
         #Get the Within-Event Residuals:
-        evnum_i,evmw_i,sta_i,stnum_i,W_residuals_i,W_mean_i,W_std_dev_i=rcomp.within_event_residual(eventi,d_predicted_i,eventi.E_residual,vref)    
+        evnum_i,evmw_i,sta_i,stnum_i,W_residuals_i,W_mean_i,W_std_dev_i=rcomp.within_event_residual(eventi,d_predicted_i,eventi.E_residual,vref,predictive_parameter=predictive_parameter,ncoeff=ncoeff,data_correct=data_correct)    
     
         #Add the within-event residuals to the event object:
         eventi.add_W_resids(W_residuals_i,W_mean_i,W_std_dev_i)

@@ -3,7 +3,7 @@
 
 #Make the d and G matrices.....
 
-def iinit_predparam(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parameter='pga',data_correct=1):
+def iinit_predparam(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parameter='pga',data_correct=-0.6):
     '''
     Make the d and G matrices for the inversion.  Can use ranges, where the 
     coefficients from teh inversion must be smooth at the edges of the ranges.
@@ -28,7 +28,7 @@ def iinit_predparam(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parame
         vref:                           Reference Vs30 value (like 760 m/s)
         mdep_ffdf:                      Magnitude-dependent fictitious depth param: 0=off, 1=on
         predictive_parameter:           Default is pga.  Else, 'pgv', or...
-        data_correct:                   Correct data for a term?  0/1 = no/yes - vs30 term DEFAULT: vs30 correct
+        data_correct:                   Correct data for a term?  0/data_correct = no/yes with correction value - vs30 term DEFAULT: vs30 correct with -0.6
         
             
     '''
@@ -184,10 +184,10 @@ def iinit_predparam(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parame
         if data_correct==0:
             print 'Not correcting data for vs30 term'
             d[r_beg:r_end]=np.log(ipredparam)
-        elif data_correct==1:
+        elif data_correct!=0:
             print 'Correcting data for vs30 term (ln(vs30/vref))'
             # Remove vs30 from the data before inverting:
-            d[r_beg:r_end]=np.log(ipredparam) - 0.6*ivs30
+            d[r_beg:r_end]=np.log(ipredparam) + (data_correct*ivs30)
         
         print '\n d is \n'
         print d
@@ -314,30 +314,37 @@ def invert(G,d):
 ###Run Mixed Effects Model in R###
 ##################################
 
-def mixed_effects(codehome,workinghome,dbname,pga,mw,rrup,vs30,evnum,sta,vref,c,Mc):
+def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,vref,c,Mc,predictive_parameter='pga',data_correct='-0.6',a1='none',a2='none',a3='none',a4='none',a5='none',a6='none'):
     '''
     Run a Mixed effects model to compute the model coefficients (a1 - a5), 
     as well as the event and station terms.  The remaining residual can 
     be classified as the path term plus some aleatory residual.
     
     Input:
-        codehome:      String with full path to code home (i.e.,'/home/vsahakian')
-        workinghome:   String with full path to working dir home, no slash at end (i.e., /Users/vsahakian/anza or /home/vsahakian/katmai/anza)
-        dbname:        String with name to database, for path in pckl dir (i.e., 'test2013')
-        pga:           Array with values of PGA for each recording, in g
-        mw:             Array with values of moment magnitude per recording
-        rrup:          Array with values of Rrup per recording
-        vs30:          Array with values of Vs30 per recoridng
-        evnum:         Array with values of the event number per recording
-        sta:           Array with strings of station names
-        vref:          Scalar with value of reference vs30 velocity
-        c:             Scalar with fictitious depth parameter (usually 4.5)
-        Mc:            Magnitude to center around for M squared functional form component (Mc - M)**2
+        codehome:                   String with full path to code home (i.e.,'/home/vsahakian')
+        workinghome:                String with full path to working dir home, no slash at end (i.e., /Users/vsahakian/anza or /home/vsahakian/katmai/anza)
+        dbname:                     String with name to database, for path in pckl dir (i.e., 'test2013')
+        pga:                        Array with values of PGA for each recording, in g
+        mw:                         Array with values of moment magnitude per recording
+        rrup:                       Array with values of Rrup per recording
+        vs30:                       Array with values of Vs30 per recoridng
+        evnum:                      Array with values of the event number per recording
+        sta:                        Array with strings of station names
+        vref:                       Scalar with value of reference vs30 velocity
+        c:                          Scalar with fictitious depth parameter (usually 4.5)
+        Mc:                         Magnitude to center around for M squared functional form component (Mc - M)**2
+        predictive_parameter:       Parameter to predict.  Default: 'pga'
+        a1:                         a1 coefficient, if it's being fixed.  Default:'none'
+        a2:                         a2 coefficient, if it's being fixed.  Default:'none'
+        a3:                         a3 coefficient, if it's being fixed.  Default:'none'
+        a4:                         a4 coefficient, if it's being fixed.  Default:'none'
+        a5:                         a5 coefficient, if it's being fixed.  Default:'none'
+        a6:                         a6 coefficient, if it's being fixed.  Default:'none'.  If data_correct!=0, should be the same as data_correct
     Output:
-        log:           Log of system call
-        event_terms:   Array of event terms (2 columns: Bias, Std.error)
-        site_terms:    Array of site terms (2 columns: Bias, std.error)
-        fixed_effects: Array with coefficients (5 rows (a1 - a5), 3 columns(coefficient, std. error, t.value))
+        log:                        Log of system call
+        event_terms:                Array of event terms (2 columns: Bias, Std.error)
+        site_terms:                 Array of site terms (2 columns: Bias, std.error)
+        fixed_effects:              Array with coefficients (5 rows (a1 - a5), 3 columns(coefficient, std. error, t.value))
     '''
     
     import pandas as pd
@@ -345,16 +352,61 @@ def mixed_effects(codehome,workinghome,dbname,pga,mw,rrup,vs30,evnum,sta,vref,c,
     import subprocess
     from shlex import split
     
+     
     ## Set database information
     # Set input for model, that is not "raw" (i.e., M):
-    pga_corrected=np.log(pga) - 0.6*(np.log(vs30/vref))
     mw2=(Mc - mw)**2
     R=np.sqrt(rrup**2 + c**2)
     lnR=np.log(R)
+    vs30term=np.log(vs30/vref)
+    
+    # INput data - correct by vs30 or don't?  If data_correct is 0 and there is 
+    if (data_correct==0 & a6=='none'):
+        pred_param_corrected=pred_param
+    elif (a6!='none' & a6==data_correct):
+        pred_param_corrected=pred_param + a6*vs30term
+    elif (a6!='none' & a6!=data_correct):
+        print 'WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n  WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1 \n data_correction for vs30 is not the same as the a6 vs30 term provided...not correcting data by a6 at all or including in the inversion\n'
+    
+    # Correct by other things?
+    if a5!='none':
+        pred_param_corrected = pred_param_corrected - a5*rrup
+        print 'correcting by a5 \n'
+    if a4!= 'none':
+        pred_param_corrected = pred_param_corrected - a4*lnR
+        print 'correcting by a4 \n'
+    if a3!='none':
+        pred_param_corrected = pred_param_corrected - a3*mw2
+        print 'correcting by a3 \n'
+    if a2!='none':
+        pred_param_corrected = pred_param_corrected - a2*mw
+        print 'correcting by a2 \n'
+    if a1!='none':
+        pred_param_corrected = pred_param_corrected - a1
+        print 'correcting by a1 \n'
+        
+    # Now, depending on which coefficients were provided by to correct the data, make the dictionary differently:
+    dbdict = {'pred_param' : pred_param_corrected}
+    
+    # If there were no coefficients provided, shown below, then add those terms to the dict:
+    if a2=='none':
+        dbdict['m'] = mw
+    if a3=='none':
+        dbdict['m2'] = mw2
+    if a4=='none':
+        dbdict['lnR'] = lnR
+    if a5=='none':
+        dbdict['rrup'] = rrup
+    if a6=='none' & data_correct==0:
+        dbdict['vs30'] = vs30term
     
     
-    #  First make a dictionary:
-    dbdict = {'pga' : pga_corrected, 'm' : mw, 'm2' : mw2, 'lnR' : lnR, 'rrup' : rrup, 'evnum' : evnum, 'sta' : sta}
+    
+    # Depending on which coefficients are being provided to "fix" the data, correct pga differently:
+    
+    
+    ##  First make a dictionary:
+    #dbdict = {'pga' : pga_corrected, 'm' : mw, 'm2' : mw2, 'lnR' : lnR, 'rrup' : rrup, 'evnum' : evnum, 'sta' : sta}
     
     # Make datafram ewith Pandas
     data = pd.DataFrame(dbdict)
