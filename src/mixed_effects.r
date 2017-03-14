@@ -106,6 +106,9 @@ r_mixedeffects <- function(datacsv, home, database, ...) {
 	## Run Models ##
 	##			  ##
 	
+	# Make
+	
+	
 	model <- lme4::lmer(pga ~ m + m2 + lnR + rrup + (1|evnum) + (1|sta), data=db)
 	
 	# Make a new dataframe with just data to see if the predict funtion

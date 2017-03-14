@@ -124,3 +124,40 @@ inv_dat=run_inv.setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,
 # If you just want to plot with a certain model:
 modelpath=setmodel
 fig1=run_inv.plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,plotdist,ask_dist,Mc,axlims,bmin,bmax,vref,predictive_parameter=predictive_parameter,ncoeff=ncoeff,data_correct=0)
+
+
+
+###################################################################################
+#################                 MIXED EFFECTS                 ###################
+###################################################################################
+#
+print 'Running mixed effects'
+#Now try with mixed effects:
+run_name = 'mixedregr_pga_v2anza2013_Mc_8.5_res4'
+run_home=home+'/models/residuals/'
+resaxlim_r = [[0,180],[-5,5]]
+resaxlim_mw = [[0,4],[-5,5]]
+
+
+#Fictitious depth parameter:
+c=4.5
+
+#Initialize the residuals directories:
+inithome=HOME+'/anza/models/residuals/'
+
+runall=1
+
+#Initialize directories:
+runall=run_res.init(inithome,run_name)
+
+if runall==0:
+    print 'Not clobbering, exiting...'
+    
+elif runall==1:
+    print 'Continuing...'
+    
+    
+    # Now run mixed effects approach #
+    invdat,invpath,tresid,mixed_residuals,d_r_prediction,mixed_resid_path=run_inv.run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c)
+
+

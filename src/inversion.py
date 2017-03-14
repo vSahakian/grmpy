@@ -314,7 +314,7 @@ def invert(G,d):
 ###Run Mixed Effects Model in R###
 ##################################
 
-def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,vref,c,Mc,predictive_parameter='pga',data_correct='-0.6',a1='none',a2='none',a3='none',a4='none',a5='none',a6='none'):
+def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,vref,c,Mc,predictive_parameter='pga',ncoeff=5,data_correct='-0.6',a1='none',a2='none',a3='none',a4='none',a5='none',a6='none'):
     '''
     Run a Mixed effects model to compute the model coefficients (a1 - a5), 
     as well as the event and station terms.  The remaining residual can 
@@ -324,7 +324,7 @@ def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,
         codehome:                   String with full path to code home (i.e.,'/home/vsahakian')
         workinghome:                String with full path to working dir home, no slash at end (i.e., /Users/vsahakian/anza or /home/vsahakian/katmai/anza)
         dbname:                     String with name to database, for path in pckl dir (i.e., 'test2013')
-        pga:                        Array with values of PGA for each recording, in g
+        pred_param:                 Array with values of predictive parameter for each recording, in g fpr PGA
         mw:                         Array with values of moment magnitude per recording
         rrup:                       Array with values of Rrup per recording
         vs30:                       Array with values of Vs30 per recoridng
@@ -351,6 +351,7 @@ def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,
     import numpy as np
     import subprocess
     from shlex import split
+    from collections import OrderedDict
     
      
     ## Set database information
@@ -361,11 +362,11 @@ def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,
     vs30term=np.log(vs30/vref)
     
     # INput data - correct by vs30 or don't?  If data_correct is 0 and there is 
-    if (data_correct==0 & a6=='none'):
-        pred_param_corrected=pred_param
-    elif (a6!='none' & a6==data_correct):
-        pred_param_corrected=pred_param + a6*vs30term
-    elif (a6!='none' & a6!=data_correct):
+    if ((data_correct==0) & (a6=='none')):
+        pred_param_corrected=np.log(pred_param)
+    elif ((a6!='none') & (a6==data_correct)):
+        pred_param_corrected=np.log(pred_param) + a6*vs30term
+    elif ((a6!='none') & (a6!=data_correct)):
         print 'WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n  WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1 \n data_correction for vs30 is not the same as the a6 vs30 term provided...not correcting data by a6 at all or including in the inversion\n'
     
     # Correct by other things?
@@ -385,8 +386,17 @@ def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,
         pred_param_corrected = pred_param_corrected - a1
         print 'correcting by a1 \n'
         
+        
+    ####
     # Now, depending on which coefficients were provided by to correct the data, make the dictionary differently:
-    dbdict = {'pred_param' : pred_param_corrected}
+    dbdict = OrderedDict()
+    dbdict['pred_param']=pred_param_corrected
+    #dbdict = {'pred_param' : pred_param_corrected}
+    
+    
+    # Add in the event numbers and stations because these should always go in:
+    dbdict['evnum'] = evnum
+    dbdict['sta'] = sta
     
     # If there were no coefficients provided, shown below, then add those terms to the dict:
     if a2=='none':
@@ -397,8 +407,10 @@ def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,
         dbdict['lnR'] = lnR
     if a5=='none':
         dbdict['rrup'] = rrup
-    if a6=='none' & data_correct==0:
+    if ((a6=='none') & (data_correct==0) & (ncoeff==6)):
         dbdict['vs30'] = vs30term
+    if ((a6=='none') & (data_correct==0) & (ncoeff==5)):
+        print 'Not correcting data by vs30, and not including a vs30 term'
     
     
     
