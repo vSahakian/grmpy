@@ -106,10 +106,64 @@ r_mixedeffects <- function(datacsv, home, database, ...) {
 	## Run Models ##
 	##			  ##
 	
-	# Make
+	# Make the formula with conditionals - depending on what 
+	#    terms are in the database, that should be solved for.
+	
+	# Initiate string:
+	formula_string <- 'pred_param ~ '
+	
+	# First make a list with all of the terms to include in the formula:	
+	# Start the term list by having nothign in it:
+	term_list <- c()
+	
+	# Now go through terms, and if they were put into the database from the python code, add them to the terms list:
+	if("m" %in% colnames(db))
+	{
+		term_list <- c(term_list,'m')
+	}
+	
+	if ("m2" %in% colnames(db))
+	{
+		term_list <- c(term_list,'m2')
+	}
+	
+	if ("lnR" %in% colnames(db))
+	{
+		term_list <- c(term_list,'lnR')
+	}
+	
+	if ("rrup" %in% colnames(db))
+	{ 
+		term_list <- c(term_list,'rrup')
+	}
+	
+	if ("vs30" %in% colnames(db))
+	{
+		term_list <- c(term_list,'vs30')
+	}
 	
 	
-	model <- lme4::lmer(pga ~ m + m2 + lnR + rrup + (1|evnum) + (1|sta), data=db)
+	# Then concatenate the terms that are in the list with a + in between:
+	for (termi in 1:length(term_list))
+	{
+		if (termi==1)
+		{
+			formula_terms <- term_list[termi]
+		}
+		
+		else
+		{
+			formula_terms <- paste(formula_terms,' + ',term_list[termi])
+		}
+	}
+	
+	# Then add them all together to make the formula:
+	formula_string <- paste('pred_param ~ ',formula_terms,' + (1|evnum) + (1|sta)')
+	
+	# And run the model:
+	model <- lme4::lmer(formula_string, data=db)
+	
+#	model <- lme4::lmer(pga ~ m + m2 + lnR + rrup + (1|evnum) + (1|sta), data=db)
 	
 	# Make a new dataframe with just data to see if the predict funtion
 	# 	always includes the random effects in the prediction:

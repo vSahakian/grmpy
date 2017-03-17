@@ -204,18 +204,21 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,ask_
 
 
 ##########
-def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c):
+def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_parameter='pga',ncoeff=5,data_correct=-0.6):
     '''
     Run a mixed effects model for a given database, and certain parameters.
     Input:
-        home:       Working home (i.e., /media/vsahakian/katmai/anza), with no slash at the end
-        codehome:   Home for code (i.e., /home/vsahakian/software), with no slash at the end
-        run_name:   Databse/inversion combo run name for mixed effects
-        dbpath:     Full path to the database object
-        dbname:     Database name (i.e., 'test2013'), for path purposes
-        Mc:         Magnitude around which to center mag squared term, i.e., (8.5 - M)**2
-        vref:       Reference vs30 velocity for GMPE
-        c:          ffdf parameter for GMPE
+        home:                       Working home (i.e., /media/vsahakian/katmai/anza), with no slash at the end
+        codehome:                   Home for code (i.e., /home/vsahakian/software), with no slash at the end
+        run_name:                   Databse/inversion combo run name for mixed effects
+        dbpath:                     Full path to the database object
+        dbname:                     Database name (i.e., 'test2013'), for path purposes
+        Mc:                         Magnitude around which to center mag squared term, i.e., (8.5 - M)**2
+        vref:                       Reference vs30 velocity for GMPE
+        c:                          ffdf parameter for GMPE
+        predictive_parameter:       Parameter to predict.  Default: 'pga'
+        ncoeff:                     Number of coefficients inverting for.  Default: 5
+        data_correct:               Vs30 coefficient to correct data by, if correct at all.  0/data_correct = no correction/correction by data_correct.  Default: -0.6
     '''
     
     import cPickle as pickle
@@ -242,7 +245,7 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c):
     sta = db.sta
     
     # Run Model
-    me_log, fixed, event, site, d_r_prediction = inv.mixed_effects(codehome,home,dbname,pga,mw,rrup,vs30,evnum,sta,vref,c,Mc)
+    me_log, fixed, event, site, d_r_prediction = inv.mixed_effects(codehome,home,dbname,pga,mw,rrup,vs30,evnum,sta,vref,c,Mc,predictive_parameter='pga',ncoeff=5,data_correct='-0.6',a1='none',a2='none',a3='none',a4='none',a5='none',a6='none')
     
     # Add these to an inversion object....set unused values to nan:
     d = np.log(pga) - 0.6*np.log(vs30/vref)

@@ -334,6 +334,8 @@ def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,
         c:                          Scalar with fictitious depth parameter (usually 4.5)
         Mc:                         Magnitude to center around for M squared functional form component (Mc - M)**2
         predictive_parameter:       Parameter to predict.  Default: 'pga'
+        ncoeff:                     Number of coefficients inverting for.  Default: 5
+        data_correct:               Vs30 coefficient to correct data by, if correct at all.  0/data_correct = no correction/correction by data_correct.  Default: -0.6
         a1:                         a1 coefficient, if it's being fixed.  Default:'none'
         a2:                         a2 coefficient, if it's being fixed.  Default:'none'
         a3:                         a3 coefficient, if it's being fixed.  Default:'none'
@@ -483,10 +485,10 @@ def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,
     ### Reincorporate site and event terms into the list of recordings ###
     
     # Initiate arrays with length of number of recordings for site and event terms and bias:
-    event_terms = np.zeros((len(pga),2))
-    site_terms = np.zeros((len(pga),2))
+    event_terms = np.zeros((len(pred_param_corrected),2))
+    site_terms = np.zeros((len(pred_param_corrected),2))
     
-    for recording_i in range(len(pga)):
+    for recording_i in range(len(pred_param_corrected)):
         # This recording is which event and station name?
         event_i=evnum[recording_i]
         sta_i=sta[recording_i]
@@ -495,6 +497,7 @@ def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,
         eterm_ind = np.where(event_data[:,0]==event_i)[0]
         # Collect this data into the event terms:
         event_terms[recording_i,:] = event_data[eterm_ind,1:]
+        
         
         # Now the station:
         sterm_ind = np.where(sta_data==sta_i)[0]
