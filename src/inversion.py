@@ -314,7 +314,7 @@ def invert(G,d):
 ###Run Mixed Effects Model in R###
 ##################################
 
-def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,vref,c,Mc,predictive_parameter='pga',ncoeff=5,data_correct='-0.6',a1='none',a2='none',a3='none',a4='none',a5='none',a6='none'):
+def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,vref,c,Mc,predictive_parameter='pga',ncoeff=5,data_correct=-0.6,a1='none',a2='none',a3='none',a4='none',a5='none',a6='none'):
     '''
     Run a Mixed effects model to compute the model coefficients (a1 - a5), 
     as well as the event and station terms.  The remaining residual can 
@@ -363,13 +363,20 @@ def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,
     lnR=np.log(R)
     vs30term=np.log(vs30/vref)
     
+    print '\n data correct is ' 
+    print data_correct
+    print '\n pred_param is \n'
+    print pred_param
+    print 'predictive_parameter is %s' % predictive_parameter
+    
+    
     # INput data - correct by vs30 or don't?  If data_correct is 0 and there is 
     if ((data_correct==0) & (a6=='none')):
         pred_param_corrected=np.log(pred_param)
     elif ((a6!='none') & (a6==data_correct)):
         pred_param_corrected=np.log(pred_param) + a6*vs30term
     elif ((a6!='none') & (a6!=data_correct)):
-        print 'WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n  WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1 \n data_correction for vs30 is not the same as the a6 vs30 term provided...not correcting data by a6 at all or including in the inversion\n'
+        print 'WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n  WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1 \n data_correction for vs30 is not the same as the a6 vs30 term provided...not correcting data by a6 at all \n'
     
     # Correct by other things?
     if a5!='none':

@@ -204,7 +204,7 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,ask_
 
 
 ##########
-def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_parameter='pga',ncoeff=5,data_correct=-0.6):
+def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_parameter='pga',ncoeff=5,data_correct=-0.6,a1='none',a2='none',a3='none',a4='none',a5='none',a6='none'):
     '''
     Run a mixed effects model for a given database, and certain parameters.
     Input:
@@ -219,6 +219,12 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_p
         predictive_parameter:       Parameter to predict.  Default: 'pga'
         ncoeff:                     Number of coefficients inverting for.  Default: 5
         data_correct:               Vs30 coefficient to correct data by, if correct at all.  0/data_correct = no correction/correction by data_correct.  Default: -0.6
+        a1:                         a1 coefficient, if it's being fixed.  Default:'none'
+        a2:                         a2 coefficient, if it's being fixed.  Default:'none'
+        a3:                         a3 coefficient, if it's being fixed.  Default:'none'
+        a4:                         a4 coefficient, if it's being fixed.  Default:'none'
+        a5:                         a5 coefficient, if it's being fixed.  Default:'none'
+        a6:                         a6 coefficient, if it's being fixed.  Default:'none'.  If data_correct!=0, should be the same as data_correct
     '''
     
     import cPickle as pickle
@@ -237,7 +243,13 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_p
     
     # Get information that is needed to run inversion:
     
-    pga = db.pga_pg
+    #define the predictive parameter
+    if predictive_parameter=='pga':
+        pred_param = db.pga_pg
+    elif predictive_parameter=='pgv':
+        pred_param = db.pgv
+        
+    # Now define the otherv alues...
     mw = db.mw
     rrup = db.r
     vs30 = db.vs30
@@ -245,11 +257,15 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_p
     sta = db.sta
     
     # Run Model
-    me_log, fixed, event, site, d_r_prediction = inv.mixed_effects(codehome,home,dbname,pga,mw,rrup,vs30,evnum,sta,vref,c,Mc,predictive_parameter='pga',ncoeff=5,data_correct='-0.6',a1='none',a2='none',a3='none',a4='none',a5='none',a6='none')
+    me_log, fixed, event, site, d_r_prediction = inv.mixed_effects(codehome,home,dbname,pred_param,mw,rrup,vs30,evnum,sta,vref,c,Mc,predictive_parameter=predictive_parameter,ncoeff=ncoeff,data_correct='-0.6',a1=a1,a2=a2,a3=a3,a4=a4,a5=a5,a6=a6)
     
     # Add these to an inversion object....set unused values to nan:
-    d = np.log(pga) - 0.6*np.log(vs30/vref)
-    
+    if data_correct==0:
+        d = np.log(pred_param)
+    elif data_correct!=0:
+        d = np.log(pred_param) - data_correct*np.log(vs30/vref)
+  
+    # Get ranges for inversion object (like ranges from traditional inversion)  
     if min(mw)>0:
         rngmin=0
     else:
@@ -268,10 +284,55 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_p
     sdist = float('NaN')
     smth = float('NaN')
 
-    # Now get the ones that were included:
-    model = fixed[:,0]
-    stderror = fixed[:,1]
-    tvalue = fixed[:,2]
+    # Now get the model values.
+    # For the model, include the values that were inverted for, but also what was provided - since this goes into a saved object.
+    
+    # First need to make lists of the variables that were prescribed or fixed, and the variables that were inverted for.
+    # Concatenate all variables into a list:
+    coeff_list = [a1,a2,a3,a4,a5,a6]
+    
+    # Set empty lists that will store the "indices" of the fixed or inverted values,
+    r_fixed=[]
+    r_invert=[]
+    #      and also the model, stderror, and tvalues
+    model = np.zeros(ncoeff)
+    stderror = np.zeros(ncoeff)
+    tvalue = np.zeros(ncoeff)
+    #      and an empty string for naming the model:
+    modelpath_list = ''
+    
+    
+    
+    # Also set the r model index counter to 0:
+    r_invert_counter=0
+    
+    # Loop over the coefficients in the list (a1 - a6), to get the values that are fixed, andvalues that are inverted:
+    for coeffi in range(len(coeff_list)):
+        # If this coeff was not provided, then it's inverted for:
+        if coeff_list[coeffi]=='none':
+            # So append the index of it to the r_invert list (probably unnecessary):
+            r_invert.append(coeffi)
+            # And get the inverted value from the model array - the index of this is the same as r_invert_counter,
+            #   as we're looping through this index separatelyk, only using it when we pull out an inverted value:
+            model[coeffi]=fixed[r_invert_counter,0]
+            stderror[coeffi]=fixed[r_invert_counter,1]
+            tvalue[coeffi]=fixed[r_invert_counter,2]
+            # Add to counter
+            r_invert_counter+=1
+        # If this coeff was provided, it's fixed:
+        elif coeff_list[coeffi]!='none':
+            # So pull out the index for the "fixed" array, and then get its actual value for the model:
+            r_fixed.append(coeffi)
+            model[coeffi] = coeff_list[coeffi]
+            # In addition, set stderror and tvalue to
+            stderror[coeffi] = float('NaN')
+            tvalue[coeffi] = float('NaN')
+            
+            # and also add a list of the names of fixed coefficients with their numbers:
+            coeff_num = coeffi + 1
+            coeff_name = 'a%i' % coeff_num
+            modelpath_list = modelpath_list + '_'+coeff_name+'_'+model[coeffi]
+    
 
 
     # Get L2norm and VR #
@@ -343,7 +404,7 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_p
     mixedresid = cdf.mixed_residuals(db,totalresid,total_mean,total_std,eventterm,eventmean,eventstd,weterm,wemean,westd,siteterm,sitemean,sitestd,pathterm,pathmean,pathstd)
     
     ## Save objects ##
-    basename = 'mixedregr_'+dbname+'_Mc_'+str(Mc)+'_VR_'+np.str(np.around(VR,decimals=1))
+    basename = 'mixedregr_' + predictive_parameter + '_' +dbname+'_Mc_'+str(Mc)+'_VR_'+np.str(np.around(VR,decimals=1))+modelpath_list
     
     ## Save inversion object:
     invpath = home + '/models/pckl/' + dbname + '/' + basename + '.pckl'
