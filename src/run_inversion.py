@@ -2,7 +2,7 @@
 #VJS 9/2016
 
 
-def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parameter='pga',data_correct=1):
+def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parameter='pga',data_correct=-0.6):
     '''
     Make the necessary matrices, invert, and save model output
     Input:
@@ -41,7 +41,8 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ff
     print 'ncoeff is %i, predictive parameter is %s, and data_correct is %i' % (ncoeff,predictive_parameter,data_correct)
     #####    
         
-        
+    print 'data correct is: %f' % data_correct
+    
     print 'smth is %i, vref is %i' % (smth,vref)
                 
     #Invert:
@@ -99,7 +100,7 @@ def setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ff
     
     
 ############
-def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,ask_dist,Mc,axlims,bmin,bmax,vref,predictive_parameter='pga',ncoeff=5,data_correct=1):
+def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,ask_dist,Mc,axlims,bmin,bmax,vref,predictive_parameter='pga',ncoeff=5,data_correct=-0.6):
     '''
     Plot the data with the model, and ASK 2014
     Input:
@@ -153,8 +154,7 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,ask_
         basename = 'regr_'+predictive_parameter+'_Mc'+str(Mc)+'_'+strname+'_VR_'+str(around(model.VR,decimals=1))
     #If it's from mixed effects, this is set to NaN:
     elif isnan(model.rank) == True:
-        basename = 'mixedregr_'+predictive_parameter+'_Mc'+str(Mc)+'_VR_'+str(around(model.VR,decimals=1))
-
+        basename = 'mixedregr_'+predictive_parameter + '_ncoeff' + str(ncoeff)+'_Mc'+str(Mc)+'_VR_'+str(around(model.VR,decimals=1))
 
     ############################################
     ###Compute model from inversion and ASK#####
@@ -257,13 +257,16 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_p
     sta = db.sta
     
     # Run Model
-    me_log, fixed, event, site, d_r_prediction = inv.mixed_effects(codehome,home,dbname,pred_param,mw,rrup,vs30,evnum,sta,vref,c,Mc,predictive_parameter=predictive_parameter,ncoeff=ncoeff,data_correct='-0.6',a1=a1,a2=a2,a3=a3,a4=a4,a5=a5,a6=a6)
+    me_log, fixed, event, site, d_r_prediction, d_observed, event_mean, event_std, site_mean, site_std = inv.mixed_effects(codehome,home,dbname,pred_param,mw,rrup,vs30,evnum,sta,vref,c,Mc,predictive_parameter=predictive_parameter,ncoeff=ncoeff,data_correct=data_correct,a1=a1,a2=a2,a3=a3,a4=a4,a5=a5,a6=a6)
     
-    # Add these to an inversion object....set unused values to nan:
-    if data_correct==0:
-        d = np.log(pred_param)
-    elif data_correct!=0:
-        d = np.log(pred_param) - data_correct*np.log(vs30/vref)
+    ## Add these to an inversion object....set unused values to nan:
+    #if data_correct==0:
+    #    d = np.log(pred_param)
+    #elif data_correct!=0:
+    #    d = np.log(pred_param) - data_correct*np.log(vs30/vref)
+    
+    ## Add the "observed" (corrected d) to the inversion object:
+    d = d_observed
   
     # Get ranges for inversion object (like ranges from traditional inversion)  
     if min(mw)>0:
@@ -301,24 +304,39 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_p
     #      and an empty string for naming the model:
     modelpath_list = ''
     
-    
+    print 'fixed'
+    print fixed
     
     # Also set the r model index counter to 0:
     r_invert_counter=0
     
     # Loop over the coefficients in the list (a1 - a6), to get the values that are fixed, andvalues that are inverted:
-    for coeffi in range(len(coeff_list)):
+    for coeffi in range(min(ncoeff,len(coeff_list))):
+        
         # If this coeff was not provided, then it's inverted for:
         if coeff_list[coeffi]=='none':
             # So append the index of it to the r_invert list (probably unnecessary):
             r_invert.append(coeffi)
+            
             # And get the inverted value from the model array - the index of this is the same as r_invert_counter,
             #   as we're looping through this index separatelyk, only using it when we pull out an inverted value:
-            model[coeffi]=fixed[r_invert_counter,0]
-            stderror[coeffi]=fixed[r_invert_counter,1]
-            tvalue[coeffi]=fixed[r_invert_counter,2]
+            
+            # If only the intercept was inverted for, fixed will be one dimensional (length of shape will be 1), so only one value of a model coeff (fixed[0]):                
+            if len(np.shape(fixed))==1:
+            	model[coeffi] = fixed[0]
+            	stderror[coeffi]=fixed[0]
+            	tvalue[coeffi]=fixed[0]
+            # Otherwise if more were inverted for, len(shape(fixed)) will have two values, so len 2:
+            elif len(np.shape(fixed))==2:
+                model[coeffi]=fixed[r_invert_counter,0]
+                stderror[coeffi]=fixed[r_invert_counter,1]
+                tvalue[coeffi]=fixed[r_invert_counter,2]
+
+                
             # Add to counter
             r_invert_counter+=1
+            
+            
         # If this coeff was provided, it's fixed:
         elif coeff_list[coeffi]!='none':
             # So pull out the index for the "fixed" array, and then get its actual value for the model:
@@ -331,8 +349,12 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_p
             # and also add a list of the names of fixed coefficients with their numbers:
             coeff_num = coeffi + 1
             coeff_name = 'a%i' % coeff_num
-            modelpath_list = modelpath_list + '_'+coeff_name+'_'+model[coeffi]
+            print coeff_num
+            print coeff_name
+            print modelpath_list
+            modelpath_list = modelpath_list + '_'+coeff_name+'_'+np.str(np.around(model[coeffi],decimals=2))
     
+            print 'coeffi %i was fixed' % coeffi
 
 
     # Get L2norm and VR #
@@ -370,29 +392,34 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_p
     # First get event and site terms:    
     # Event
     eventterm = event[:,0]
-    eventmean = np.mean(eventterm)
-    eventstd = np.std(eventterm)
+    event_stderr = event[:,1]
+
+    #eventmean = np.mean(eventterm)
+    #eventstd = np.std(eventterm)
     
     # Site/Station term:
     siteterm = site[:,0]
-    sitemean = np.mean(siteterm)
-    sitestd = np.std(siteterm)
+    site_stderr = site[:,1]
+    #sitemean = np.mean(siteterm)
+    #sitestd = np.std(siteterm)
     
     # Now get the total residual - it's the aleatory residual, from the observed
     # minus r prediction, plus the event and site terms from r:
-    totalresid = (d - d_r_prediction) + eventterm + siteterm
+    totalresid = (d - d_r_prediction)   # + eventterm + siteterm ..... # used to add this, but norm says this is a bad represenation.
     total_mean = np.mean(totalresid)
     total_std = np.std(totalresid)
     
     # Within Event:
-    weterm = totalresid - eventterm
+    #weterm = totalresid - eventterm
+    weterm = totalresid + siteterm   # Now that totalresid is just the path term, this is the same as the path + site
     wemean = np.mean(weterm)
     westd = np.std(weterm)
     
     
     
     # Path term plus aleatory per recording:
-    pathterm = totalresid - (eventterm + siteterm)   # Note this is the same as d - d_r_prediction!
+    #pathterm = totalresid - (eventterm + siteterm)   # Note this is the same as d - d_r_prediction!
+    pathterm = totalresid 
     pathmean = np.mean(pathterm)
     pathstd = np.std(pathterm)
     
@@ -401,10 +428,10 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_p
     tresid = cdf.total_residuals(mw,totalresid,total_mean,total_std)
     
     ## Make all residuals object:
-    mixedresid = cdf.mixed_residuals(db,totalresid,total_mean,total_std,eventterm,eventmean,eventstd,weterm,wemean,westd,siteterm,sitemean,sitestd,pathterm,pathmean,pathstd)
+    mixedresid = cdf.mixed_residuals(db,totalresid,total_mean,total_std,eventterm,event_stderr,event_mean,event_std,weterm,wemean,westd,siteterm,site_stderr,site_mean,site_std,pathterm,pathmean,pathstd)
     
     ## Save objects ##
-    basename = 'mixedregr_' + predictive_parameter + '_' +dbname+'_Mc_'+str(Mc)+'_VR_'+np.str(np.around(VR,decimals=1))+modelpath_list
+    basename = 'mixedregr_' + dbname + '_' + predictive_parameter + '_' + '_ncoeff' + str(ncoeff) + '_Mc_'+str(Mc)+'_VR_'+np.str(np.around(VR,decimals=1))+modelpath_list
     
     ## Save inversion object:
     invpath = home + '/models/pckl/' + dbname + '/' + basename + '.pckl'
@@ -413,6 +440,18 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_p
     invfile.close()
     
     print 'Saved inversion object to %s' % invpath
+    
+    
+    ## Pritn out the coefficients to a file:
+    basename = 'mixedcoeff_' + dbname + '_' + predictive_parameter + '_' + '_ncoeff' + str(ncoeff) + '_Mc_'+str(Mc)+'_VR_'+np.str(np.around(VR,decimals=1))+modelpath_list
+    coeffpath = home + '/models/pckl/' + dbname + '/' + basename + '.txt'
+    headerstring = 'coefficient \t std error \t tvalue '
+    outdata = np.c_[model,stderror,tvalue]
+    dataformat = '%8.4f\t%9.5f\t%9.5f'
+    np.savetxt(coeffpath,outdata,fmt=dataformat,header=headerstring)
+    
+    print 'Saved coefficients to text file %s' % coeffpath
+    
     
     ## Save Mixed residuals object:
     objpath = run_dir + basename + '_robj.pckl'

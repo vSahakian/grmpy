@@ -59,7 +59,7 @@ def init(home,run_name):
     return runall
         
         
-def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim,predictive_parameter='pga',ncoeff=5,data_correct=1):
+def get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim,predictive_parameter='pga',ncoeff=5,data_correct=-0.6):
     '''
     Get the total residuals for a database.
     Input:
@@ -300,7 +300,16 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,vref,ffdf_flag,resaxlim,p
         eventi=cdf.event(evnum_i,sta_i,stnum_i,ml_i,mw_i,pga_i,pgv_i,pga_pg_i,r_i,vs30_i,ffdf_i,md_ffdf_i,lat_i,lon_i,depth_i,stlat_i,stlon_i,stelv_i,source_i,receiver_i)
         
         #Get total residual to store:
-        total_residual=(np.log(pga_pg_i) - 0.6*np.log(vs30_i/vref))-d_predicted_i
+        if predictive_parameter=='pga':
+            pred_param = pga_pg_i
+        elif predictive_parameter=='pgv':
+            pred_param = pgv_i
+        
+        # Get the log of the predictive parameter, corrected (of data_correct = 0, this will just be log(pred_param):
+        pred_param_corrected = np.log(pred_param) - data_correct*np.log(vs30_i/vref)
+        
+        # and the residual:
+        total_residual= pred_param_corrected - d_predicted_i
         
         #Add total residual to object:
         eventi.add_total_resid(total_residual)
@@ -922,8 +931,8 @@ def write_stats(home,run_name,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std
     siteterms=around(array(robj.site_terms)[u_stations_ind],decimals=2)
     
     #Get standard deviation:
-    siteterm_mean=mean(siteterms)
-    siteterm_std=std(siteterms)
+    siteterm_mean=mean(array(robj.site_terms)[u_stations_ind])
+    siteterm_std=std(array(robj.site_terms)[u_stations_ind])
     
     #Write out stats to a file:
     sfile=open(statsfile,'w')
@@ -1108,12 +1117,13 @@ def makeEvents_mixed(home,run_name,mixedresidpath,Mc,vref,ffdf_flag,resaxlim):
         #Add total residual to object:
         eventi.add_total_resid(total_residual)
         
-        #Compute the event terms:
+        #get the event terms:
         E_residual_i=db.E_residual[unique_ind][0]
+        E_stderr_i = db.E_stderr[unique_ind][0]
         std_dev_i=db.E_std
         
         #Add the residual information to the event object:
-        eventi.add_E_resid(E_residual_i,std_dev_i)
+        eventi.add_E_resid(E_residual_i,std_dev_i,E_stderr=E_stderr_i)
         
         #Get the Within-Event Residuals:
         W_residuals_i=db.W_residual[unique_ind]
@@ -1134,6 +1144,8 @@ def makeEvents_mixed(home,run_name,mixedresidpath,Mc,vref,ffdf_flag,resaxlim):
         E_mw.append(evmw_i)
         E_residual.append(E_residual_i)
         
+        print 
+        
     #Turn those into arrays:
     E_evnum=np.array(E_evnum)
     E_mw=np.array(E_mw)
@@ -1152,12 +1164,6 @@ def makeEvents_mixed(home,run_name,mixedresidpath,Mc,vref,ffdf_flag,resaxlim):
     #close the file
     flist.close()
     
-    
-    print 'E_mw is'
-    print E_mw
-    
-    print 'E_residual is'
-    print E_residual
     
     ####Plotting####
     
@@ -1327,13 +1333,14 @@ def makeStations_mixed(home,run_name,resfile):
         E_residual=db.E_residual[station_res_ind][0]
         
         #site residual in station object should be one number, so append [0]:
-        site_term=db.site_terms[station_res_ind][0]        
+        site_term=db.site_terms[station_res_ind][0]  
+        site_stderr=db.site_stderr[station_res_ind][0]      
         
         #Put into a station object...
         station_i=cdf.station(station_name_i,station_num_i,vs30,evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,total_residual,E_residual,W_residual)
         
         #Get the site residual:
-        station_i.add_site_resid(site_term)
+        station_i.add_site_resid(site_term,site_stderr=site_stderr)
         
         #Append to the station list...
         station_list.append(station_i)
@@ -1450,10 +1457,12 @@ def write_stats_mixed(home,run_name,mixed_resid_path,mean_tot,std_dev_tot,E_mean
     #Get unique station names:
     stations,u_stations_ind=unique(robj.sta,return_index=True)
     siteterms=around(array(robj.site_terms)[u_stations_ind],decimals=2)
+    siteerr=around(array(robj.site_stderr)[u_stations_ind],decimals=2)
     
-    #Get standard deviation:
-    siteterm_mean=mean(siteterms)
-    siteterm_std=std(siteterms)
+    #
+    ##Get mean and standard deviation:    
+    siteterm_mean = robj.site_mean
+    siteterm_std = robj.site_std
     
     #Write out stats to a file:
     sfile=open(statsfile,'w')
@@ -1477,7 +1486,8 @@ def write_stats_mixed(home,run_name,mixed_resid_path,mean_tot,std_dev_tot,E_mean
     
     #Site terms:
     sfile.write('Site terms:\n')
+    sfile.write('\tSite \tTerm \tStderr \n') 
     for site_i in range(len(siteterms)):
-        sfile.write('\t'+stations[site_i]+':\t'+str(siteterms[site_i])+'\n')
+        sfile.write('\t'+stations[site_i]+':\t'+str(siteterms[site_i])+'\t'+str(siteerr[site_i])+'\n')
     
     sfile.close()

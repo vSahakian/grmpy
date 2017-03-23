@@ -20,16 +20,20 @@ elif what_home==1:
 
 
 home=HOME+'/anza/models/residuals/'
-run_name='v2anza2013_Mc8.5_pgrid_5sta_res4'
+run_name='v2anza2013_Mc8.5_pgrid_5sta_res4_pga_vs30_6coeff'
 dbpath=HOME+'/anza/data/databases/v2anza2013/v2anza2013_pgrid_5sta_res4.pckl'
-modelpath=HOME+'/anza/models/pckl/v2anza2013/regr_pga_Mc8.5_0.0_6.5_VR_99.3.pckl'
-rayfile_vp='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vp/rays.dat'
-rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
+modelpath=HOME+'/anza/models/pckl/v2anza2013_pga_vs30_6coeff/regr_pga_Mc8.5_0.0_6.5_VR_99.4.pckl'
+#rayfile_vp='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vp/rays.dat'
+#rayfile_vs='/media/vsahakian/katmai/anza/fm3d/abdb_5sta_topography/Vs/rays.dat'
 
 vref=760
 
 
 ########
+
+pred_param='pga'
+ncoeff=6
+vs30_correct=0
 
 ffdf_flag=0
 Mc=8.5
@@ -49,10 +53,10 @@ elif runall==1:
     print 'Continuing...'
     
     #Get total residuals and plots:
-    tr_mw,tot_resid,mean_tot,std_dev_tot=run_res.get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim)
+    tr_mw,tot_resid,mean_tot,std_dev_tot=run_res.get_total_res(home,run_name,dbpath,modelpath,Mc,ffdf_flag,resaxlim,predictive_parameter=pred_param,ncoeff=ncoeff,data_correct=vs30_correct)
     
     #Get event/within-event residuals:
-    E_evnum,E_mw,E_residual,E_mean,E_std_dev=run_res.getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,vref,ffdf_flag,resaxlim)
+    E_evnum,E_mw,E_residual,E_mean,E_std_dev=run_res.getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,vref,ffdf_flag,resaxlim,predictive_parameter=pred_param,ncoeff=ncoeff,data_correct=vs30_correct)
     
     #Make station objects:
     run_res.sta_list(home,run_name,dbpath)

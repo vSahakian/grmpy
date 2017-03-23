@@ -23,7 +23,7 @@ elif what_home==1:
 
 #Location to store figures:
 home=HOME+'/anza'
-invrun='v2anza2013_pga_vs30'
+invrun='v2anza2013_pga_noVs30_5coeff'
 fig_dir=home+'/models/figs/'+invrun+'/'
 obj_dir=home+'/models/pckl/'+invrun+'/'
 model_dir=home+'/models/pckl/'+invrun+'/'
@@ -47,7 +47,7 @@ dbname=invrun
 predictive_parameter='pga'
 
 # Correct the data by vs30?
-vs30_correct=0    # 0 = no correction, 1 = yes, vs30 correction
+vs30_correct=0    # 0 = no correction, !0 = yes, vs30 correction
 
 
 #Define the ranges for the inversion - at each range boundary (i.e., between
@@ -63,7 +63,7 @@ bmin=10
 bmax=120
 
 #Number of coefficients to solve for in functional form:
-ncoeff=6
+ncoeff=5
 
 #Axis limits for plotting:
 #axlims=[[0,6],[-8,-0.5]]
@@ -95,7 +95,7 @@ plotdist=np.array([0,10,20,40,80,160,220])
 ask_dist=10
 
 ## For plotting only:
-setmodel='/Users/vsahakian/anza/models/pckl/v2anza2013_pga_vs30/regr_pga_Mc8.5_0.0_6.5_VR_99.4.pckl'
+#setmodel='/Users/vsahakian/anza/models/pckl/v2anza2013_pga_vs30_%icoeff/regr_pga_Mc8.5_0.0_6.5_VR_99.4.pckl' % ncoeff
 #setmixedmodel='/Users/vsahakian/anza/models/pckl/v2anza2013/mixedregr_v2anza2013_Mc_8.5_VR_99.9.pckl'
 
 
@@ -115,12 +115,18 @@ for k in range(len(rng)):
 #########
 #
 #print 'Setting up inversion'
-#inv_dat=run_inv.setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parameter=predictive_parameter,data_correct=vs30_correct)
-#
-#
-## Plot the data and model now:
-#
-#
+inv_dat=run_inv.setup_run_inversion(home,dbpath,dbname,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parameter=predictive_parameter,data_correct=vs30_correct)
+
+print 'Variance reduction is %f' % inv_dat.VR
+
+#Get basename for model:
+basename='regr_' + predictive_parameter + '_Mc'+str(Mc)+'_'+strname+'_VR_'+str(np.around(inv_dat.VR,decimals=1))
+#basename='regr_'+strname+'_VR_'+np.str(np.around(inv_dat.VR,decimals=1))
+modelpath=model_dir+basename+'.pckl'
+
+# Plot the data and model now:
+fig1=run_inv.plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,plotdist,ask_dist,Mc,axlims,bmin,bmax,vref)
+
 ## If you just want to plot with a certain model:
 #modelpath=setmodel
 #fig1=run_inv.plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,plotdist,ask_dist,Mc,axlims,bmin,bmax,vref,predictive_parameter=predictive_parameter,ncoeff=ncoeff,data_correct=0)
@@ -133,8 +139,7 @@ for k in range(len(rng)):
 #
 print 'Running mixed effects'
 #Now try with mixed effects:
-run_name = 'mixedregr_pga_v2anza2013_Mc_8.5_res4'
-'mixedregr_pga_v2anza2013_pga_vs30_ncoeff5_Mc_8.5_res4'
+run_name = 'mixedregr_v2anza2013_pga_%icoeff_Mc_8.5_res4_noVs30' % ncoeff
 run_home=home+'/models/residuals/'
 resaxlim_r = [[0,180],[-5,5]]
 resaxlim_mw = [[0,4],[-5,5]]
@@ -160,6 +165,102 @@ elif runall==1:
     
     # Now run mixed effects approach #
     invdat,invpath,tresid,mixed_residuals,d_r_prediction,mixed_resid_path=run_inv.run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_parameter='pga',ncoeff=ncoeff,data_correct=vs30_correct,a1='none',a2='none',a3='none',a4='none',a5='none',a6='none')
+    
+    print 'Variance reduction is %f' % invdat.VR
+    
+    print 'Plotting mixed effects model with data'
+    # Plot data with model:
+    mixedinv = run_inv.plot_data_model(home,dbpath,dbname,invpath,coeff_file,mdep_ffdf,plotdist,ask_dist,Mc,axlims,bmin,bmax,vref,predictive_parameter=predictive_parameter,ncoeff=ncoeff,data_correct=vs30_correct)
+
+    ## If just plotting:
+    #invpath=setmixedmodel
+    #mixedinv = run_inv.plot_data_model(home,dbpath,dbname,invpath,coeff_file,mdep_ffdf,plotdist,ask_dist,Mc,axlims,bmin,bmax,vref)
+
+
+    # Get some mean values for the stats file:
+    mean_tot=np.mean(mixed_residuals.total_residual)
+    std_dev_tot=np.std(mixed_residuals.total_residual)
+    
+    # Get the event mean and stadndard deviation
+    E_mean=mixed_residuals.E_mean
+    E_std_dev=mixed_residuals.E_std
+
+    print 'plotting all residuals'
+    # Plot all residuals:
+    run_res.plot_total(tresid,home,run_name,resaxlim_mw)
+
+    print 'plotting event terms'
+    # Plot event terms:
+    eventfig1 = run_res.makeEvents_mixed(run_home,run_name,mixed_resid_path,Mc,vref,mdep_ffdf,resaxlim_mw)
+
+    # Get station objects:
+    station_list=run_res.makeStations_mixed(run_home,run_name,mixed_resid_path)
+
+    # Plot W residuals on one plot:
+    W_mean,W_std_dev = run_res.plot_Wresid(run_home,run_name,resaxlim_mw)
+
+    print 'plotting station terms'
+    # Plot by station:
+    run_res.plot_site_WE(run_home,run_name,resaxlim_mw)
+
+    print 'plotting path residuals'
+    # Plot path residuals:
+    f_mw,f_dist,pterm_mean,pterm_std=run_res.plotPath_mixed(run_home,run_name,mixed_resid_path,resaxlim_mw,resaxlim_r)
+    
+    print 'Writing mixed stats to a file'
+    # Writing stats to a file
+    run_res.write_stats_mixed(run_home,run_name,mixed_resid_path,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std)
+    
+    
+    
+    
+###################################################################################
+#################       MIXED EFFECTS with fixed coeffs         ###################
+###################################################################################
+#
+print 'Starting iterative mixed effects...'
+# Fix which coefficients?
+a2 = inv_dat.m[1]
+a3 = inv_dat.m[2]
+a4 = inv_dat.m[3]
+a5 = inv_dat.m[4]
+a6 = 'none'
+
+vs30_correct = 0
+
+fixedcoeff_list = 'a2_%.2f_a3_%.2f_a4_%.2f_a5_%.2f' % (a2,a3,a4,a5)
+
+print 'Running mixed effects'
+#Now try with mixed effects:
+run_name = 'mixedregr_v2anza2013_pga_%icoeff_%s_Mc_8.5_res4_noVs30' % (ncoeff,fixedcoeff_list)
+run_home=home+'/models/residuals/'
+resaxlim_r = [[0,180],[-5,5]]
+resaxlim_mw = [[0,4],[-5,5]]
+
+
+
+#Fictitious depth parameter:
+c=4.5
+
+#Initialize the residuals directories:
+inithome=HOME+'/anza/models/residuals/'
+
+runall=1
+
+#Initialize directories:
+runall=run_res.init(inithome,run_name)
+
+if runall==0:
+    print 'Not clobbering, exiting...'
+    
+elif runall==1:
+    print 'Continuing...'
+
+    # Now run mixed effects approach #
+    invdat,invpath,tresid,mixed_residuals,d_r_prediction,mixed_resid_path=run_inv.run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_parameter='pga',ncoeff=ncoeff,data_correct=vs30_correct,a1='none',a2=a2,a3=a3,a4=a4,a5=a5,a6=a6)
+    
+    
+    print 'Variance reduction is %f' % invdat.VR
     
     print 'Plotting mixed effects model with data'
     # Plot data with model:
@@ -202,41 +303,3 @@ elif runall==1:
     print 'Writing mixed stats to a file'
     # Writing stats to a file
     run_res.write_stats_mixed(run_home,run_name,mixed_resid_path,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std)
-    
-    
-    
-    
-###################################################################################
-#################       MIXED EFFECTS with fixed coeffs         ###################
-###################################################################################
-#
-print 'Running mixed effects'
-#Now try with mixed effects:
-run_name = 'mixedregr_pga_v2anza2013_Mc_8.5_res4'
-run_home=home+'/models/residuals/'
-resaxlim_r = [[0,180],[-5,5]]
-resaxlim_mw = [[0,4],[-5,5]]
-
-# Fix which coefficients?
-a2 = inv_dat.m[1]
-a3 = inv_dat.m[2]
-a4 = inv_dat.m[3]
-a5 = inv_dat.m[4]
-a6 = inv_dat.m[5]
-
-#Fictitious depth parameter:
-c=4.5
-
-#Initialize the residuals directories:
-inithome=HOME+'/anza/models/residuals/'
-
-runall=1
-
-#Initialize directories:
-runall=run_res.init(inithome,run_name)
-
-if runall==0:
-    print 'Not clobbering, exiting...'
-    
-elif runall==1:
-    print 'Continuing...'

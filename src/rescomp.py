@@ -33,12 +33,12 @@ def total_residual(db,d_predicted_ln,vref,predictive_parameter='pga',ncoeff=5,da
         print '\n Using data without any correction \n '
         print '\n d_observed_ln from predictive parameter is: \n'
         print d_observed_ln
-    elif data_correct!=0 & predictive_parameter=='pga':
+    elif ((data_correct!=0) & (predictive_parameter=='pga')):
         vs30correct=data_correct*log(db.vs30/vref)
         d_observed_ln=log(predparam_precorrection)-vs30correct
         print '\n Correcting PGA data by 0.6*ln(vs30/vref) \n'
     else:
-        print 'You provided PGV data with a vs30 correction...not sure what coefficient to use...exiting'
+        print 'You provided PGV data with a vs30 correction...not sure what coefficient to use...not correcting...'
     
     
     print 'ln dobserved is '
@@ -99,10 +99,10 @@ def event_residual(eventdb,d_predicted_ln,vref,predictive_parameter='pga',ncoeff
         print '\n Using data without any correction \n '
         print '\n d_observed_ln from predictive parameter is: \n'
         print d_observed_ln
-    elif data_correct!=0 & predictive_parameter=='pga':
+    elif ((data_correct!=0) & (predictive_parameter=='pga')):
         vs30correct=data_correct*log(eventdb.vs30/vref)
         d_observed_ln=log(predparam_precorrection)-vs30correct
-        print '\n Correcting PGA data by 0.6*ln(vs30/vref) \n'
+        #print '\n Correcting PGA data by 0.6*ln(vs30/vref) \n'
     else:
         print 'You provided PGV data with a vs30 correction...not sure what coefficient to use...exiting'
     
@@ -159,10 +159,10 @@ def within_event_residual(eventdb,d_predicted_ln,E_residual,vref,predictive_para
         print '\n Using data without any correction \n '
         print '\n d_observed_ln from predictive parameter is: \n'
         print d_observed_ln
-    elif data_correct!=0 & predictive_parameter=='pga':
+    elif ((data_correct!=0) & (predictive_parameter=='pga')):
         vs30correct=data_correct*log(eventdb.vs30/vref)
         d_observed_ln=log(predparam_precorrection)-vs30correct
-        print '\n Correcting PGA data by 0.6*ln(vs30/vref) \n'
+        #print '\n Correcting PGA data by -0.6*ln(vs30/vref) \n'
     else:
         print 'You provided PGV data with a vs30 correction...not sure what coefficient to use...exiting'
     

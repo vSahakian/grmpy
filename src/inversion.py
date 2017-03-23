@@ -187,7 +187,7 @@ def iinit_predparam(db,ncoeff,rng,sdist,Mc,smth,vref,mdep_ffdf,predictive_parame
         elif data_correct!=0:
             print 'Correcting data for vs30 term (ln(vs30/vref))'
             # Remove vs30 from the data before inverting:
-            d[r_beg:r_end]=np.log(ipredparam) + (data_correct*ivs30)
+            d[r_beg:r_end]=np.log(ipredparam) - (data_correct*ivs30)
         
         print '\n d is \n'
         print d
@@ -310,7 +310,7 @@ def invert(G,d):
     
         
         
-##################################
+##################################  
 ###Run Mixed Effects Model in R###
 ##################################
 
@@ -363,20 +363,26 @@ def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,
     lnR=np.log(R)
     vs30term=np.log(vs30/vref)
     
-    print '\n data correct is ' 
-    print data_correct
-    print '\n pred_param is \n'
-    print pred_param
-    print 'predictive_parameter is %s' % predictive_parameter
+    print '\n data correct is %f' % data_correct
+
+    print '\n predictive_parameter is %s' % predictive_parameter
+    
+    print '\n number of coefficients is %i' % ncoeff
     
     
-    # INput data - correct by vs30 or don't?  If data_correct is 0 and there is 
+    # INput data - correct by vs30 or don't?  If data_correct is 0 and there is no a6 specified, then do not correc the data at all, just take ln(data):
     if ((data_correct==0) & (a6=='none')):
         pred_param_corrected=np.log(pred_param)
+    # If a6 is provided, and it is the same as data_correct, then correct the data by the a6 term:
     elif ((a6!='none') & (a6==data_correct)):
         pred_param_corrected=np.log(pred_param) + a6*vs30term
+    # If a6 is provided and is not 'none', and data_correct is provided and is not equal to a6, we have a problem...
     elif ((a6!='none') & (a6!=data_correct)):
         print 'WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n  WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1 \n data_correction for vs30 is not the same as the a6 vs30 term provided...not correcting data by a6 at all \n'
+    
+    # If it's all the defaults...then data_correct is -0.6, and a6 is 'none', so correct the data by -0.6*vs30term:    
+    elif ((data_correct==-0.6) & (a6=='none')):
+        pred_param_corrected = np.log(pred_param) - data_correct*vs30term
     
     # Correct by other things?
     if a5!='none':
@@ -407,6 +413,9 @@ def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,
     dbdict['evnum'] = evnum
     dbdict['sta'] = sta
     
+    print '\n dbdict is '
+    print dbdict
+    
     # If there were no coefficients provided, shown below, then add those terms to the dict:
     if a2=='none':
         dbdict['m'] = mw
@@ -421,6 +430,7 @@ def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,
     if ((a6=='none') & (data_correct==0) & (ncoeff==5)):
         print 'Not correcting data by vs30, and not including a vs30 term'
     
+    print '\n in mixed inversion, number of coefficients provided is %i' % ncoeff
     
     
     # Depending on which coefficients are being provided to "fix" the data, correct pga differently:
@@ -484,12 +494,18 @@ def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,
     # evnum, bias (event term), std.error
     event_data = np.genfromtxt(r_event, delimiter=",",skip_header=1)
     
+    # Data means:
+    event_mean = np.mean(event_data[:,1])
+    event_std = np.std(event_data[:,1])
+    
+    site_mean = np.mean(site_data[:,0])
+    site_std = np.std(site_data[:,0])
     
     # Finally predictions from lmer - includes model, event, and site terms...
     pred_data = np.genfromtxt(r_pred, delimiter=",",skip_header=1)
     
     
-    ### Reincorporate site and event terms into the list of recordings ###
+    ### Reincorporate site and event terms into the list of recordings, so every recording has an event and site term associated with it ###
     
     # Initiate arrays with length of number of recordings for site and event terms and bias:
     event_terms = np.zeros((len(pred_param_corrected),2))
@@ -512,7 +528,10 @@ def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,
         site_terms[recording_i,:] = site_data[sterm_ind,:]
     
     
-    
+    # Set the observed and predicted data outputs
+    d_predicted = pred_data
+    d_observed = pred_param_corrected
     
     ### Print fixed effects out into something... ###
-    return me_log, fixed_data, event_terms, site_terms, pred_data
+    return me_log, fixed_data, event_terms, site_terms, d_predicted, d_observed, event_mean, event_std, site_mean, site_std
+

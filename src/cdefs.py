@@ -553,9 +553,10 @@ class event:
     def add_total_resid(self,total_residuals):
         self.total_residual=total_residuals
             
-    def add_E_resid(self,E_residual,E_std):
+    def add_E_resid(self,E_residual,E_std,E_stderr=float('NaN')):
         self.E_residual=E_residual
         self.E_std=E_std
+        self.E_stderr=E_stderr
         
     def add_W_resids(self,W_residuals,W_mean,W_std):
         self.W_residuals=W_residuals
@@ -599,8 +600,9 @@ class station:
         
         self.site_resid=site_resid
         
-    def add_site_resid(self,site_term):
+    def add_site_resid(self,site_term,site_stderr=float('NaN')):
         self.site_resid=site_term
+        self.site_stderr=site_stderr
 
     def plot_site_WE(self,sta_axis,colors,axis_lims,xlabel_toggle,ylabel_toggle):
         '''
@@ -1795,7 +1797,7 @@ class mixed_residuals:
     Save database info plus residuals into one object for analysis
     '''
     
-    def __init__(self,db,total_resid,tresidmean,tresidstd,evresid,evmean,evstd,weresid,wemean,westd,siteresid,sitemean,sitestd,pathresid,pathmean,pathstd):
+    def __init__(self,db,total_resid,tresidmean,tresidstd,evresid,ev_stderr,evmean,evstd,weresid,wemean,westd,siteresid,site_stderr,sitemean,sitestd,pathresid,pathmean,pathstd):
         '''
         Initialize database - pull necessary information and save to the object
         Input:
@@ -1804,12 +1806,14 @@ class mixed_residuals:
             tresidmean:         Mean of total residuals
             tresidstd:          Standard deviation of total residuals
             evresid:            Array of event terms
+            ev_stderr:          Array of standard error per event term
             evmean:             Mean of event terms
             evstd:              Standard deviation of event terms
             weresid:            Array of within-event terms
             wemean:             Mean of within-event terms
             westd:              Standard deviation of within-event terms
             siteresid:          Array of site terms
+            site_stderr:        Array of standard error per site term
             sitemean:           Mean of site terms
             sitestd:            Standard deviation of site terms
             pathresid:          Array of path terms
@@ -1846,12 +1850,14 @@ class mixed_residuals:
 
         self.total_residual=total_resid
         self.E_residual=evresid
+        self.E_stderr=ev_stderr
         self.E_mean=evmean
         self.E_std=evstd    
         self.W_residual=weresid
         self.W_mean=wemean
         self.W_std=westd
         self.site_terms = siteresid
+        self.site_stderr=site_stderr
         self.site_mean = sitemean
         self.site_std = sitestd
         self.path_terms = pathresid
