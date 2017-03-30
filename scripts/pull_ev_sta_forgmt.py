@@ -18,7 +18,8 @@ from numpy import c_,savetxt
 #What are the file locations to read/write?
 #dbpath='/media/vsahakian/katmai/anza/data/databases/db2013_test/db2013test_5sta.pckl'
 #dbpath='/media/vsahakian/katmai/anza/data/databases/anza2013/anza2013_5sta.pckl'
-dbpath='/Users/vsahakian/anza/data/databases/anza2013/anza2013_pgrid_5sta.pckl'
+#dbpath='/Users/vsahakian/anza/data/databases/anza2013/anza2013_pgrid_5sta.pckl'
+dbpath='/Users/vsahakian/anza/data/databases/v2anza2013/v2anza2013_pgrid_5sta_res4.pckl'
 
 
 
@@ -38,10 +39,15 @@ dbpath='/Users/vsahakian/anza/data/databases/anza2013/anza2013_pgrid_5sta.pckl'
 ##GMT stations:
 #stpath='/media/vsahakian/katmai/anza/data/databases/anza2013/anza2013_5sta_stations.ll'
 
+##GMT events:
+#evpath='/Users/vsahakian/anza/data/databases/anza2013/anza2013_pgrid_5sta_events.ll'
+##GMT stations:
+#stpath='/Users/vsahakian/anza/data/databases/anza2013/anza2013_pgrid_5sta_stations.ll'
+
 #GMT events:
-evpath='/Users/vsahakian/anza/data/databases/anza2013/anza2013_pgrid_5sta_events.ll'
+evpath='/Users/vsahakian/anza/data/databases/v2anza2013/v2anza2013_pgrid_5sta_res4_events.ll'
 #GMT stations:
-stpath='/Users/vsahakian/anza/data/databases/anza2013/anza2013_pgrid_5sta_stations.ll'
+stpath='/Users/vsahakian/anza/data/databases/v2anza2013/v2anza2013_pgrid_5sta_res4_stations.ll'
 
 
 ####

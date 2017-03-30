@@ -318,6 +318,7 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,vref,ffdf_flag,resaxlim,p
         evnum_i,evmw_i,E_residual_i,std_dev_i=rcomp.event_residual(eventi,d_predicted_i,vref,predictive_parameter=predictive_parameter,ncoeff=ncoeff,data_correct=data_correct)
         
         #Add the residual information to the event object:
+        # Adds this std dev to the stderror part of the E residual
         eventi.add_E_resid(E_residual_i,std_dev_i)
         
         #Get the Within-Event Residuals:
@@ -1123,7 +1124,7 @@ def makeEvents_mixed(home,run_name,mixedresidpath,Mc,vref,ffdf_flag,resaxlim):
         std_dev_i=db.E_std
         
         #Add the residual information to the event object:
-        eventi.add_E_resid(E_residual_i,std_dev_i,E_stderr=E_stderr_i)
+        eventi.add_E_resid(E_residual_i,E_stderr_i,E_std=std_dev_i)
         
         #Get the Within-Event Residuals:
         W_residuals_i=db.W_residual[unique_ind]
