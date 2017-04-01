@@ -59,7 +59,7 @@ elif runall==1:
     E_evnum,E_mw,E_residual,E_mean,E_std_dev=run_res.getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,vref,ffdf_flag,resaxlim,predictive_parameter=pred_param,ncoeff=ncoeff,data_correct=vs30_correct)
     
     #Make station objects:
-    run_res.sta_list(home,run_name,dbpath)
+    station_list=run_res.sta_list(home,run_name,dbpath)
     
     #Plot within-event residuals by station on one plot, and save to file:
     W_mean,W_std_dev=run_res.plot_Wresid(home,run_name,resaxlim)

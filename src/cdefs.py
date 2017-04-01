@@ -358,7 +358,7 @@ class db:
             y_annotate = nga_pred[mag_where]
             
             #Make annotation text:
-            text_annotate = 'ASK %.0fkm' % ask_distᰜ            
+            text_annotate = 'ASK %.0fkm' % ask_dist            
             
             # Plot it
             plt.text(x_annotate,y_annotate,text_annotate,rotation=rotation_angle-5,va='center',ha='center',fontsize=8,color='k')
@@ -367,7 +367,7 @@ class db:
             return f  
             
             
-        def plot_histogram(self,axlims,nbins,type_flag):
+    def plot_histogram(self,axlims,nbins,type_flag):
         '''
         Plot a histogram of distance or magnitude for this database
         Input:
@@ -377,6 +377,7 @@ class db:
         Output:           
             f1:             Plot with histogram
         '''
+        
         import matplotlib.pyplot as plt
         # Get quantity for histogram:        
         if type_flag==0:            
@@ -400,36 +401,36 @@ class db:
         
         return fhist
         
- class invinfo:
-     '''
-     Save paramters from an inversion.
-        G:        Left hand side matrix
-        d:        Data vector
-        m:        Resulting model vector
-        resid:    Residuals from inversion
-        rank:     rank from inversion
-        svals:    Singular values from inversion
-        rng:      Magnitude ranges used in inversion
-        sdist:    Distances used in smoothing for inversion
-        smth:     Smoothing value used in inversion 
-        stderror: Standard error if running mixed effects
-        tvalue:   T value if running mixed effects
-        '''
+class invinfo:
+    '''
+    Save paramters from an inversion.
+    G:        Left hand side matrix
+    d:        Data vector
+    m:        Resulting model vector
+    resid:    Residuals from inversion
+    rank:     rank from inversion
+    svals:    Singular values from inversion
+    rng:      Magnitude ranges used in inversion
+    sdist:    Distances used in smoothing for inversion
+    smth:     Smoothing value used in inversion 
+    stderror: Standard error if running mixed effects
+    tvalue:   T value if running mixed effects
+    '''
         
-        def __init__(self,G,d,m,resid,L2norm,VR,rank,svals,rng,sdist,smth,stderror,tvalue):
-            self.G=G
-            self.d=d
-            self.m=m
-            self.resid=resid
-            self.norm=L2norm
-            self.VR=VR
-            self.rank=rank
-            self.svals=svals
-            self.rng=rng
-            self.sdist=sdist
-            self.smth=smth
-            self.stderror=stderror
-            self.tvalue=tvalue
+    def __init__(self,G,d,m,resid,L2norm,VR,rank,svals,rng,sdist,smth,stderror,tvalue):
+        self.G=G
+        self.d=d
+        self.m=m
+        self.resid=resid
+        self.norm=L2norm
+        self.VR=VR
+        self.rank=rank
+        self.svals=svals
+        self.rng=rng
+        self.sdist=sdist
+        self.smth=smth
+        self.stderror=stderror
+        self.tvalue=tvalue
             
             
 class total_residuals:
@@ -601,14 +602,14 @@ class station:
         self.W_residual=W_residual
             
     def get_site_resid(self):
-        from numpy import mean
+        from numpy import mean,std
         
         W_residual=self.W_residual
         site_resid=mean(W_residual)
-        site_std=mean(W_residual)
+        site_stderr=std(W_residual)
         
         self.site_resid=site_resid
-        self.site_stderr=site_std
+        self.site_stderr=site_stderr
         
     def add_site_resid(self,site_term,site_stderr=float('NaN')):
         self.site_resid=site_term
@@ -677,7 +678,7 @@ class residuals:
                     evnum=None,elat=None,elon=None,edepth=None,sta=None,stnum=None,ml=None,mw=None,
                     pga=None,pgv=None,pga_pg=None,r=None,vs30=None,ffdf=None,md_ffdf=None,stlat=None,
                     stlon=None,stelv=None,source_i=None,receiver_i=None,total_residual=None,E_residual=None,
-                    E_mean=None,E_std=None,W_residual=None,W_mean=None,W_std=None,site_terms=None,site_mean=None,site_std=None,
+                    E_mean=None,E_std=None,W_residual=None,W_mean=None,W_std=None,site_terms=None,site_mean=None,site_stderr=None,site_std=None,
                     path_terms=None,path_mean=None,path_std=None):
                    
         '''
@@ -690,197 +691,216 @@ class residuals:
             residual:           Object holding all data and residuals for a database
             '''
             
-            import cPickle as pickle
-            import dread
-            from numpy import where,mean,std,array
-            
-            if init_style != 'basic':
-                ##
-                self.evnum=evnum
-                self.elat=elat
-                self.elon=elon
-                self.edepth=edepth
-                self.sta=sta
-                self.stnum=stnum
-                self.ml=ml
-                self.mw=mw
-                self.pga=pga
-                self.pgv=pgv
-                self.pga_pg=pga_pg
-                self.r=r
-                self.vs30=vs30
-                self.ffdf=ffdf
-                self.md_ffdf=md_ffdf
-                self.stlat=stlat
-                self.stlon=stlon
-                self.stelv=stelv
-                self.source_i=source_i
-                self.receiver_i=receiver_i
-                self.total_residual=total_residual
-                self.E_residual=E_residual
-                self.E_mean=E_mean
-                self.E_std=E_std    
-                self.W_residual=W_residual
-                self.W_mean=W_mean
-                self.W_std=W_std
-                self.site_terms=site_terms
-                self.site_mean=site_mean
-                self.site_std=site_std
-                self.path_terms=path_terms
-                self.path_mean=path_mean
-                self.path_std=path_std
-                
-                            
-            # Otherwise, if it's used in the basic sense of making it for the first time, then do as follows...
-            elif init_style == 'basic':
-                #Load in database object:
-                dname=open(dbpath,'r')
-                db=pickle.load(dname)
-                dname.close()
-            
-            #First, save the database info per recording:
-            self.evnum=db.evnum
-            self.elat=db.elat
-            self.elon=db.elon
-            self.edepth=db.edepth
-            self.sta=db.sta
-            self.stnum=db.stnum
-            self.ml=db.ml
-            self.mw=db.mw
-            self.pga=db.pga
-            self.pgv=db.pgv
-            self.pga_pg=db.pga_pg
-            self.r=db.r
-            self.vs30=db.vs30
-            self.ffdf=db.ffdf
-            self.md_ffdf=db.md_ffdf
-            self.stlat=db.stlat
-            self.stlon=db.stlon
-            self.stelv=db.stelv
-            self.source_i=db.source_i
-            self.receiver_i=db.receiver_i
-            
-            
-            ###
-            #Load in list of event objects:
-            eobjs=dread.read_obj_list(event_list_path)
-            
-            #Load in list of station objects:
-            sobjs=dread.read_obj_list(station_list_path)
-            
-            #Initialize the W residual, site term, and path term arrays: 
-            total_residual=[]
-            E_residual=[]
-            E_stderr=[]
-            W_residual=[]
-            W_mean=[]
-            W_std=[]
-            site_terms=[]
-            site_stderr=[]
-            path_terms=[]
-            
-            #Loop through recordings to extract residuals...
-            for record_i in range(len(self.evnum)):
-                #Get the recorded pga, event, and station info:
-                record_evnum_i=self.evnum[record_i]
-                record_stnum_i=self.stnum[record_i]
-                
-                #Find the event object and station object that corresponds to this 
-                #recording, and save the corresponding residuals...
-                for event_i in range(len(eobjs)):
-                    #Get the event object for this event_i index: 
-                    event=eobjs[event_i]
-                    
-                    #Get the information from this event: evnumber, station list,mw,
-                    #event residuals, etc.
-                    evnum_i=event.evnum[0]
-                    
-                    #If this event is the same as the recording in question, continue:
-                    if evnum_i==record_evnum_i:
-                        event_E_i=event.E_residual
-                        event_Estderr_i=event.E_stderr
-                        event_Wmean_i=event.W_mean
-                        event_Wstd_i=event.W_std
-                        
-                        #Save the values that correspond to this recording, which will
-                        #be stored in the residuals object:
-                        record_E_i=event_E_i
-                        record_Estderr_i=event_Estderr_i
-                        record_Wmean_i=event_Wmean_i
-                        record_Wstd_i=event_Wstd_i
-                        
-                        #Append to the event term and std lists for the object:
-                        
-                        E_residual.append(record_E_i)
-                        E_stderr.append(record_Estderr_i)
-                        W_mean.append(record_Wmean_i)
-                        W_std.append(record_Wstd_i)
-                        
-                        ########
-                        #Get the station information from this event: within-event 
-                        #residuals, site term, etc.:
-                        for station_i in range(len(sobjs)):
-                            #Get the station object for this station_i index:
-                            station=sobjs[station_i]
-                            
-                            #Get the site number for this station:
-                            station_stnum_i=station.stnum
-                            
-                            #Does this station correspond to the current recording?
-                            #If so, store the information:
-                            if station_stnum_i==record_stnum_i:
-                                #Which event recorded in this station corresponds to the 
-                                #current event?
-                                station_evnum_ind=where(station.evnum==evnum_i)[0]
-                                
-                                #Take this index, and save the info from it:
-                                record_total_residual_i=station.total_residual[station_evnum_ind][0]
-                                record_W_i=station.W_residual[station_evnum_ind][0][0]
-                                
-                                #Also get the site term:
-                                record_site_term_i=station.site_resid
-                                record_site_stderr_i=station.stderr
-                                
-                                #Get the path term - it's the remainder of the within-event
-                                #residual after removing the site term:
-                                record_path_term_i=record_W_i-record_site_term_i
-                                
-                                #Save these to the recording...
-                                total_residual.append(record_total_residual_i)
-                                W_residual.append(record_W_i)
-                                site_terms.append(record_site_term_i)
-                                site_stderr.append(record_site_stderr_i)
-                                path_terms.append(record_path_term_i)
-                                
-                                                            
-                            #If the station doesn't match the recording, then carry on...    
-                            else:
-                                continue
-                                
-                    #Close event loop, if this even tis not the same as the recording:
-                    else:
-                        continue        
-                        
-            total_residual = array(total_residual)
-            
-            #Save new 
-            self.total_residual=total_residual
+        import cPickle as pickle
+        import dread
+        from numpy import where,mean,std,array,unique
         
-            self.E_residual=E_residual
-            self.E_mean=mean(E_residual)
-            self.E_stderr=E_stderr   
+        if init_style != 'basic':
+            ##
+            self.evnum=evnum
+            self.elat=elat
+            self.elon=elon
+            self.edepth=edepth
+            self.sta=sta
+            self.stnum=stnum
+            self.ml=ml
+            self.mw=mw
+            self.pga=pga
+            self.pgv=pgv
+            self.pga_pg=pga_pg
+            self.r=r
+            self.vs30=vs30
+            self.ffdf=ffdf
+            self.md_ffdf=md_ffdf
+            self.stlat=stlat
+            self.stlon=stlon
+            self.stelv=stelv
+            self.source_i=source_i
+            self.receiver_i=receiver_i
             
+            self.total_residual=total_residual
+            self.E_residual=E_residual
+            self.E_mean=E_mean
+            self.E_std=E_std   
+                
             self.W_residual=W_residual
             self.W_mean=W_mean
             self.W_std=W_std
             
             self.site_terms=site_terms
-            self.site_mean=mean(site_terms)
-            self.site_std=std(site_terms)
+            self.site_stderr=site_stderr
+            self.site_mean=site_mean
+            self.site_std=site_std
             
             self.path_terms=path_terms
-            self.path_mean=mean(path_terms)
-            self.path_std=std(path_terms)
+            self.path_mean=path_mean
+            self.path_std=path_std
+            
+                        
+        # Otherwise, if it's used in the basic sense of making it for the first time, then do as follows...
+        elif init_style == 'basic':
+            #Load in database object:
+            dname=open(dbpath,'r')
+            db=pickle.load(dname)
+            dname.close()
+        
+        #First, save the database info per recording:
+        self.evnum=db.evnum
+        self.elat=db.elat
+        self.elon=db.elon
+        self.edepth=db.edepth
+        self.sta=db.sta
+        self.stnum=db.stnum
+        self.ml=db.ml
+        self.mw=db.mw
+        self.pga=db.pga
+        self.pgv=db.pgv
+        self.pga_pg=db.pga_pg
+        self.r=db.r
+        self.vs30=db.vs30
+        self.ffdf=db.ffdf
+        self.md_ffdf=db.md_ffdf
+        self.stlat=db.stlat
+        self.stlon=db.stlon
+        self.stelv=db.stelv
+        self.source_i=db.source_i
+        self.receiver_i=db.receiver_i
+        
+        
+        ###
+        #Load in list of event objects:
+        eobjs=dread.read_obj_list(event_list_path)
+        
+        #Load in list of station objects:
+        sobjs=dread.read_obj_list(station_list_path)
+        
+        #Initialize the W residual, site term, and path term arrays: 
+        total_residual=[]
+        E_residual=[]
+        E_stderr=[]
+        W_residual=[]
+        W_mean=[]
+        W_std=[]
+        site_terms=[]
+        site_stderr=[]
+        path_terms=[]
+        
+        #Loop through recordings to extract residuals...
+        for record_i in range(len(self.evnum)):
+            #Get the recorded pga, event, and station info:
+            record_evnum_i=self.evnum[record_i]
+            record_stnum_i=self.stnum[record_i]
+            
+            #Find the event object and station object that corresponds to this 
+            #recording, and save the corresponding residuals...
+            for event_i in range(len(eobjs)):
+                #Get the event object for this event_i index: 
+                event=eobjs[event_i]
+                
+                #Get the information from this event: evnumber, station list,mw,
+                #event residuals, etc.
+                evnum_i=event.evnum[0]
+                
+                #If this event is the same as the recording in question, continue:
+                if evnum_i==record_evnum_i:
+                    event_E_i=event.E_residual
+                    event_Estderr_i=event.E_stderr
+                    event_Wmean_i=event.W_mean
+                    event_Wstd_i=event.W_std
+                    
+                    #Save the values that correspond to this recording, which will
+                    #be stored in the residuals object:
+                    record_E_i=event_E_i
+                    record_Estderr_i=event_Estderr_i
+                    
+                    record_Wmean_i=event_Wmean_i
+                    record_Wstd_i=event_Wstd_i
+                    
+                    #Append to the event term and std lists for the object:
+                    
+                    E_residual.append(record_E_i)
+                    E_stderr.append(record_Estderr_i)
+                    W_mean.append(record_Wmean_i)
+                    W_std.append(record_Wstd_i)
+                    
+                    ########
+                    #Get the station information from this event: within-event 
+                    #residuals, site term, etc.:
+                    for station_i in range(len(sobjs)):
+                        #Get the station object for this station_i index:
+                        station=sobjs[station_i]
+                        
+                        #Get the site number for this station:
+                        station_stnum_i=station.stnum
+                        
+                        #Does this station correspond to the current recording?
+                        #If so, store the information:
+                        if station_stnum_i==record_stnum_i:
+                            #Which event recorded in this station corresponds to the 
+                            #current event?
+                            station_evnum_ind=where(station.evnum==evnum_i)[0]
+                            
+                            #Take this index, and save the info from it:
+                            record_total_residual_i=station.total_residual[station_evnum_ind][0]
+                            record_W_i=station.W_residual[station_evnum_ind][0][0]
+                            
+                            #Also get the site term:
+                            record_site_term_i=station.site_resid
+                            record_site_stderr_i=station.site_stderr
+                            
+                            #Get the path term - it's the remainder of the within-event
+                            #residual after removing the site term:
+                            record_path_term_i=record_W_i-record_site_term_i
+                            
+                            #Save these to the recording...
+                            total_residual.append(record_total_residual_i)
+                            
+                            W_residual.append(record_W_i)
+                            
+                            site_terms.append(record_site_term_i)
+                            site_stderr.append(record_site_stderr_i)
+                            
+                            path_terms.append(record_path_term_i)
+                            
+                                                        
+                        #If the station doesn't match the recording, then carry on...    
+                        else:
+                            continue
+                            
+                #Close event loop, if this even tis not the same as the recording:
+                else:
+                    continue        
+                    
+        total_residual = array(total_residual)
+        
+        #Save new 
+        self.total_residual=total_residual
+    
+        self.E_residual=E_residual
+        self.E_stderr=E_stderr   
+        
+        self.W_residual=W_residual
+        self.W_mean=W_mean
+        self.W_std=W_std
+        
+        self.site_terms=site_terms
+        self.site_stderr=site_stderr
+        
+        self.path_terms=path_terms
+        self.path_mean=mean(path_terms)
+        self.path_std=std(path_terms)
+        
+        # Get the mean and std for Event and patht erms - has to be for unique events/stations:
+        unique_ev,uev_ind = unique(self.evnum,return_index=True)
+        unique_sta,usta_ind = unique(self.sta,return_index=True)
+        
+        self.E_mean = mean(array(self.E_residual)[uev_ind])
+        self.E_std = std(array(self.E_residual)[uev_ind])
+        
+        self.site_mean = mean(array(self.site_terms)[usta_ind])
+        self.site_std = std(array(self.site_terms)[usta_ind])
+            
+            
             
         
 ##########
@@ -1847,8 +1867,6 @@ class mixed_residuals:
             residual:           Object holding all data and residuals for a database＜
         '''
         
-        import numpy as np
-        
                 
         #First, save the database info per recording:
         self.evnum=db.evnum
@@ -1873,17 +1891,21 @@ class mixed_residuals:
         self.receiver_i=db.receiver_i
         
         self.total_residual=total_resid
+        
         self.E_residual=evresid
         self.E_stderr=ev_stderr
         self.E_mean=evmean
-        self.E_std=evstd    
+        self.E_std=evstd   
+         
         self.W_residual=weresid
         self.W_mean=wemean
         self.W_std=westd
+        
         self.site_terms = siteresid
-        self.site_stderr=site_stderr
+        self.site_stderr = site_stderr
         self.site_mean = sitemean
         self.site_std = sitestd
+        
         self.path_terms = pathresid
         self.path_mean = pathmean
         self.path_std = pathstd

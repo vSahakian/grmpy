@@ -315,11 +315,11 @@ def getEW_makeEvents(home,run_name,dbpath,modelpath,Mc,vref,ffdf_flag,resaxlim,p
         eventi.add_total_resid(total_residual)
         
         #Compute the event terms:
-        evnum_i,evmw_i,E_residual_i,std_dev_i=rcomp.event_residual(eventi,d_predicted_i,vref,predictive_parameter=predictive_parameter,ncoeff=ncoeff,data_correct=data_correct)
+        evnum_i,evmw_i,E_residual_i,E_stderr_i=rcomp.event_residual(eventi,d_predicted_i,vref,predictive_parameter=predictive_parameter,ncoeff=ncoeff,data_correct=data_correct)
         
         #Add the residual information to the event object:
         # Adds this std dev to the stderror part of the E residual
-        eventi.add_E_resid(E_residual_i,std_dev_i)
+        eventi.add_E_resid(E_residual_i,E_stderr_i)
         
         #Get the Within-Event Residuals:
         evnum_i,evmw_i,sta_i,stnum_i,W_residuals_i,W_mean_i,W_std_dev_i=rcomp.within_event_residual(eventi,d_predicted_i,eventi.E_residual,vref,predictive_parameter=predictive_parameter,ncoeff=ncoeff,data_correct=data_correct)    
@@ -609,8 +609,7 @@ def sta_list(home,run_name,dbfile):
         
         #Append this site term and station info to the site_terms list:
         station_i_site_term=station_i.site_resid
-        
-        
+                
         site_terms.append(station_i_site_term)
         
         #Append to the station list...

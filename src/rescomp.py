@@ -112,10 +112,10 @@ def event_residual(eventdb,d_predicted_ln,vref,predictive_parameter='pga',ncoeff
     
     #Get the "event residual" (mean of all recordings):
     E_residual=mean(event_residuals)
-    E_std_dev=std(event_residuals)
+    E_stderr=std(event_residuals)
     
     #Return these values:
-    return evnum,evmw,E_residual, E_std_dev
+    return evnum,evmw,E_residual, E_stderr
     
 def within_event_residual(eventdb,d_predicted_ln,E_residual,vref,predictive_parameter='pga',ncoeff=5,data_correct=-0.6):
     '''

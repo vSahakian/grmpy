@@ -3,7 +3,7 @@
 #VJS 9/2016
 
 import cPickle as pickle
-from numpy import c_,savetxt
+from numpy import c_,savetxt,unique
 
 ##What are the file locations to read/write?
 #dbpath='/Users/vsahakian/anza/data/abdb_5sta.pckl'
@@ -48,7 +48,7 @@ dbpath='/Users/vsahakian/anza/data/databases/v2anza2013/v2anza2013_pgrid_5sta_re
 evpath='/Users/vsahakian/anza/data/databases/v2anza2013/v2anza2013_pgrid_5sta_res4_events.ll'
 #GMT stations:
 stpath='/Users/vsahakian/anza/data/databases/v2anza2013/v2anza2013_pgrid_5sta_res4_stations.ll'
-
+stpath_names='/Users/vsahakian/anza/data/databases/v2anza2013/v2anza2013_pgrid_5sta_res4_stations_names.ll'
 
 ####
 #Read in the database:
@@ -60,14 +60,29 @@ dbfile.close()
 event_output=c_[db.elon, db.elat]
 station_output=c_[db.stlon, db.stlat]
 
+# Also, save one for Luke with the station name:
+# unique indices...
+usta,usta_ind = unique(db.sta,return_index=True)
+station_names = db.sta[usta_ind]
 
 ###
 #Save output:
 
 #format...
 output_fmt='%9.5f\t%7.5f'
+output_name_fmt='%s\t%9.5f\t%7.5f'
 
 #save events
 savetxt(evpath,event_output,output_fmt)
 #and stations
 savetxt(stpath,station_output,output_fmt)
+
+#and stations with names:
+# Open file
+f = open(stpath_names,'w')
+for stationi in range(len(usta)):
+    writeline='%s5 \t %9.5f \t %7.5f \n' % (station_names[stationi],station_output[stationi][0],station_output[stationi][1])
+    f.write(writeline)
+f.close()
+    
+    
