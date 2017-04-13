@@ -373,13 +373,14 @@ def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,
     # INput data - correct by vs30 or don't?  If data_correct is 0 and there is no a6 specified, then do not correc the data at all, just take ln(data):
     if ((data_correct==0) & (a6=='none')):
         pred_param_corrected=np.log(pred_param)
+        print 'data correction is 0, not correcting data by vs30'
     # If a6 is provided, and it is the same as data_correct, then correct the data by the a6 term:
     elif ((a6!='none') & (a6==data_correct)):
-        pred_param_corrected=np.log(pred_param) + a6*vs30term
+        pred_param_corrected=np.log(pred_param) - a6*vs30term
+        print 'corrected data by vs30 term'
     # If a6 is provided and is not 'none', and data_correct is provided and is not equal to a6, we have a problem...
     elif ((a6!='none') & (a6!=data_correct)):
-        print 'WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n  WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1 \n data_correction for vs30 is not the same as the a6 vs30 term provided...not correcting data by a6 at all \n'
-    
+        print 'WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n  WARNING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1 \n data_correction for vs30 is not the same as the a6 vs30 term provided...not correcting data by a6 at all \n'    
     # If it's all the defaults...then data_correct is -0.6, and a6 is 'none', so correct the data by -0.6*vs30term:    
     elif ((data_correct==-0.6) & (a6=='none')):
         pred_param_corrected = np.log(pred_param) - data_correct*vs30term
@@ -413,9 +414,6 @@ def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,
     dbdict['evnum'] = evnum
     dbdict['sta'] = sta
     
-    print '\n dbdict is '
-    print dbdict
-    
     # If there were no coefficients provided, shown below, then add those terms to the dict:
     if a2=='none':
         dbdict['m'] = mw
@@ -441,6 +439,9 @@ def mixed_effects(codehome,workinghome,dbname,pred_param,mw,rrup,vs30,evnum,sta,
     
     # Make datafram ewith Pandas
     data = pd.DataFrame(dbdict)
+    
+    print '\n dbdict is '
+    print dbdict
     
     # Output data to csv:
     csvfile=workinghome+'/models/pckl/'+dbname+'/r/'+dbname+'_mixed.csv'

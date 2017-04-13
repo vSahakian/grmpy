@@ -81,7 +81,7 @@ savetxt(stpath,station_output,output_fmt)
 # Open file
 f = open(stpath_names,'w')
 for stationi in range(len(usta)):
-    writeline='%s5 \t %9.5f \t %7.5f \n' % (station_names[stationi],station_output[stationi][0],station_output[stationi][1])
+    writeline='%5s \t %9.5f \t %7.5f \n' % (station_names[stationi],station_output[stationi][0],station_output[stationi][1])
     f.write(writeline)
 f.close()
     
