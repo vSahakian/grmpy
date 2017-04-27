@@ -12,7 +12,7 @@ class db:
     This class describes a set of events
     '''
     
-    def __init__(self,event,sta,N,ml,mw,DA,DV,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,):
+    def __init__(self,event,sta,N,ml,mw,DA,DV,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,vs30_method=None):
         '''
         Initiate the class by giving database information.
         Input:
@@ -33,6 +33,7 @@ class db:
             stelv:          Array with statin elevation (km), positive
             source_i:       Array with source index for raytracing
             receiver_i:     Array with receiver index for raytracing
+            vs30_method:    Array with string values of the Vs30 measurement method, useful if using several types
         '''
         import numpy as np
         
@@ -85,6 +86,12 @@ class db:
         self.stelv=stelv
         self.source_i=source_i
         self.receiver_i=receiver_i
+        
+        if vs30_method!=None:
+            self.vs30_method=vs30_method
+        elif vs30_method==None:
+            self.vs30_method=None
+            
         
     def plot_allpga(self):
         '''
@@ -534,7 +541,7 @@ class event:
     Save all data for one event, to use in residual computation
     '''
     
-    def __init__(self,evnum,sta,stnum,ml,mw,pga,pgv,pga_pg,r,vs30,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i):
+    def __init__(self,evnum,sta,stnum,ml,mw,pga,pgv,pga_pg,r,vs30,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,vs30_method=None):
         self.evnum=evnum
         self.sta=sta
         self.stnum=stnum
@@ -555,6 +562,11 @@ class event:
         self.stelv=stelv
         self.source_i=source_i
         self.receiver_i=receiver_i
+        
+        if vs30_method==None:
+            self.vs30_method=None
+        elif vs30_method!=None:
+            self.vs30_method=vs30_method
         
     def add_total_resid(self,total_residuals):
         self.total_residual=total_residuals
@@ -577,7 +589,7 @@ class station:
     Save all data for one station
     '''
     
-    def __init__(self,sta,stnum,vs30,evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,total_residual,E_residual,W_residual):
+    def __init__(self,sta,stnum,vs30,evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,total_residual,E_residual,W_residual,vs30_method=None):
         self.sta=sta
         self.stnum=stnum
         self.vs30=vs30
@@ -600,6 +612,11 @@ class station:
         self.total_residual=total_residual
         self.E_residual=E_residual
         self.W_residual=W_residual
+        
+        if vs30_method==None:
+            self.vs30_method=None
+        elif vs30_method!=None:
+            self.vs30_method=vs30_method
             
     def get_site_resid(self):
         from numpy import mean,std
@@ -677,7 +694,7 @@ class residuals:
     def __init__(self,dbpath,event_list_path,station_list_path,init_style='basic',
                     evnum=None,elat=None,elon=None,edepth=None,sta=None,stnum=None,ml=None,mw=None,
                     pga=None,pgv=None,pga_pg=None,r=None,vs30=None,ffdf=None,md_ffdf=None,stlat=None,
-                    stlon=None,stelv=None,source_i=None,receiver_i=None,total_residual=None,E_residual=None,
+                    stlon=None,stelv=None,source_i=None,receiver_i=None,vs30_method=None,total_residual=None,E_residual=None,
                     E_mean=None,E_std=None,W_residual=None,W_mean=None,W_std=None,site_terms=None,site_mean=None,site_stderr=None,site_std=None,
                     path_terms=None,path_mean=None,path_std=None):
                    
@@ -710,6 +727,7 @@ class residuals:
             self.pga_pg=pga_pg
             self.r=r
             self.vs30=vs30
+            self.vs30_method=vs30_method
             self.ffdf=ffdf
             self.md_ffdf=md_ffdf
             self.stlat=stlat
@@ -744,161 +762,162 @@ class residuals:
             db=pickle.load(dname)
             dname.close()
         
-        #First, save the database info per recording:
-        self.evnum=db.evnum
-        self.elat=db.elat
-        self.elon=db.elon
-        self.edepth=db.edepth
-        self.sta=db.sta
-        self.stnum=db.stnum
-        self.ml=db.ml
-        self.mw=db.mw
-        self.pga=db.pga
-        self.pgv=db.pgv
-        self.pga_pg=db.pga_pg
-        self.r=db.r
-        self.vs30=db.vs30
-        self.ffdf=db.ffdf
-        self.md_ffdf=db.md_ffdf
-        self.stlat=db.stlat
-        self.stlon=db.stlon
-        self.stelv=db.stelv
-        self.source_i=db.source_i
-        self.receiver_i=db.receiver_i
-        
-        
-        ###
-        #Load in list of event objects:
-        eobjs=dread.read_obj_list(event_list_path)
-        
-        #Load in list of station objects:
-        sobjs=dread.read_obj_list(station_list_path)
-        
-        #Initialize the W residual, site term, and path term arrays: 
-        total_residual=[]
-        E_residual=[]
-        E_stderr=[]
-        W_residual=[]
-        W_mean=[]
-        W_std=[]
-        site_terms=[]
-        site_stderr=[]
-        path_terms=[]
-        
-        #Loop through recordings to extract residuals...
-        for record_i in range(len(self.evnum)):
-            #Get the recorded pga, event, and station info:
-            record_evnum_i=self.evnum[record_i]
-            record_stnum_i=self.stnum[record_i]
+            #First, save the database info per recording:
+            self.evnum=db.evnum
+            self.elat=db.elat
+            self.elon=db.elon
+            self.edepth=db.edepth
+            self.sta=db.sta
+            self.stnum=db.stnum
+            self.ml=db.ml
+            self.mw=db.mw
+            self.pga=db.pga
+            self.pgv=db.pgv
+            self.pga_pg=db.pga_pg
+            self.r=db.r
+            self.vs30=db.vs30
+            self.vs30_method=db.vs30_method
+            self.ffdf=db.ffdf
+            self.md_ffdf=db.md_ffdf
+            self.stlat=db.stlat
+            self.stlon=db.stlon
+            self.stelv=db.stelv
+            self.source_i=db.source_i
+            self.receiver_i=db.receiver_i
             
-            #Find the event object and station object that corresponds to this 
-            #recording, and save the corresponding residuals...
-            for event_i in range(len(eobjs)):
-                #Get the event object for this event_i index: 
-                event=eobjs[event_i]
+            
+            ###
+            #Load in list of event objects:
+            eobjs=dread.read_obj_list(event_list_path)
+            
+            #Load in list of station objects:
+            sobjs=dread.read_obj_list(station_list_path)
+            
+            #Initialize the W residual, site term, and path term arrays: 
+            total_residual=[]
+            E_residual=[]
+            E_stderr=[]
+            W_residual=[]
+            W_mean=[]
+            W_std=[]
+            site_terms=[]
+            site_stderr=[]
+            path_terms=[]
+            
+            #Loop through recordings to extract residuals...
+            for record_i in range(len(self.evnum)):
+                #Get the recorded pga, event, and station info:
+                record_evnum_i=self.evnum[record_i]
+                record_stnum_i=self.stnum[record_i]
                 
-                #Get the information from this event: evnumber, station list,mw,
-                #event residuals, etc.
-                evnum_i=event.evnum[0]
-                
-                #If this event is the same as the recording in question, continue:
-                if evnum_i==record_evnum_i:
-                    event_E_i=event.E_residual
-                    event_Estderr_i=event.E_stderr
-                    event_Wmean_i=event.W_mean
-                    event_Wstd_i=event.W_std
+                #Find the event object and station object that corresponds to this 
+                #recording, and save the corresponding residuals...
+                for event_i in range(len(eobjs)):
+                    #Get the event object for this event_i index: 
+                    event=eobjs[event_i]
                     
-                    #Save the values that correspond to this recording, which will
-                    #be stored in the residuals object:
-                    record_E_i=event_E_i
-                    record_Estderr_i=event_Estderr_i
+                    #Get the information from this event: evnumber, station list,mw,
+                    #event residuals, etc.
+                    evnum_i=event.evnum[0]
                     
-                    record_Wmean_i=event_Wmean_i
-                    record_Wstd_i=event_Wstd_i
-                    
-                    #Append to the event term and std lists for the object:
-                    
-                    E_residual.append(record_E_i)
-                    E_stderr.append(record_Estderr_i)
-                    W_mean.append(record_Wmean_i)
-                    W_std.append(record_Wstd_i)
-                    
-                    ########
-                    #Get the station information from this event: within-event 
-                    #residuals, site term, etc.:
-                    for station_i in range(len(sobjs)):
-                        #Get the station object for this station_i index:
-                        station=sobjs[station_i]
+                    #If this event is the same as the recording in question, continue:
+                    if evnum_i==record_evnum_i:
+                        event_E_i=event.E_residual
+                        event_Estderr_i=event.E_stderr
+                        event_Wmean_i=event.W_mean
+                        event_Wstd_i=event.W_std
                         
-                        #Get the site number for this station:
-                        station_stnum_i=station.stnum
+                        #Save the values that correspond to this recording, which will
+                        #be stored in the residuals object:
+                        record_E_i=event_E_i
+                        record_Estderr_i=event_Estderr_i
                         
-                        #Does this station correspond to the current recording?
-                        #If so, store the information:
-                        if station_stnum_i==record_stnum_i:
-                            #Which event recorded in this station corresponds to the 
-                            #current event?
-                            station_evnum_ind=where(station.evnum==evnum_i)[0]
+                        record_Wmean_i=event_Wmean_i
+                        record_Wstd_i=event_Wstd_i
+                        
+                        #Append to the event term and std lists for the object:
+                        
+                        E_residual.append(record_E_i)
+                        E_stderr.append(record_Estderr_i)
+                        W_mean.append(record_Wmean_i)
+                        W_std.append(record_Wstd_i)
+                        
+                        ########
+                        #Get the station information from this event: within-event 
+                        #residuals, site term, etc.:
+                        for station_i in range(len(sobjs)):
+                            #Get the station object for this station_i index:
+                            station=sobjs[station_i]
                             
-                            #Take this index, and save the info from it:
-                            record_total_residual_i=station.total_residual[station_evnum_ind][0]
-                            record_W_i=station.W_residual[station_evnum_ind][0][0]
+                            #Get the site number for this station:
+                            station_stnum_i=station.stnum
                             
-                            #Also get the site term:
-                            record_site_term_i=station.site_resid
-                            record_site_stderr_i=station.site_stderr
-                            
-                            #Get the path term - it's the remainder of the within-event
-                            #residual after removing the site term:
-                            record_path_term_i=record_W_i-record_site_term_i
-                            
-                            #Save these to the recording...
-                            total_residual.append(record_total_residual_i)
-                            
-                            W_residual.append(record_W_i)
-                            
-                            site_terms.append(record_site_term_i)
-                            site_stderr.append(record_site_stderr_i)
-                            
-                            path_terms.append(record_path_term_i)
-                            
-                                                        
-                        #If the station doesn't match the recording, then carry on...    
-                        else:
-                            continue
-                            
-                #Close event loop, if this even tis not the same as the recording:
-                else:
-                    continue        
-                    
-        total_residual = array(total_residual)
+                            #Does this station correspond to the current recording?
+                            #If so, store the information:
+                            if station_stnum_i==record_stnum_i:
+                                #Which event recorded in this station corresponds to the 
+                                #current event?
+                                station_evnum_ind=where(station.evnum==evnum_i)[0]
+                                
+                                #Take this index, and save the info from it:
+                                record_total_residual_i=station.total_residual[station_evnum_ind][0]
+                                record_W_i=station.W_residual[station_evnum_ind][0][0]
+                                
+                                #Also get the site term:
+                                record_site_term_i=station.site_resid
+                                record_site_stderr_i=station.site_stderr
+                                
+                                #Get the path term - it's the remainder of the within-event
+                                #residual after removing the site term:
+                                record_path_term_i=record_W_i-record_site_term_i
+                                
+                                #Save these to the recording...
+                                total_residual.append(record_total_residual_i)
+                                
+                                W_residual.append(record_W_i)
+                                
+                                site_terms.append(record_site_term_i)
+                                site_stderr.append(record_site_stderr_i)
+                                
+                                path_terms.append(record_path_term_i)
+                                
+                                                            
+                            #If the station doesn't match the recording, then carry on...    
+                            else:
+                                continue
+                                
+                    #Close event loop, if this even tis not the same as the recording:
+                    else:
+                        continue        
+                        
+            total_residual = array(total_residual)
+            
+            #Save new 
+            self.total_residual=total_residual
         
-        #Save new 
-        self.total_residual=total_residual
-    
-        self.E_residual=E_residual
-        self.E_stderr=E_stderr   
-        
-        self.W_residual=W_residual
-        self.W_mean=W_mean
-        self.W_std=W_std
-        
-        self.site_terms=site_terms
-        self.site_stderr=site_stderr
-        
-        self.path_terms=path_terms
-        self.path_mean=mean(path_terms)
-        self.path_std=std(path_terms)
-        
-        # Get the mean and std for Event and patht erms - has to be for unique events/stations:
-        unique_ev,uev_ind = unique(self.evnum,return_index=True)
-        unique_sta,usta_ind = unique(self.sta,return_index=True)
-        
-        self.E_mean = mean(array(self.E_residual)[uev_ind])
-        self.E_std = std(array(self.E_residual)[uev_ind])
-        
-        self.site_mean = mean(array(self.site_terms)[usta_ind])
-        self.site_std = std(array(self.site_terms)[usta_ind])
+            self.E_residual=E_residual
+            self.E_stderr=E_stderr   
+            
+            self.W_residual=W_residual
+            self.W_mean=W_mean
+            self.W_std=W_std
+            
+            self.site_terms=site_terms
+            self.site_stderr=site_stderr
+            
+            self.path_terms=path_terms
+            self.path_mean=mean(path_terms)
+            self.path_std=std(path_terms)
+            
+            # Get the mean and std for Event and patht erms - has to be for unique events/stations:
+            unique_ev,uev_ind = unique(self.evnum,return_index=True)
+            unique_sta,usta_ind = unique(self.sta,return_index=True)
+            
+            self.E_mean = mean(array(self.E_residual)[uev_ind])
+            self.E_std = std(array(self.E_residual)[uev_ind])
+            
+            self.site_mean = mean(array(self.site_terms)[usta_ind])
+            self.site_std = std(array(self.site_terms)[usta_ind])
             
             
             
@@ -1889,6 +1908,11 @@ class mixed_residuals:
         self.stelv=db.stelv
         self.source_i=db.source_i
         self.receiver_i=db.receiver_i
+        
+        if db.vs30_method!=None:
+            self.vs30_method=db.vs30_method
+        else:
+            self.vs30_method=None
         
         self.total_residual=total_resid
         

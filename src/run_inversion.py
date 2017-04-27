@@ -238,6 +238,8 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_p
     db=pickle.load(dbfile)
     dbfile.close()
     
+    print dbpath
+    
     # Get path names for output files:
     run_dir=path.expanduser(home+'/models/residuals/'+run_name+'/')
     

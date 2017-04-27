@@ -313,6 +313,11 @@ def db_station_sample(dbpath_in,numstas,dbpath_out):
     stnum=db_orig.stnum[keep_event_ind]
     vs30=db_orig.vs30[keep_event_ind]
     
+    if db_orig.vs30_method!=None:
+        vs30_method=db_orig.vs30_method[keep_event_ind]
+    else:
+        vs30_method=None
+    
     ###Change the source and receiver indices for raytracing...
     #Get the unique station and event indices:
     unique_events=unique(evnum)
@@ -358,7 +363,7 @@ def db_station_sample(dbpath_in,numstas,dbpath_out):
     #DV=pga/1e-9
     
     #Make sampled database:
-    db_samp=cdf.db(evnum,sta,stnum,ml,mw,pga,pgv,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i)
+    db_samp=cdf.db(evnum,sta,stnum,ml,mw,pga,pgv,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,vs30_method=vs30_method)
     
     #Save to file...
     doutfile=open(dbpath_out,'w')
@@ -416,6 +421,11 @@ def recording_sample(dbpath_in,recording_indices,dbpath_out):
     stnum=db_orig.stnum[recording_indices]
     vs30=db_orig.vs30[recording_indices]
     
+    if db_orig.vs30_method!=None:
+        vs30_method=db_orig.vs30_method[recording_indices]
+    else:
+        vs30_method=None
+    
     ###Change the source and receiver indices for raytracing...
     #Get the unique station and event indices:
     unique_events=unique(evnum)
@@ -461,7 +471,7 @@ def recording_sample(dbpath_in,recording_indices,dbpath_out):
     #DV=pga/1e-9
     
     #Make sampled database:
-    db_samp=cdf.db(evnum,sta,stnum,ml,mw,pga,pgv,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i)
+    db_samp=cdf.db(evnum,sta,stnum,ml,mw,pga,pgv,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,vs30_method=vs30_method)
     
     #Save to file...
     doutfile=open(dbpath_out,'w')
@@ -525,6 +535,7 @@ def db_propgrid_sample(dbpath_in,propgrid,dbpath_out):
     
     for record_i in range(len(dbin.evnum)):
         if (gridpath.contains_point([dbin.elon[record_i],dbin.elat[record_i]])) & (gridpath.contains_point([dbin.stlon[record_i],dbin.stlat[record_i]])):
+           
             keep_event_ind = r_[keep_event_ind,record_i]
             
     evnum=dbin.evnum[keep_event_ind]
@@ -545,6 +556,13 @@ def db_propgrid_sample(dbpath_in,propgrid,dbpath_out):
     stlat=dbin.stlat[keep_event_ind]
     stlon=dbin.stlon[keep_event_ind]
     stelv=dbin.stelv[keep_event_ind]
+    
+    if dbin.vs30_method!=None:
+        vs30_method=dbin.vs30_method[keep_event_ind]
+    else:
+        vs30_method=None
+    
+    
     
     
     print 'Data reduced to %s unique events, and %s unique stations' % (str(len(unique(evnum))),str(len(unique(sta))))
@@ -593,7 +611,7 @@ def db_propgrid_sample(dbpath_in,propgrid,dbpath_out):
     
     
     ## Now make new sampled database:
-    dbsamp = cdf.db(evnum,sta,stnum,ml,mw,pga,pgv,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i)
+    dbsamp = cdf.db(evnum,sta,stnum,ml,mw,pga,pgv,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,vs30_method=vs30_method)
     
     #Save to file...
     doutfile=open(dbpath_out,'w')
@@ -1045,3 +1063,210 @@ def interp_vs30(stlat,stlon,vs30ascii):
             
     #Return:
     return vs30
+
+
+########
+# Compare Proxy Vs30 ID from Alan Yong's R script to the value from his 2016 paper
+def vs30proxy_id2vs30(vs30_idfile,vs30_conversionfile,vs30_outfile):
+    '''
+    Input:
+        vs30_idfile:                Path to the vs30 ID file from Yong's R script (sta, lon, lat, vs30 id)
+        vs30_conversionfile:        Path to the vs30 conversion code file
+        vs30_outfile:               Path to the outputfile for vs30
+    Output: 
+        vs30_outfile:               File with station name, longitude, latitude, proxy-based Vs30
+    '''
+    
+    import numpy as np
+    from string import replace
+        
+    # First read in the idfile:
+    id_sta = np.genfromtxt(vs30_idfile,skip_header=1,usecols=1,dtype='S')
+    id_data = np.genfromtxt(vs30_idfile,skip_header=1,usecols=range(2,5))
+    
+    # Get rid of the " in id_
+    for k in range(len(id_sta)):
+        tmpstring = replace(id_sta[k],'"','')
+        id_sta[k]=tmpstring
+    
+    # Also read in the conversion code file:
+    conversion_code = np.genfromtxt(vs30_conversionfile,skip_header=1)
+    
+    # Start a new vector, vs30 proxy, to save with id_sta and id_data:
+    out_proxyVs30 = np.zeros(len(id_sta))
+    
+    # for every id in id_data, find the vs30 that corresponds to it:
+    for sitei in range(len(id_sta)):
+        # What is the ID to search for?
+        id_i = id_data[sitei,2]
+        conversion_ind = np.where(conversion_code[:,0]==id_i)[0][0]
+        
+        # Get the Vs30 that corresponds to that index:
+        out_proxyVs30[sitei] = conversion_code[conversion_ind,1]
+    
+    # Now save the data to a file, write line by line:
+    out_header = 'Sta \t Lon \t Lat \t Vs30 \n'
+    
+    outfile = open(vs30_outfile,'w')
+    
+    outfile.write(out_header)
+    
+    for linei in range(len(id_sta)):
+        line_out = '%s\t%12.8f\t%10.8f\t%5.1f\n' % (id_sta[linei],id_data[linei,0],id_data[linei,1],out_proxyVs30[linei])
+        outfile.write(line_out)
+        
+    outfile.close()
+    
+    
+##############
+def get_measured_vs30(vs30_idfile,measured_vs30file,output_measuredVs30file):
+    '''
+    Input:
+        vs30_idfile:                Path to the idfile with at least the first three columns: sta, lon, lat - AND NO HEADER!!
+        measured_vs30file:          Path to the CSV file from https://earthquake.usgs.gov/data/vs30/us/
+        output_measuredVs30file:    Path to the output file with measured Vs30 values
+    Output:
+        output_measuredVs30file:    File with the columns: Sta, lon, lat, 
+    '''
+    
+    import numpy as np
+    from string import replace
+
+    
+    # Get the first column as a string, this has who measured it:
+    surveyor_site = np.genfromtxt(measured_vs30file,skip_header=1,usecols=0,dtype='S',delimiter=',')
+    
+    surveyor = []
+    site = []
+    
+    for elementi in range(len(surveyor_site)):
+        surveyor.append(surveyor_site[elementi].split('.')[0])
+        site.append(surveyor_site[elementi].split('.')[1])
+    
+    
+    # Also get the method used:
+    vs30_method = np.genfromtxt(measured_vs30file,skip_header=1,usecols=6,dtype='S',delimiter=',')
+    # And the Vs30:
+    vs30_measured = np.genfromtxt(measured_vs30file,skip_header=1,usecols=7,delimiter=',')
+    
+    
+    # Get the station names/lon lat to use for printing:
+    sta = np.genfromtxt(vs30_idfile,skip_header=1,usecols=0,dtype='S')
+    sta_dat = np.genfromtxt(vs30_idfile,skip_header=1,usecols=range(1,3))
+        
+    # Get rid of the " in sta:
+    for k in range(len(sta)):
+        replace(sta[k],'"','')
+    
+    # Now for every site in the database, see if there is a measured value of Vs30 for it.
+    # first make a vector to save them in:
+    sta_out = []
+    lon_out = []
+    lat_out = []
+    vs30_measured_out = []
+    vs30_method_out = []
+    
+    # then loop through the stations provided to see if there's a measured value:
+    for station in range(len(sta)):
+        stationi = sta[station]
+        
+        measured_ind = np.where(np.array(site)==stationi)[0]
+        
+        # If an entry exists:
+        if len(measured_ind)>0:
+            # And if Alan Yong measured it, then grab the data:
+            if (surveyor[measured_ind]=='AY'):
+                sta_out.append(sta[station])
+                lon_out.append(sta_dat[station,0])
+                lat_out.append(sta_dat[station,1])
+                vs30_measured_out.append(vs30_measured[measured_ind])
+                vs30_method_out.append(vs30_method[measured_ind])
+            
+    
+    ## Write out:
+    outfile = open(output_measuredVs30file,'w')
+    outfile.write('Sta \t Lon \t Lat \t Vs30 \t Method \n')
+    
+    for station in range(len(sta_out)):
+        outfile.write('%s\t%12.8f\t%10.8f\t%5.1f\t%s\n' % (sta_out[station], lon_out[station], lat_out[station], vs30_measured_out[station], vs30_method_out[station][0]))
+    
+    outfile.close()
+    
+#############
+# Combine measured and proxy stations for a given list of stations
+def combine_measured_proxy_vs30(vs30_proxyfile,vs30_measuredfile,vs30_combinedfile):
+    '''
+    Combine measured and proxy Vs30's into one file with a flag.  Prioritize measured vs30.
+    Input:
+        vs30_proxyfile:             Path to the file with proxy vs30
+        vs30_measuredfile:          Path to the file with measured Vs30
+        vs30_combinedfile:          Path to the file with combined VS30
+    Output:
+        vs30_combinedfile:          File with output combined Vs30:  sta  lon  lat  vs30  method_flag(method, or proxy)
+        station:                    Array with strings of station names
+        vs30_out:                   Array with the Vs30
+        vs30_method_out:            Array with a string of the method type - proxy, or the specified method
+    '''
+    
+    import numpy as np
+    from string import replace
+    
+    # The proxy file has all of the stations (or should), so use these as a starting point, read them in as the station lat and lon list:
+    sta = np.genfromtxt(vs30_proxyfile,skip_header=1,usecols=0,dtype='S')
+    sta_data = np.genfromtxt(vs30_proxyfile, skip_header=1,usecols=range(1,4))
+    
+    # Get rid of the " in sta:
+    for k in range(len(sta)):
+        replace(sta[k],'"','')
+    
+    # Read in also the measured info:
+    sta_measured = np.genfromtxt(vs30_measuredfile,skip_header=1,usecols=0,dtype='S')
+    sta_measured_vs30 = np.genfromtxt(vs30_measuredfile,skip_header=1,usecols=3)
+    sta_measured_method = np.genfromtxt(vs30_measuredfile,skip_header=1,usecols=4,dtype='S')
+        
+    # Get rid of the " in sta:
+    for k in range(len(sta_measured)):
+        replace(sta_measured[k],'"','')
+          
+    # Set up empty arrays for all these things to go in:
+    sta_out=[]
+    lon_out=np.zeros(len(sta))
+    lat_out=np.zeros(len(sta))
+    vs30_out=np.zeros(len(sta))
+    vs30_method_out=[]
+    
+    # For every station, first check if there's a measured value:
+    for stationi in range(len(sta)):
+        # if there's a measured value for this station, what's the index in the measured file:
+        measured_ind = np.where(sta_measured==sta[stationi])[0]
+        
+        # Set the station and lon/lat:
+        sta_out.append(sta[stationi])
+        lon_out[stationi] = sta_data[stationi,0]
+        lat_out[stationi] = sta_data[stationi,1]
+        
+        if len(measured_ind)>0:
+            vs30_out[stationi] = sta_measured_vs30[measured_ind]
+            vs30_method_out.append(sta_measured_method[measured_ind][0])
+        else:
+            vs30_out[stationi] = sta_data[stationi,2]
+            vs30_method_out.append('proxy')
+    
+    # Convert sta to an array:
+    sta_out = np.array(sta_out)
+    vs30_method_out = np.array(vs30_method_out)
+        
+    # Write them to a file:
+    outfile = open(vs30_combinedfile,'w')
+    #writ header:
+    outfile.write('Sta\tLon\tLat\tVs30\tMethod\n')
+    
+    for k in range(len(sta_out)):
+        outfile.write('%s\t%12.8f\t%10.8f\t%5.1f\t%s\n' % (sta_out[k],lon_out[k],lat_out[k],vs30_out[k],vs30_method_out[k]))
+    outfile.close()
+    
+    # Also return:
+    return sta_out,vs30_out,vs30_method_out
+    
+    
+    
