@@ -259,7 +259,7 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_p
     sta = db.sta
     
     # Run Model
-    me_log, fixed, event, site, d_r_prediction, d_observed, event_mean, event_std, site_mean, site_std = inv.mixed_effects(codehome,home,dbname,pred_param,mw,rrup,vs30,evnum,sta,vref,c,Mc,predictive_parameter=predictive_parameter,ncoeff=ncoeff,data_correct=data_correct,a1=a1,a2=a2,a3=a3,a4=a4,a5=a5,a6=a6)
+    me_log, fixed_effects, event, site, d_r_prediction, d_observed, event_mean, event_std, site_mean, site_std = inv.mixed_effects(codehome,home,dbname,pred_param,mw,rrup,vs30,evnum,sta,vref,c,Mc,predictive_parameter=predictive_parameter,ncoeff=ncoeff,data_correct=data_correct,a1=a1,a2=a2,a3=a3,a4=a4,a5=a5,a6=a6)
     
     ## Add these to an inversion object....set unused values to nan:
     #if data_correct==0:
@@ -306,8 +306,8 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_p
     #      and an empty string for naming the model:
     modelpath_list = ''
     
-    print 'fixed'
-    print fixed
+    print 'fixed effects'
+    print fixed_effects
     
     # Also set the r model index counter to 0:
     r_invert_counter=0
@@ -324,15 +324,26 @@ def run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_p
             #   as we're looping through this index separatelyk, only using it when we pull out an inverted value:
             
             # If only the intercept was inverted for, fixed will be one dimensional (length of shape will be 1), so only one value of a model coeff (fixed[0]):                
-            if len(np.shape(fixed))==1:
-            	model[coeffi] = fixed[0]
-            	stderror[coeffi]=fixed[0]
-            	tvalue[coeffi]=fixed[0]
+            if len(np.shape(fixed_effects))==1:
+            	model[coeffi] = fixed_effects[0]
+            	stderror[coeffi]=fixed_effects[0]
+            	tvalue[coeffi]=fixed_effects[0]
             # Otherwise if more were inverted for, len(shape(fixed)) will have two values, so len 2:
-            elif len(np.shape(fixed))==2:
-                model[coeffi]=fixed[r_invert_counter,0]
-                stderror[coeffi]=fixed[r_invert_counter,1]
-                tvalue[coeffi]=fixed[r_invert_counter,2]
+            elif len(np.shape(fixed_effects))==2:
+                print 'fixed shape is \n'
+                print np.shape(fixed_effects)
+                print 'fixed len is \n'
+                print len(np.shape(fixed_effects))
+                print 'fixed is \n'
+                print fixed_effects
+                print 'r counter is \n'
+                print 'coeff list is \n'
+                print coeff_list
+                print r_invert_counter
+                
+                model[coeffi]=fixed_effects[r_invert_counter,0]
+                stderror[coeffi]=fixed_effects[r_invert_counter,1]
+                tvalue[coeffi]=fixed_effects[r_invert_counter,2]
 
                 
             # Add to counter

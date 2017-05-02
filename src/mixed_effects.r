@@ -163,13 +163,6 @@ r_mixedeffects <- function(datacsv, home, database, ...) {
 	# And run the model:
 	model <- lme4::lmer(formula_string, data=db)
 	
-#	model <- lme4::lmer(pga ~ m + m2 + lnR + rrup + (1|evnum) + (1|sta), data=db)
-	
-	# Make a new dataframe with just data to see if the predict funtion
-	# 	always includes the random effects in the prediction:
-	
-	newdatframe <- data.frame(db$m, db$m2, db$lnR, db$rrup)
-	
 	prediction_vector <- predict(model)
 	prediction <- data.frame(prediction_vector)
 	
