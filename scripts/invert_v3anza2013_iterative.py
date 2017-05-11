@@ -95,9 +95,9 @@ plotdist=np.array([0,10,20,40,80,160,220])
 # plotting distance for ASK:
 ask_dist=10
 
-## For plotting only:
-setmodel='/Users/vsahakian/anza/models/pckl/v3anza2013_pga_vs30_%icoeff/regr_pga_Mc8.5_0.0_6.5_VR_99.4.pckl' % ncoeff
-#setmixedmodel='/Users/vsahakian/anza/models/pckl/v2anza2013/mixedregr_v2anza2013_Mc_8.5_VR_99.9.pckl'
+### For plotting only:
+#setmodel='/Users/vsahakian/anza/models/pckl/v3anza2013_pga_vs30_%icoeff/regr_pga_Mc8.5_0.0_6.5_VR_99.4.pckl' % ncoeff
+##setmixedmodel='/Users/vsahakian/anza/models/pckl/v2anza2013/mixedregr_v2anza2013_Mc_8.5_VR_99.9.pckl'
 
 
 #################
@@ -341,7 +341,8 @@ run_home=home+'/models/residuals/'
 resaxlim_r = [[0,180],[-5,5]]
 resaxlim_mw = [[0,4],[-5,5]]
 
-
+# INversion run  name - called "dbname" here - setting a2 through a4:
+dbname = 'v3anza2013_pga_vs30_6coeff_a2-a4'
 
 #Fictitious depth parameter:
 c=4.5
@@ -412,13 +413,13 @@ elif runall==1:
 ###################################################################################
 #
 
-## Read in model so you don't have to run the entire thing:
-#fixedmodel = '/Users/vsahakian/anza/models/pckl/v3anza2013_pga_vs30_6coeff/regr_pga_Mc8.5_0.0_6.5_VR_99.4.pckl'
-#
-## REad in the fixed model to get coefficients:
-#invfile = open(fixedmodel,'r')
-#inv_dat = pickle.load(invfile)
-#invfile.close()
+# Read in model so you don't have to run the entire thing:
+fixedmodel = '/Users/vsahakian/anza/models/pckl/v3anza2013_pga_vs30_6coeff/regr_pga_Mc8.5_0.0_6.5_VR_99.4.pckl'
+
+# REad in the fixed model to get coefficients:
+invfile = open(fixedmodel,'r')
+inv_dat = pickle.load(invfile)
+invfile.close()
 
 print 'Starting iterative mixed effects, inverting for a1, a2, a3 and a6...'
 # Fix which coefficients?
@@ -436,7 +437,8 @@ run_home=home+'/models/residuals/'
 resaxlim_r = [[0,180],[-5,5]]
 resaxlim_mw = [[0,4],[-5,5]]
 
-
+# INversion run  name - called "dbname" here - setting a1 through a3, and a6:
+dbname = 'v3anza2013_pga_vs30_6coeff_a4_a5'
 
 #Fictitious depth parameter:
 c=4.5
@@ -457,6 +459,105 @@ elif runall==1:
 
     # Now run mixed effects approach #
     invdat,invpath,tresid,mixed_residuals,d_r_prediction,mixed_resid_path=run_inv.run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_parameter='pga',ncoeff=ncoeff,data_correct=vs30_correct,a1='none',a2='none',a3='none',a4=a4,a5=a5,a6='none')
+    
+    print 'Plotting mixed effects model with data'
+    # Plot data with model:
+    mixedinv = run_inv.plot_data_model(home,dbpath,dbname,invpath,coeff_file,mdep_ffdf,plotdist,ask_dist,Mc,axlims,bmin,bmax,vref,predictive_parameter=predictive_parameter,ncoeff=ncoeff,data_correct=vs30_correct)
+
+    ## If just plotting:
+    #invpath=setmixedmodel
+    #mixedinv = run_inv.plot_data_model(home,dbpath,dbname,invpath,coeff_file,mdep_ffdf,plotdist,ask_dist,Mc,axlims,bmin,bmax,vref)
+
+
+    # Get some mean values for the stats file:
+    mean_tot=np.mean(mixed_residuals.total_residual)
+    std_dev_tot=np.std(mixed_residuals.total_residual)
+    
+    E_mean=mixed_residuals.E_mean
+    E_std_dev=mixed_residuals.E_std
+
+    print 'plotting all residuals'
+    # Plot all residuals:
+    run_res.plot_total(tresid,home,run_name,resaxlim_mw)
+
+    print 'plotting event terms'
+    # Plot event terms:
+    eventfig1 = run_res.makeEvents_mixed(run_home,run_name,mixed_resid_path,Mc,vref,mdep_ffdf,resaxlim_mw)
+
+    # Get station objects:
+    station_list=run_res.makeStations_mixed(run_home,run_name,mixed_resid_path)
+
+    # Plot W residuals on one plot:
+    W_mean,W_std_dev = run_res.plot_Wresid(run_home,run_name,resaxlim_mw)
+
+    print 'plotting station terms'
+    # Plot by station:
+    run_res.plot_site_WE(run_home,run_name,resaxlim_mw)
+
+    print 'plotting path residuals'
+    # Plot path residuals:
+    f_mw,f_dist,pterm_mean,pterm_std=run_res.plotPath_mixed(run_home,run_name,mixed_resid_path,resaxlim_mw,resaxlim_r)
+    
+    print 'Writing mixed stats to a file'
+    # Writing stats to a file
+    run_res.write_stats_mixed(run_home,run_name,mixed_resid_path,mean_tot,std_dev_tot,E_mean,E_std_dev,W_mean,W_std_dev,pterm_mean,pterm_std)
+    
+###################################################################################
+#######    MIXED EFFECTS with fixed coeffs, invert a1, a2, a3        ##############
+###################################################################################
+#
+
+## Read in model so you don't have to run the entire thing:
+#fixedmodel = '/Users/vsahakian/anza/models/pckl/v3anza2013_pga_vs30_6coeff/regr_pga_Mc8.5_0.0_6.5_VR_99.4.pckl'
+#
+## REad in the fixed model to get coefficients:
+#invfile = open(fixedmodel,'r')
+#inv_dat = pickle.load(invfile)
+#invfile.close()
+
+print 'Starting iterative mixed effects, inverting for a1, a2, a3 - fix a4, a5, a6...'
+# Fix which coefficients?
+a1='none'
+a2='none'
+a3='none'
+a4 = inv_dat.m[3]
+a5 = inv_dat.m[4]
+a6 = inv_dat.m[5]
+
+vs30_correct = a6
+
+fixedcoeff_list = 'a4_%.2f_a5_%.2f_a6_%.2f' % (a4,a5,a6)
+
+print 'Running mixed effects'
+#Now try with mixed effects:
+run_name = 'mixedregr_v3anza2013_pga_%icoeff_%s_Mc_8.5_res4' % (ncoeff,fixedcoeff_list)
+run_home=home+'/models/residuals/'
+resaxlim_r = [[0,180],[-5,5]]
+resaxlim_mw = [[0,4],[-5,5]]
+
+# INversion run  name - called "dbname" here - setting a4 through a6:
+dbname = 'v3anza2013_pga_vs30_6coeff_a4-a6'
+
+
+#Fictitious depth parameter:
+c=4.5
+
+#Initialize the residuals directories:
+inithome=HOME+'/anza/models/residuals/'
+
+runall=1
+
+#Initialize directories:
+runall=run_res.init(inithome,run_name)
+
+if runall==0:
+    print 'Not clobbering, exiting...'
+    
+elif runall==1:
+    print 'Continuing...'
+
+    # Now run mixed effects approach #
+    invdat,invpath,tresid,mixed_residuals,d_r_prediction,mixed_resid_path=run_inv.run_mixedeffects(home,codehome,run_name,dbpath,dbname,Mc,vref,c,predictive_parameter='pga',ncoeff=ncoeff,data_correct=vs30_correct,a1=a1,a2=a2,a3=a3,a4=a4,a5=a5,a6=a6)
     
     print 'Plotting mixed effects model with data'
     # Plot data with model:

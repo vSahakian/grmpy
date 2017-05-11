@@ -615,3 +615,234 @@ def plot_3d_raypaths(home,run_name,dbname,vtype,stations,events,axlims,colormap,
     plt.show(figure3d)
     
     return figure3d
+    
+###########
+def pull_rays_frombox_forstation(r_object,bounds,station_name,ray_type,mymap):
+    '''
+    Input:
+        r_object:           Residuals object with raypaths stored
+        bounds:             Bounds for box of events: [w,e,n,s]
+        station_name:       String with station name
+        ray_type:           Type of ray: 'Vp' or 'Vs'
+        mymap:              Colormap string
+    Output:
+    '''
+    
+    import cPickle as pickle
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from matplotlib import path
+    import matplotlib.colors as colors
+    import matplotlib.cm as cm
+    import matplotlib.patches as patches
+
+    # What raytype is being used?
+    if ray_type == 'Vp':
+        ray_lon = r_object.vp_lon
+        ray_lat = r_object.vp_lat
+        ray_depth = r_object.vp_depth
+    elif ray_type == 'Vs':
+        ray_lon = r_object.vs_lon
+        ray_lat = r_object.vs_lat
+        ray_depth = r_object.vs_depth
+        
+    # Define boundaries for events to keep:
+    w = bounds[0]
+    e = bounds[1]
+    n = bounds[2]
+    s = bounds[3]
+        
+    
+    # The station to select is the name given:
+    select_sta = station_name
+    
+    # Find the indices of this station within the residuals object:
+    select_ind = np.where(r_object.sta==select_sta)[0]
+    
+    # Get station, event, and path info for that station:
+    select_stlon = r_object.stlon[select_ind][0]
+    select_stlat = r_object.stlat[select_ind][0]
+    select_stelv = r_object.stelv[select_ind][0]
+    
+    # Events recorded:
+    select_evnum = r_object.evnum[select_ind]
+    select_elon = r_object.elon[select_ind]
+    select_elat = r_object.elat[select_ind]
+    select_edepth = r_object.edepth[select_ind]
+    
+    # raypaths:
+    select_ray_depth = np.array(ray_depth)[select_ind]
+    select_ray_lon = np.array(ray_lon)[select_ind]
+    select_ray_lat = np.array(ray_lat)[select_ind]
+    
+    # path terms:
+    select_path_terms = r_object.path_terms[select_ind]
+        
+    #Get mean and std of dataset for plotting ray color:
+    mean_pterm=np.mean(select_path_terms)
+    std_pterm= np.std(select_path_terms)
+    #Set hte colorscale to cover 97% of the data:
+    cmin=-3*std_pterm
+    cmax=3*std_pterm   
+
+    ######################
+    ##Plot:
+    #Get colormap
+    #Make colormap:
+    colormap_pterm=plt.get_cmap(mymap)
+    #Make a normalized colorscale
+    cNorm=colors.Normalize(vmin=cmin, vmax=cmax)
+    #Apply normalization to colormap:
+    scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap_pterm)
+    
+    #Make a fake contour plot for the colorbar:
+    dummyplot = plt.figure()
+    Z=[[0,0],[0,0]]
+    levels=np.arange(cmin,cmax,0.01)
+    c=plt.contourf(Z, levels, cmap=colormap_pterm)
+    plt.close(dummyplot)
+
+    # Plot all rays recorded at this station:
+    all_rays = plt.figure()   
+    ax = all_rays.add_subplot(111, aspect='equal')
+    for ray in range(len(select_ind)):
+        
+        #Assign color to path term:
+        colorVal = scalarMap.to_rgba(select_path_terms[ray])
+        
+        # Plot:
+        ax.plot(select_ray_lon[ray],select_ray_lat[ray],color=colorVal)  
+        
+    ax.add_patch(
+        patches.Rectangle(
+            (w, s),
+            (e - w),
+            (n - s),
+            fill=False      # remove background
+        )
+    ) 
+    
+    # Set colorbar
+    cb = plt.colorbar(c)
+    cb.set_label('Path term (ln residual)')
+    # Set title:
+    maptitle = 'Map view plot of station %s, mean path term is %.2f' % (select_sta,np.mean(select_path_terms))
+    plt.title(maptitle)
+    plt.xlabel('Longitude')
+    plt.ylabel('Latitude')
+    
+    
+    ### Now extract data from the box:    
+    # Make the path:
+    keeppath = path.Path([[w,s],[e,s],[e,n],[w,n],[w,s]])
+    
+    # INitiate array for keeping the events within the path:
+    keep_event_ind=np.array([]).astype('int')
+    
+    # Get the rays at this station within the box
+    for rayi in range(len(select_ind)):
+        if keeppath.contains_point([select_elon[rayi],select_elat[rayi]]):
+            keep_event_ind = np.r_[keep_event_ind,rayi]
+    
+    
+    # Plot now only the rays fromt hat box, recorded on this station
+    #Make a fake contour plot for the colorbar:
+    dummyplot = plt.figure()
+    Z=[[0,0],[0,0]]
+    levels=np.arange(cmin,cmax,0.01)
+    c=plt.contourf(Z, levels, cmap=colormap_pterm)
+    plt.close(dummyplot)    
+    
+    box_rays_map = plt.figure()
+    for ray in range(len(keep_event_ind)):
+        colorVal = scalarMap.to_rgba(select_path_terms[keep_event_ind][ray])
+        plt.plot(select_ray_lon[keep_event_ind[ray]],select_ray_lat[keep_event_ind[ray]],color=colorVal)
+    
+    # Set colorbar
+    cb = plt.colorbar(c)
+    cb.set_label('Path term (ln residual)')
+    # Set title:
+    maptitle = 'Map view plot of box, mean path term is %.2f' % np.mean(select_path_terms[keep_event_ind])
+    plt.title(maptitle)
+    plt.xlabel('Longitude')
+    plt.ylabel('Latitude')
+       
+       
+    ######   
+    # Plot them now in cross section with longitude   
+    #Make a fake contour plot for the colorbar:
+    dummyplot = plt.figure()
+    Z=[[0,0],[0,0]]
+    levels=np.arange(cmin,cmax,0.01)
+    c=plt.contourf(Z, levels, cmap=colormap_pterm)
+    plt.close(dummyplot)
+    
+    box_rays_londep = plt.figure()
+    for ray in range(len(keep_event_ind)):
+        colorVal = scalarMap.to_rgba(select_path_terms[keep_event_ind][ray])
+        plt.plot(select_ray_lon[keep_event_ind[ray]],select_ray_depth[keep_event_ind[ray]],color=colorVal)
+        
+    # Set colorbar
+    cb = plt.colorbar(c)
+    cb.set_label('Path term (ln residual)')    
+    # Set title:
+    lontitle = 'Longitude plot of box, mean path term is %.2f' % np.mean(select_path_terms[keep_event_ind])
+    plt.title(lontitle)   
+    plt.xlabel('Longitude')
+    plt.ylabel('Depth (km)') 
+                
+                                
+    # Return the figures, and the indices to keep - station indices, and keep event indices together:
+    return select_ind, keep_event_ind, all_rays, box_rays_map, box_rays_londep
+    
+    
+def save_box_data(text_dir,fig_dir,pdf_dir,bounds,select_sta,bound_name,all_rays_fig,box_rays_map,box_rays_londep):
+    '''
+    Input: 
+        text_dir:                   String with text directory for bounds info
+        fig_dir:                    String with png directory for figures
+        pdf_dir:                    String with pdf directory for figures
+        boudns:                     List:  [w,e,n,s]
+        select_sta:                 String with station name
+        bound_name:                 String with box bound name, i.e. '3a'
+        all_rays_fig:               PYthon figure with map view of all rays per station
+        box_rays_map:               Python figure with map view of all rays at station in box
+        box_rays_londep:            Python figure with lon/depth view of all rays at station in box
+    Output:
+        Saves figures to png, pdf, and txt files.
+    '''
+    import matplotlib.pyplot as plt
+    
+    ###  Save figures, save text file with bounds:
+    ## text file
+    combo_name = select_sta + '_'+ bound_name
+    header = ['w','e','n','s']
+    
+    ## bounds text file
+    txtfile = text_dir + combo_name + '.txt'
+    f = open(txtfile,'w')
+    for corneri in range(len(header)):
+        writeline = '%s \t %.5f \n' % (header[corneri],bounds[corneri])
+        f.write(writeline)
+    f.close()
+    
+    ## all rays at station:
+    png_station = fig_dir + combo_name + '_sta.png'
+    pdf_station = pdf_dir + combo_name + '_sta.pdf'
+    
+    all_rays_fig.savefig(png_station)
+    all_rays_fig.savefig(pdf_station)
+
+    ## rays in box, map view
+    png_map = fig_dir + combo_name + '_boundsmap.png'
+    pdf_map = pdf_dir + combo_name + '_boundsmap.pdf'
+    
+    box_rays_map.savefig(png_map)
+    box_rays_map.savefig(pdf_map)
+
+    ## rays in box, lon view
+    png_cross = fig_dir + combo_name + '_boundscross.png'
+    pdf_cross = pdf_dir + combo_name + '_boundscross.pdf'
+    
+    box_rays_londep.savefig(png_cross)
+    box_rays_londep.savefig(pdf_cross)

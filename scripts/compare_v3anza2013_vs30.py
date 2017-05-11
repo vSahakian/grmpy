@@ -27,6 +27,15 @@ me5cff_iter = pickle.load(modfile)
 modfile.close()
 
 
+#######################
+# Model 3, 6 coefficients, iterative ME with a4, a5, and a6 fixed
+me6cff_iter2_path = '/Users/vsahakian/anza/models/residuals/mixedregr_v3anza2013_pga_6coeff_a4_-1.73_a5_-0.01_a6_0.56_Mc_8.5_res4/mixedcoeff_v3anza2013_pga_vs30_6coeff_pga__ncoeff6_Mc_8.5_VR_99.3_a4_-1.73_a5_-0.01_a6_0.56_robj.pckl'
+
+modfile = open(me6cff_iter2_path,'r')
+me6cff_iter2 = pickle.load(modfile)
+modfile.close()
+
+
 ###########################################
 # Unique stations:
 usta,usta_ind = np.unique(me6cff_iter.stnum,return_index=True)
@@ -41,21 +50,24 @@ vs30png = png_dir + 'sites_vs30.png'
 vs30pdf = pdf_dir + 'sites_vs30.pdf'
 
 # Get correlation values
-me6corr,me6r=pearsonr(me6cff_iter.vs30[usta_ind],np.array(me6cff_iter.site_terms)[usta_ind])
-me5corr,me5r=pearsonr(me5cff_iter.vs30[usta_ind],np.array(me5cff_iter.site_terms)[usta_ind])
+me6corr,me6r=pearsonr(np.log(me6cff_iter.vs30[usta_ind]),np.array(me6cff_iter.site_terms)[usta_ind])
+me5corr,me5r=pearsonr(np.log(me5cff_iter.vs30[usta_ind]),np.array(me5cff_iter.site_terms)[usta_ind])
+me6corr2,me6r2=pearsonr(np.log(me6cff_iter2.vs30[usta_ind]),np.array(me6cff_iter2.site_terms)[usta_ind])
+
 
 # sort by vs30:
 vs30sort = np.argsort(me6cff_iter.vs30[usta_ind])
 
 # Get difference to plot:
-me_site_diff_unsort = np.array(me6cff_iter.site_terms)[usta_ind] - np.array(me5cff_iter.site_terms)[usta_ind]
+me_site_diff_unsort = np.array(me6cff_iter2.site_terms)[usta_ind] - np.array(me5cff_iter.site_terms)[usta_ind]
 me_site_diff = me_site_diff_unsort[vs30sort]
 
 # Plot..
-plt.scatter(me6cff_iter.vs30[usta_ind],np.array(me6cff_iter.site_terms)[usta_ind],s=25,edgecolor='#5d9fba',facecolor='none',marker='D',linewidth=2,label='Mixed iterative, with Vs30, coeff = %.2f, r = %.2f' % (me6corr,me6r)) 
-plt.scatter(me5cff_iter.vs30[usta_ind],np.array(me5cff_iter.site_terms)[usta_ind],s=25,edgecolor='#b57955',facecolor='none',marker='o',linewidth=2,label='Mixed iterative, without Vs30, coeff = %.2f, r = %.2f' % (me5corr, me5r)) 
+plt.scatter(np.log(me6cff_iter.vs30[usta_ind]),np.array(me6cff_iter.site_terms)[usta_ind],s=25,edgecolor='#5d9fba',facecolor='none',marker='D',linewidth=2,label='Mixed iterative, with Vs30, corr coeff = %.2f, p = %.2f' % (me6corr,me6r)) 
+plt.scatter(np.log(me5cff_iter.vs30[usta_ind]),np.array(me5cff_iter.site_terms)[usta_ind],s=25,edgecolor='#b57955',facecolor='none',marker='o',linewidth=2,label='Mixed iterative, without Vs30, corr coeff = %.2f, p = %.2f' % (me5corr, me5r)) 
+plt.scatter(np.log(me6cff_iter2.vs30[usta_ind]),np.array(me6cff_iter2.site_terms)[usta_ind],s=25,edgecolor='#d84936',facecolor='none',marker='^',linewidth=2,label='Mixed iterative, with Vs30 fixed, corr coeff = %.2f, p= %.2f' % (me6corr2,me6r2))
 
-plt.plot(me6cff_iter.vs30[usta_ind][vs30sort], me_site_diff,linestyle='--',linewidth=2,color='#4f4f4f',label='Residual (vs30 - no vs30)')
+plt.plot(np.log(me6cff_iter2.vs30[usta_ind][vs30sort]), me_site_diff,linestyle='--',linewidth=2,color='#4f4f4f',label='Residual (vs30 - no vs30)')
 
 plt.ylim([-2,3.5])
 

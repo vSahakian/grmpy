@@ -320,13 +320,13 @@ elif runall==1:
 ###################################################################################
 #
 
-## Read in model so you don't have to run the entire thing:
-#fixedmodel = '/Users/vsahakian/anza/models/pckl/v3anza2013_pga_vs30_5coeff/regr_pga_Mc8.5_0.0_6.5_VR_99.3.pckl'
-#
-## REad in the fixed model to get coefficients:
-#invfile = open(fixedmodel,'r')
-#inv_dat = pickle.load(invfile)
-#invfile.close()
+# Read in model so you don't have to run the entire thing:
+fixedmodel = '/Users/vsahakian/anza/models/pckl/v3anza2013_pga_noVs30_5coeff/regr_pga_Mc8.5_0.0_6.5_VR_99.3.pckl'
+
+# REad in the fixed model to get coefficients:
+invfile = open(fixedmodel,'r')
+inv_dat = pickle.load(invfile)
+invfile.close()
 
 print 'Starting iterative mixed effects...'
 # Fix which coefficients?
@@ -347,7 +347,8 @@ run_home=home+'/models/residuals/'
 resaxlim_r = [[0,180],[-5,5]]
 resaxlim_mw = [[0,4],[-5,5]]
 
-
+# INversion run  name - called "dbname" here - setting a4 through a6:
+dbname = 'v3anza2013_pga_noVs30_5coeff_a4_a5'
 
 #Fictitious depth parameter:
 c=4.5
