@@ -129,7 +129,7 @@ class db:
         import matplotlib.cm as cm
                 
         #Get colormap
-        mymap='jet'
+        mymap='viridis'
         #Make colormap:
         colormap_radius=plt.get_cmap(mymap)
         #Make a normalized colorscale
@@ -183,7 +183,7 @@ class db:
         import matplotlib.cm as cm
                 
         #Get colormap
-        mymap='jet'
+        mymap='viridis'
         #Make colormap:
         colormap_radius=plt.get_cmap(mymap)
         #Make a normalized colorscale
@@ -212,11 +212,60 @@ class db:
         plt.xlabel(r"$\mathbf{M}$")
         plt.ylabel(r"$\log_{10} PGA$")
         plt.title(r"PGA vs. $\mathbf{M}$, binned by distance")
+        
+        #Axis labels:
+        plt.xlim(axlims[0][0],axlims[0][1])
+        plt.ylim(axlims[1][0],axlims[1][1])
+        
+        plt.show()
+        
+        return f1
+        
+    def plot_m_rrup(self,bmin,bmax,axlims):
+        '''
+        Plots log10 PGA, for various distance ranges specified by bmin, bmax,
+        and step.
+        Input:
+            bmin:       Min value for colorscale
+            bmax:       Max balue for colorscale
+            axlims:     [[xmin,xmax],[ymin,ymax]]
+        '''
+        
+        from matplotlib import pyplot as plt
+        import numpy as np
+        import matplotlib.colors as colors
+        import matplotlib.cm as cm
+                
+        #Get colormap
+        mymap='viridis'
+        #Make colormap:
+        colormap_radius=plt.get_cmap(mymap)
+        #Make a normalized colorscale
+        cNorm=colors.Normalize(vmin=bmin, vmax=bmax)
+        #Apply normalization to colormap:
+        scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap_radius)
+        
+        #Make a fake contour plot for the colorbar:
+        Z=[[0,0],[0,0]]
+        levels=np.arange(bmin,bmax,0.01)
+        c=plt.contourf(Z, levels, cmap=colormap_radius)
+        
+        #Open figure:
+        f1=plt.figure()
+        #get colorvalue to plot
+        colorVal=scalarMap.to_rgba(np.log10(self.pga_pg))
+        
+       #Plot...
+        plt.scatter(np.log10(self.r),self.mw,edgecolors=colorVal,facecolors='none',lw=0.5)
+        
+        #Add colorbar:
+        cb=plt.colorbar(c)
+        cb.set_label('log10 PGA (g)')
 
         #Label the plot - Mbold on the x, log10PGA on the y, 
-        plt.xlabel(r"$\mathbf{M}$")
-        plt.ylabel(r"$\log_{10} PGA$")
-        plt.title(r"PGA vs. $\mathbf{M}$, binned by distance")
+        plt.xlabel(r"$\log_{10} R_{rup}$")
+        plt.ylabel(r"$\mathbf{M}$")
+        plt.title(r"$\mathbf{M}$ vs. Rrup, binned by distance")
         
         #Axis labels:
         plt.xlim(axlims[0][0],axlims[0][1])
@@ -267,7 +316,7 @@ class db:
             log10predparam=np.log10(self.pgv)
         
         #Get colormap
-        mymap='jet'
+        mymap='viridis'
         #Make colormap:
         colormap_radius=plt.get_cmap(mymap)
         #Make a normalized colorscale
