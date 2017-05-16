@@ -241,6 +241,7 @@ def semivar_variables(evnum,sta,stnum,stlon,stlat,path_terms,rrup,lagdistance_x)
 
 ##################################
 ##################################
+
 def subplot_all_semivariograms(lagdistance_x_all,semivariance_y_all,ncols,axlimits,semivar_bins):
     '''
     Plot all semivariograms at once on a subplot
@@ -320,3 +321,147 @@ def subplot_all_semivariograms(lagdistance_x_all,semivariance_y_all,ncols,axlimi
    
     return semivariograms_fig
         
+
+##################################
+##################################
+
+def compute_CI_variance_perstation(sta,stnum,evnum,evlon,evlat,evdepth,rrup,path_terms,sigma_path):
+    '''
+    For a given station, compute the Closness Indices (from Lin et al., 2011)
+    and semivariance for every combination of earthquakes recorded at that station.
+    Input:
+        sta:                String with station name
+        stnum:              Integer with station number
+        evnum:              Array with all event numbers recorded at this station (m x 1)
+        evlon:              Array with longitude of all events recorded at this station (m x 1)
+        evlat:              Array with latitude of all events recorded at this station (m x 1)
+        evdepth:            Array with depth of all events recorded at this station (m x 1)
+        rrup:               Array with Rrup for all events recorded at this station (m x 1)
+        path_terms:         Array with path terms of all event paths recorded at this station (m x 1)
+        sigma_path:         Float with standard deviation for ALL path terms in db
+    Output:
+        CI:                 Matrix with closeness indices
+        
+    '''
+    
+    from pyproj import Geod
+    import numpy as np
+    
+    ####
+    ## Get dimensions for matrices:
+    nevents = len(evnum)
+    
+    ## First make empty matrices: CI and dPvar to fill in later:
+    CI = np.zeros((nevents,nevents))
+    dPvar = np.zeros((nevents,nevents))
+    
+    ####
+    ## Find the hypocentral distance between every event to event combo:
+    
+    # Make projection    
+    p = Geod(ellps='WGS84')
+    
+    # Loop over all events, make a matrix with the lon and lat of just that station, and compute the distance to all other stations (lon,lat):
+    for event_i in range(len(evnum)):
+        # Get the azimuth, backazimuth, and horizontal distance between all events and eventi:
+        azimuthi,backazimuthi,dHi_horizontal = p.inv(evlon[event_i]*np.ones(nevents),evlat[event_i]*np.ones(nevents), evlon, evlat)
+        
+        # Get vertical difference between this event and all other events, in meters:
+        dVi = (evdepth - evdepth[event_i])*1000
+        
+        # Get total distance, include vertical:
+        dHi = np.sqrt(dHi_horizontal**2 + dVi**2)
+        
+        # Also get the difference between Rrups for these events:
+        Rrup_sum_i = rrup[event_i] + rrup
+        
+        # Set the distance difference for this event index to NaN so it doesn't affect the divison by 0:
+        Rrup_sum_i[event_i] = float('nan')
+        
+        # Get the closeness index for this event to all others:
+        CIi = dHi/(2*Rrup_sum_i)
+        
+        # For the same event, set this to 0:
+        CIi[event_i] = 0
+        
+        # Divide dH by this to make CI:
+        CI[event_i,:] = CIi
+        
+        ## Now get the variance matrix per event-event combo:
+        # Path term difference:
+        pterm_diff_i = path_terms[event_i] - path_terms
+        
+        dPvar[event_i,:] = pterm_diff_i/(np.sqrt(2)*sigma_path)
+        
+        
+    # Turn CI and dPvar into upper triangular:
+    CI = np.triu(CI)
+    dPvar = np.triu(dPvar)
+    
+    ## REshape upper triangular part into arrays
+    # Get indices of upper triangle:
+    ci_upper_ind = np.triu_indices(nevents)
+    pvar_upper_ind = np.triu_indices(nevents)
+    
+    # Extract data of upper triangle:
+    CI_array = CI[ci_upper_ind]
+    dPvar_array = dPvar[pvar_upper_ind]
+    
+    # REturn:
+    return CI_array,dPvar_array
+    
+    
+##################################
+##################################
+
+def extract_stationinfo(robj):
+    '''
+    For every station, extract the information necessary to comput CI.
+    Input:
+        robj:                   Residuals object
+    '''
+    
+    import numpy as np
+    
+    ## 
+    # Get unique stations:
+    unique_stations,ustaind = np.unique(robj.sta,return_index=True)
+    unique_stnum = np.unique(robj.stnum)
+    
+    # Initiate empty lists for output data; append to them for every station:
+    sta = []
+    stnum = []
+    evnum = []
+    evlon = []
+    evlat = []
+    evdepth = []
+    rrup = []
+    path_terms = []
+    
+    # Find which events are recorded at this station:
+    for stationi in range(len(unique_stations)):
+        event_ind_i = np.where(robj.sta == unique_stations[stationi])[0]
+        
+        # Get strings/arrays of data to output:
+        sta_i = unique_stations[stationi]
+        stnum_i = unique_stnum[stationi]
+        
+        evnum_i = robj.evnum[event_ind_i]
+        evlon_i = robj.elon[event_ind_i]
+        evlat_i = robj.elat[event_ind_i]
+        evdepth_i = robj.edepth[event_ind_i]
+        rrup_i = robj.r[event_ind_i]
+        path_terms_i = robj.path_terms[event_ind_i]
+        
+        # Append these to the lists:
+        sta.append(sta_i)
+        stnum.append(stnum_i)
+        evnum.append(evnum_i)
+        evlon.append(evlon_i)
+        evlat.append(evlat_i)
+        evdepth.append(evdepth_i)
+        rrup.append(rrup_i)
+        path_terms.append(path_terms_i)
+    
+    #Return:
+    return sta,stnum,evnum,evlon,evlat,evdepth,rrup,path_terms

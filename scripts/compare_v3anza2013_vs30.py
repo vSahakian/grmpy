@@ -5,6 +5,8 @@ import cPickle as pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
+from matplotlib.ticker import MultipleLocator
+
 
 
 #fig dir:
@@ -45,9 +47,9 @@ usta,usta_ind = np.unique(me6cff_iter.stnum,return_index=True)
 ###########################################
 # Sites vs. vs30....
 
-vs30fig = plt.figure(figsize=(10,8))
-vs30png = png_dir + 'sites_vs30.png'
-vs30pdf = pdf_dir + 'sites_vs30.pdf'
+vs30_5_6fig = plt.figure(figsize=(10,8))
+vs30_5_6png = png_dir + 'sites_vs30_5cff_6cff.png'
+vs30_5_6pdf = pdf_dir + 'sites_vs30_5cff_6cff.pdf'
 
 # Get correlation values
 me6corr,me6r=pearsonr(np.log(me6cff_iter.vs30[usta_ind]),np.array(me6cff_iter.site_terms)[usta_ind])
@@ -62,20 +64,131 @@ vs30sort = np.argsort(me6cff_iter.vs30[usta_ind])
 me_site_diff_unsort = np.array(me6cff_iter2.site_terms)[usta_ind] - np.array(me5cff_iter.site_terms)[usta_ind]
 me_site_diff = me_site_diff_unsort[vs30sort]
 
+## Plot..
+#plt.scatter(np.log(me6cff_iter.vs30[usta_ind]),np.array(me6cff_iter.site_terms)[usta_ind],s=25,edgecolor='#5d9fba',facecolor='none',marker='D',linewidth=2,label='Mixed iterative, with Vs30, corr coeff = %.2f, p = %.2f' % (me6corr,me6r)) 
+#plt.scatter(np.log(me5cff_iter.vs30[usta_ind]),np.array(me5cff_iter.site_terms)[usta_ind],s=25,edgecolor='#b57955',facecolor='none',marker='o',linewidth=2,label='Mixed iterative, without Vs30, corr coeff = %.2f, p = %.2f' % (me5corr, me5r)) 
+#plt.scatter(np.log(me6cff_iter2.vs30[usta_ind]),np.array(me6cff_iter2.site_terms)[usta_ind],s=25,edgecolor='#d84936',facecolor='none',marker='^',linewidth=2,label='Mixed iterative, with Vs30 fixed, corr coeff = %.2f, p= %.2f' % (me6corr2,me6r2))
+
+
+###################
+### PLOT 1:  ME6CFF/ME5CFF
+
+# Plot..
+plt.errorbar(np.log(me6cff_iter.vs30[usta_ind]),np.array(me6cff_iter.site_terms)[usta_ind],yerr=np.array(me6cff_iter.site_stderr)[usta_ind],markersize=5,color='#5d9fba',fmt='D',elinewidth=2,capsize=4,capthick=1.5,label='Mixed iterative, with Vs30, corr coeff = %.2f, p = %.2f' % (me6corr,me6r)) 
+plt.errorbar(np.log(me5cff_iter.vs30[usta_ind]),np.array(me5cff_iter.site_terms)[usta_ind],yerr=np.array(me5cff_iter.site_stderr)[usta_ind],markersize=5,color='#b57955',fmt='o',elinewidth=2,capsize=4,capthick=1.5,label='Mixed iterative, without Vs30, corr coeff = %.2f, p = %.2f' % (me5corr, me5r)) 
+#plt.errorbar(np.log(me6cff_iter2.vs30[usta_ind]),np.array(me6cff_iter2.site_terms)[usta_ind],yerr=np.array(me6cff_iter2.site_stderr)[usta_ind],markersize=5,color='#d84936',fmt='^',elinewidth=2,capsize=4,capthick=1.5,label='Mixed iterative, with Vs30 fixed, corr coeff = %.2f, p= %.2f' % (me6corr2,me6r2))
+
+#plt.plot(np.log(me6cff_iter2.vs30[usta_ind][vs30sort]), me_site_diff,linestyle='--',linewidth=2,color='#4f4f4f',label='Residual (vs30 - no vs30)')
+
+ax = vs30_5_6fig.gca()
+
+ax.set_ylim([-2,3.5])
+
+ax.set_xlabel('ln (Vs30) (m/s)')
+ax.set_ylabel('Site Term (ln residual)')
+ax.set_title('Site term vs. Vs30')
+
+# Set y label spacing:
+xmajorLocator = MultipleLocator(1)
+ymajorLocator = MultipleLocator(1)
+
+ax.yaxis.set_major_locator(ymajorLocator)
+ax.xaxis.set_major_locator(xmajorLocator)
+
+# Set y tick spacing
+xminorLocator = MultipleLocator(0.1)
+yminorLocator = MultipleLocator(0.1)
+
+ax.yaxis.set_minor_locator(yminorLocator)
+ax.xaxis.set_minor_locator(xminorLocator)
+
+ax.legend(loc=2)
+
+plt.savefig(vs30_5_6png)
+plt.savefig(vs30_5_6pdf)
+
+
+###################
+### PLOT 2:  ME6CFF fixed vs30/ME5CFF
+
+vs30_5_6fix_fig = plt.figure(figsize=(10,8))
+vs30_5_6fix_png = png_dir + 'sites_vs30_5cff_6fix.png'
+vs30_5_6fix_pdf = pdf_dir + 'sites_vs30_5cff_6fix.pdf'
+
+# Plot..
+#plt.errorbar(np.log(me6cff_iter.vs30[usta_ind]),np.array(me6cff_iter.site_terms)[usta_ind],yerr=np.array(me6cff_iter.site_stderr)[usta_ind],markersize=5,color='#5d9fba',fmt='D',elinewidth=2,capsize=4,capthick=1.5,label='Mixed iterative, with Vs30, corr coeff = %.2f, p = %.2f' % (me6corr,me6r)) 
+plt.errorbar(np.log(me5cff_iter.vs30[usta_ind]),np.array(me5cff_iter.site_terms)[usta_ind],yerr=np.array(me5cff_iter.site_stderr)[usta_ind],markersize=5,color='#b57955',fmt='o',elinewidth=2,capsize=4,capthick=1.5,label='Mixed iterative, without Vs30, corr coeff = %.2f, p = %.2f' % (me5corr, me5r)) 
+plt.errorbar(np.log(me6cff_iter2.vs30[usta_ind]),np.array(me6cff_iter2.site_terms)[usta_ind],yerr=np.array(me6cff_iter2.site_stderr)[usta_ind],markersize=5,color='#d84936',fmt='^',elinewidth=2,capsize=4,capthick=1.5,label='Mixed iterative, with Vs30 fixed, corr coeff = %.2f, p= %.2f' % (me6corr2,me6r2))
+
+#plt.plot(np.log(me6cff_iter2.vs30[usta_ind][vs30sort]), me_site_diff,linestyle='--',linewidth=2,color='#4f4f4f',label='Residual (vs30 - no vs30)')
+
+ax = vs30_5_6fix_fig.gca()
+
+ax.set_ylim([-2,3.5])
+
+ax.set_xlabel('ln (Vs30) (m/s)')
+ax.set_ylabel('Site Term (ln residual)')
+ax.set_title('Site term vs. Vs30')
+
+# Set y label spacing:
+xmajorLocator = MultipleLocator(1)
+ymajorLocator = MultipleLocator(1)
+
+ax.yaxis.set_major_locator(ymajorLocator)
+ax.xaxis.set_major_locator(xmajorLocator)
+
+# Set y tick spacing
+xminorLocator = MultipleLocator(0.1)
+yminorLocator = MultipleLocator(0.1)
+
+ax.yaxis.set_minor_locator(yminorLocator)
+ax.xaxis.set_minor_locator(xminorLocator)
+
+ax.legend(loc=2)
+
+plt.savefig(vs30_5_6fix_png)
+plt.savefig(vs30_5_6fix_pdf)
+
+
+###################
+### PLOT 3:  ME6CFF/ME5CFF
+
+vs30_all_fig = plt.figure(figsize=(10,8))
+vs30_all_png = png_dir + 'sites_vs30_all.png'
+vs30_all_pdf = pdf_dir + 'sites_vs30_all.pdf'
+
 # Plot..
 plt.scatter(np.log(me6cff_iter.vs30[usta_ind]),np.array(me6cff_iter.site_terms)[usta_ind],s=25,edgecolor='#5d9fba',facecolor='none',marker='D',linewidth=2,label='Mixed iterative, with Vs30, corr coeff = %.2f, p = %.2f' % (me6corr,me6r)) 
 plt.scatter(np.log(me5cff_iter.vs30[usta_ind]),np.array(me5cff_iter.site_terms)[usta_ind],s=25,edgecolor='#b57955',facecolor='none',marker='o',linewidth=2,label='Mixed iterative, without Vs30, corr coeff = %.2f, p = %.2f' % (me5corr, me5r)) 
 plt.scatter(np.log(me6cff_iter2.vs30[usta_ind]),np.array(me6cff_iter2.site_terms)[usta_ind],s=25,edgecolor='#d84936',facecolor='none',marker='^',linewidth=2,label='Mixed iterative, with Vs30 fixed, corr coeff = %.2f, p= %.2f' % (me6corr2,me6r2))
 
-plt.plot(np.log(me6cff_iter2.vs30[usta_ind][vs30sort]), me_site_diff,linestyle='--',linewidth=2,color='#4f4f4f',label='Residual (vs30 - no vs30)')
+ax = vs30_all_fig.gca()
 
-plt.ylim([-2,3.5])
+ax.set_ylim([-2,3.5])
 
-plt.xlabel('Vs30 (m/s)')
-plt.ylabel('Site Term (ln residual)')
-plt.title('Site term vs. Vs30')
+ax.set_xlabel('ln (Vs30) (m/s)')
+ax.set_ylabel('Site Term (ln residual)')
+ax.set_title('Site term vs. Vs30')
 
-plt.legend(loc=2)
+# Set y label spacing:
+xmajorLocator = MultipleLocator(1)
+ymajorLocator = MultipleLocator(1)
 
-plt.savefig(vs30png)
-plt.savefig(vs30pdf)
+ax.yaxis.set_major_locator(ymajorLocator)
+ax.xaxis.set_major_locator(xmajorLocator)
+
+# Set y tick spacing
+xminorLocator = MultipleLocator(0.1)
+yminorLocator = MultipleLocator(0.1)
+
+ax.yaxis.set_minor_locator(yminorLocator)
+ax.xaxis.set_minor_locator(xminorLocator)
+
+# Set y tick length:
+ax.tick_params(which='major',length=7,width=1)
+#ax.tick_params(which='minor',length=4,width=1)
+
+ax.legend(loc=2)
+
+plt.savefig(vs30_all_png)
+plt.savefig(vs30_all_pdf)
