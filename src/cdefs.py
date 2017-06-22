@@ -226,8 +226,8 @@ class db:
         Plots log10 PGA, for various distance ranges specified by bmin, bmax,
         and step.
         Input:
-            bmin:       Min value for colorscale
-            bmax:       Max balue for colorscale
+            bmin:       Min value for colorscale (PGA)
+            bmax:       Max balue for colorscale (PGA)
             axlims:     [[xmin,xmax],[ymin,ymax]]
         '''
         
@@ -256,16 +256,18 @@ class db:
         colorVal=scalarMap.to_rgba(np.log10(self.pga_pg))
         
        #Plot...
-        plt.scatter(np.log10(self.r),self.mw,edgecolors=colorVal,facecolors='none',lw=0.5)
+        plt.scatter(self.r,self.mw,edgecolors=colorVal,facecolors='none',lw=0.5)
+        plt.xscale('log')
+        plt.grid(True,which="both",ls="--",color='#adadad')
         
         #Add colorbar:
         cb=plt.colorbar(c)
-        cb.set_label('log10 PGA (g)')
+        cb.set_label(r"$\log_{10}$ PGA (g)")
 
         #Label the plot - Mbold on the x, log10PGA on the y, 
         plt.xlabel(r"$\log_{10} R_{rup}$")
         plt.ylabel(r"$\mathbf{M}$")
-        plt.title(r"$\mathbf{M}$ vs. Rrup, binned by distance")
+        plt.title(r"$\mathbf{M}$ vs. $R_{rup}$, binned by distance")
         
         #Axis labels:
         plt.xlim(axlims[0][0],axlims[0][1])
