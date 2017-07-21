@@ -285,7 +285,7 @@ f_r.savefig(f_rpng)
 bpga_min = -6.9
 bpga_max = -2
 
-axlims_pga = [[0,2.5],[0,4.9]]
+axlims_pga = [[0,250],[0,4.9]]
 f_pgapath = fig_dir+dbname+'_m_rrup.pdf'
 f_pgapng = fig_dir+dbname+'_m_rrup.png'
 

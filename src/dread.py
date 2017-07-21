@@ -208,6 +208,72 @@ def mread(flatfile,hashfile,stationfile,station_cols):
     return event,sta,N,ml,mw,DA,DV,dist[:,0],vs30,lat,lon,depth,stlat,stlon,stelv,source_i,receiver_i
 
 
+
+#############################################################################
+def find_source_receiver_indices(evnum,sta):
+    '''
+    Given a set of events and stations from a database of recordings, 
+    not ordered in their arrays to be unique, what are their unique
+    indices in the same given order?
+    Input:
+        evnum:          Array from database of recordings with event number for each recording
+        sta:            Array from database of recordings with station name for each recording
+    Output:
+        source_i:       Array with the unique identifier (starting at 1) for the sources for each recording
+        receiver_i:     Array with the unique identifier (starting at 1) for the receivers for each recording
+    '''
+    
+    from numpy import unique,zeros,where
+    
+    ###Get indices for event and station for the sources.in and receivers.in files####
+    ##Events first:
+    
+    #Get the unique station and event indices:
+    unique_events=unique(evnum)
+    
+    #Zero out source ind array:
+    source_ind=zeros((len(evnum)))
+    #For each event in the record, devent, give it the source index to be used:
+    for event_ind in range(len(unique_events)):
+        eventi=unique_events[event_ind]
+        
+        #Find where in the recordings list the event number is the same as this one:
+        recording_event_ind=where(evnum==eventi)
+        
+        #Set the source ind to be one plus this event, so it indexes with the raytracing program:
+        source_ind[recording_event_ind]=event_ind+1
+    
+    #Now set these to integers...
+    source_ind=source_ind.astype('int64')
+    
+    ##Next stations:
+    unique_stations=unique(sta)
+    
+    #Zero out array:
+    receiver_ind=zeros((len(sta)))
+    #Loop through the unique stations:
+    for station_ind in range(len(unique_stations)):
+        stationi=unique_stations[station_ind]
+        
+        #Find where in the recordings list the station is the same as this one:
+        recording_station_ind=where(sta==stationi)[0]
+    
+        #Set the receiver ind to be one plus this station, so it indexes with the raytracin gprogram:
+        receiver_ind[recording_station_ind]=station_ind+1    
+        
+    #Set these to integers:
+    receiver_ind=receiver_ind.astype('int64')
+    
+    ######
+    #At the end, convert the lists to arrays:
+    source_i=source_ind
+    receiver_i=receiver_ind
+    
+    return source_i, receiver_i
+
+
+#############################################################################
+
 def read_obj_list(objfile):
     '''
     Read a pickle file with a list of event of station objects
@@ -806,7 +872,7 @@ def read_material_model(coordspath,modelpath):
 #Read in Janine's PGA format file
 def read_jsbfile(datafile):
     '''
-    Read in Janine's PGA data format file and print out usable data for the db object read.
+    Read in Janine's PGA/PGV data format file and print out usable data for the db object read.
     Input:
         datafile:           String with path to the datafile
     Output:
@@ -824,7 +890,7 @@ def read_jsbfile(datafile):
         pga_mgal:           Array with PGA in milligals
         source_i:           Array with the source number for each recoridng, for raytracing
         receiver_i:         Array with the receiver number for each recoridng, for raytracing
-        
+        predparam_snr:      Array with signal to noise ratio for every recording
     '''
     
     from numpy import genfromtxt,unique,log10,array,where,zeros
@@ -848,8 +914,9 @@ def read_jsbfile(datafile):
     grcircle_r=dat_r[:,7]
     ml_r=dat_r[:,8]
     mw_r=dat_r[:,9]
-    pga_mgal_r=dat_r[:,10]
-    pga_sn_r=dat_r[:,11]
+    # If this is pga, units are mgal; if it's pgv, units are cm/s
+    predparam_r=dat_r[:,10]
+    predparam_snr_r=dat_r[:,11]
     
     #Set the final variables to empty lists, to append to:
     evnum=[]
@@ -863,7 +930,9 @@ def read_jsbfile(datafile):
     grcircle=[]
     ml=[]
     mw=[]
-    pga_mgal=[]
+    # If it's PGA this is mgal; if it's PGV this is cm/s.
+    predparam=[]
+    predparam_snr=[]
     
     #Find the geometrical average for the E and N stations of each event:
     #First get the unique events:
@@ -891,11 +960,11 @@ def read_jsbfile(datafile):
                 channel=chan_r[unique_event_ind[unique_station_ind]][chan_iter]
                 #Is it East?
                 if channel[2]=='E':
-                    chan_E=pga_mgal_r[unique_event_ind[unique_station_ind]][chan_iter]
+                    chan_E=predparam_r[unique_event_ind[unique_station_ind]][chan_iter]
                     E_counter=E_counter+1
                 elif channel[2]=='N':
                     N_counter=N_counter+1
-                    chan_N=pga_mgal_r[unique_event_ind[unique_station_ind]][chan_iter]
+                    chan_N=predparam_r[unique_event_ind[unique_station_ind]][chan_iter]
             
             #If for this recording (event and station combo) there is both an E and N
             #   reading, compute the geometrical average:
@@ -916,9 +985,10 @@ def read_jsbfile(datafile):
                 grcircle.append(grcircle_r[unique_event_ind[unique_station_ind]][chan_iter])
                 ml.append(ml_r[unique_event_ind[unique_station_ind]][chan_iter])
                 mw.append(mw_r[unique_event_ind[unique_station_ind]][chan_iter])
+                predparam_snr.append(predparam_snr_r[unique_event_ind[unique_station_ind]][chan_iter])
                 
                 #Save the pga as the current geometical average:
-                pga_mgal.append(pga_recording_i)
+                predparam.append(pga_recording_i)
     
     #At the end, convert the lists to arrays:
     evnum=array(evnum)
@@ -932,7 +1002,8 @@ def read_jsbfile(datafile):
     grcircle=array(grcircle)
     ml=array(ml)
     mw=array(mw)
-    pga_mgal=array(pga_mgal)
+    predparam=array(predparam)
+    predparam_snr=array(predparam_snr)
     
     ###Get indices for event and station for the sources.in and receivers.in files####
     ##Events first:
@@ -978,8 +1049,8 @@ def read_jsbfile(datafile):
     source_i=source_ind
     receiver_i=receiver_ind
     
-    #Return the data:
-    return evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,pga_mgal,source_i,receiver_i
+    #Return the data - if PGA, predparam is pga in mgal, if PGV, predparam is pgv in cm/s:
+    return evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,predparam,source_i,receiver_i,predparam_snr
 
     
 ######
@@ -1269,4 +1340,104 @@ def combine_measured_proxy_vs30(vs30_proxyfile,vs30_measuredfile,vs30_combinedfi
     return sta_out,vs30_out,vs30_method_out
     
     
+############################################################################
+def match_pga_pgv(evnum_pga,evlat,evlon,evdep,sta_pga,stlat,stlon,stelv,grcircle,ml,mw,pga_millig,pga_snr,evnum_pgv,sta_pgv,pgv_cmsec,pgv_snr):
+    '''
+    Match PGA and PGV databases to have the same recordings, and
+    be sorted in the same order.
+    Input:
+        evnum_pga:              Array with event numbers for PGA database
+        evlat:                  Array with event lats for PGA database
+        evlon:                  Array with event lons for PGA database
+        evdep:                  Array with event depths for PGA database
+        sta_pga:                Array with station names for PGA database
+        stlat:                  Array with station lats for PGA database
+        stlon:                  Array with station lons for PGA database
+        stelv:                  Array with station elevs for PGA database
+        grcircle:               Array with great circle path for PGA database
+        ml:                     Array with local mag for PGA database
+        mw:                     Array with moment mag for PGA database
+        pga_millig:             Array with PGA in millig for PGA database
+        pga_snr:                Array with PGA signal to noise for PGA database
+        evnum_pgv:              Array with event numbers for PGV database
+        sta_pgv:                Array with station names for PGV database
+        pgv_cmsec:              Array with PGV in cm/sec for PGV database
+        pgv_snr:                Array with PGV signal to noise for PGV database
+    Output:
+    '''
     
+    import numpy as np
+    
+    # Concatenate event numbers and station names into strings, to use as a unique identifier:
+    evnum_pga_str = evnum_pga.astype('str')
+    station_pga_str = sta_pga.astype('str')
+    
+    evnum_pgv_str = evnum_pgv.astype('str')
+    station_pgv_str = sta_pgv.astype('str')
+    
+    # Add together element wise:
+    recording_pga_str = np.core.defchararray.add(evnum_pga_str,station_pga_str)
+    recording_pgv_str = np.core.defchararray.add(evnum_pgv_str,station_pgv_str)
+    
+    # First check that pga and pgv are unique sets:
+    if len(np.unique(recording_pga_str))==len(recording_pga_str):
+        print 'PGA is a unique set of recordings'
+    else:
+        print 'WARNING!!!! PGA IS NOT UNIQUE!!!'
+        
+    if len(np.unique(recording_pgv_str))==len(recording_pgv_str):
+        print 'PGV is a unique set of recordings'
+    else:
+        print 'WARNING!!!! PGV IS NOT UNIQUE!!!'
+    
+    # Find the boolean intersection - first for where in pga pgv lies, then the opposite:
+    intersect_array_pga = np.in1d(recording_pga_str,recording_pgv_str)
+    intersect_array_pgv = np.in1d(recording_pgv_str,recording_pga_str)
+    
+    # Get the indices where they match - for pga, then pgv:
+    match_indices_pga = np.where(intersect_array_pga==True)[0]
+    match_indices_pgv = np.where(intersect_array_pgv==True)[0]
+    
+    # Check that the matched sets match in event number, line by line.
+    # Set a counter to 0 before entering - if it's changed to 2, can continue; else won't:
+    checkmatch_counter = 0
+    if len(np.where((evnum_pga[match_indices_pga] - evnum_pgv[match_indices_pgv])==0)[0])==len(evnum_pga[match_indices_pga]):
+        print 'Events match...'
+        checkmatch_counter+=1
+    else:
+        print 'Events do not match, check something...'
+        
+    if len(set(sta_pga[match_indices_pga]) - set(sta_pgv[match_indices_pgv]))==0:
+        print 'Stations match...'
+        checkmatch_counter+=1
+    else:
+        print 'Stations do not match, check something...'
+    
+    # If they both match, checkmatch_counter will be 2:
+    if checkmatch_counter==2:
+        
+        # these are all from the PGA database, so will use match_indices_pga:
+        evnum = evnum_pga[match_indices_pga]
+        evlat = evlat[match_indices_pga]
+        evlon = evlon[match_indices_pga]
+        evdep = [match_indices_pga]
+        sta = sta_pga[match_indices_pga]
+        stlat = stlat[match_indices_pga]
+        stlon = stlon[match_indices_pga]
+        stelv = stelv[match_indices_pga]
+        grcircle = grcircle[match_indices_pga]
+        ml = ml[match_indices_pga]
+        mw = mw[match_indices_pga]
+        pga_millig = pga_millig[match_indices_pga]
+        pga_snr = pga_snr[match_indices_pga]
+        
+        # these are from PGV databse, so use match_indices_pgv:
+        pgv_cmsec = pgv_cmsec[match_indices_pgv]
+        pgv_snr = pgv_snr[match_indices_pgv]
+        
+        ####
+        ## Now will need to get new source_i and receiver_i:
+        source_i,receiver_i = find_source_receiver_indices(evnum,sta)
+        
+        # Then return:
+        return evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,pga_millig,pga_snr,pgv_cmsec,pgv_snr,source_i,receiver_i
