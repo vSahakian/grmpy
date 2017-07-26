@@ -870,11 +870,12 @@ def read_material_model(coordspath,modelpath):
 
 #####
 #Read in Janine's PGA format file
-def read_jsbfile(datafile):
+def read_jsbfile(datafile,get_year='no'):
     '''
     Read in Janine's PGA/PGV data format file and print out usable data for the db object read.
     Input:
         datafile:           String with path to the datafile
+        get_year:           String to include/output year - 'yes' or 'no'
     Output:
         evnum:              Array with event numbers
         evlat:              Array with event latitude
@@ -891,6 +892,7 @@ def read_jsbfile(datafile):
         source_i:           Array with the source number for each recoridng, for raytracing
         receiver_i:         Array with the receiver number for each recoridng, for raytracing
         predparam_snr:      Array with signal to noise ratio for every recording
+        evyear:             Array with event year, if requested
     '''
     
     from numpy import genfromtxt,unique,log10,array,where,zeros
@@ -918,6 +920,10 @@ def read_jsbfile(datafile):
     predparam_r=dat_r[:,10]
     predparam_snr_r=dat_r[:,11]
     
+    # If year is requested, grab event origin date:
+    if get_year=='yes':
+        evdate_r = genfromtxt(datafile,dtype='S',usecols=[15])
+    
     #Set the final variables to empty lists, to append to:
     evnum=[]
     evlat=[]
@@ -933,6 +939,9 @@ def read_jsbfile(datafile):
     # If it's PGA this is mgal; if it's PGV this is cm/s.
     predparam=[]
     predparam_snr=[]
+    
+    if get_year=='yes':
+        evdate=[]
     
     #Find the geometrical average for the E and N stations of each event:
     #First get the unique events:
@@ -987,6 +996,9 @@ def read_jsbfile(datafile):
                 mw.append(mw_r[unique_event_ind[unique_station_ind]][chan_iter])
                 predparam_snr.append(predparam_snr_r[unique_event_ind[unique_station_ind]][chan_iter])
                 
+                if get_year=='yes':
+                    evdate.append(evdate_r[unique_event_ind[unique_station_ind]][chan_iter])
+                
                 #Save the pga as the current geometical average:
                 predparam.append(pga_recording_i)
     
@@ -1004,6 +1016,14 @@ def read_jsbfile(datafile):
     mw=array(mw)
     predparam=array(predparam)
     predparam_snr=array(predparam_snr)
+    
+    if get_year=='yes':
+        evdate=array(evdate)
+        # split to get the year out of the date:
+        evyear = zeros(len(evdate))
+        for recordingi in range(len(evdate)):
+            yeari = evdate[recordingi].split('/')[2]
+            evyear[recordingi]=yeari
     
     ###Get indices for event and station for the sources.in and receivers.in files####
     ##Events first:
@@ -1049,8 +1069,14 @@ def read_jsbfile(datafile):
     source_i=source_ind
     receiver_i=receiver_ind
     
-    #Return the data - if PGA, predparam is pga in mgal, if PGV, predparam is pgv in cm/s:
-    return evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,predparam,source_i,receiver_i,predparam_snr
+    # If year was requested:
+    if get_year=='yes':
+        #Return the data - if PGA, predparam is pga in mgal, if PGV, predparam is pgv in cm/s:
+        return evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,predparam,source_i,receiver_i,predparam_snr,evyear
+        
+    elif get_year=='no':
+        #Return the data - if PGA, predparam is pga in mgal, if PGV, predparam is pgv in cm/s:
+        return evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,predparam,source_i,receiver_i,predparam_snr
 
     
 ######
@@ -1341,7 +1367,7 @@ def combine_measured_proxy_vs30(vs30_proxyfile,vs30_measuredfile,vs30_combinedfi
     
     
 ############################################################################
-def match_pga_pgv(evnum_pga,evlat,evlon,evdep,sta_pga,stlat,stlon,stelv,grcircle,ml,mw,pga_millig,pga_snr,evnum_pgv,sta_pgv,pgv_cmsec,pgv_snr):
+def match_pga_pgv(evnum_pga,evlat,evlon,evdep,sta_pga,stlat,stlon,stelv,grcircle,ml,mw,pga_millig,pga_snr,evnum_pgv,sta_pgv,pgv_cmsec,pgv_snr,evyear='None'):
     '''
     Match PGA and PGV databases to have the same recordings, and
     be sorted in the same order.
@@ -1363,6 +1389,7 @@ def match_pga_pgv(evnum_pga,evlat,evlon,evdep,sta_pga,stlat,stlon,stelv,grcircle
         sta_pgv:                Array with station names for PGV database
         pgv_cmsec:              Array with PGV in cm/sec for PGV database
         pgv_snr:                Array with PGV signal to noise for PGV database
+        evyear:                 If not 'None', array with year of origin time for event
     Output:
     '''
     
@@ -1420,7 +1447,7 @@ def match_pga_pgv(evnum_pga,evlat,evlon,evdep,sta_pga,stlat,stlon,stelv,grcircle
         evnum = evnum_pga[match_indices_pga]
         evlat = evlat[match_indices_pga]
         evlon = evlon[match_indices_pga]
-        evdep = [match_indices_pga]
+        evdep = evdep[match_indices_pga]
         sta = sta_pga[match_indices_pga]
         stlat = stlat[match_indices_pga]
         stlon = stlon[match_indices_pga]
@@ -1431,6 +1458,10 @@ def match_pga_pgv(evnum_pga,evlat,evlon,evdep,sta_pga,stlat,stlon,stelv,grcircle
         pga_millig = pga_millig[match_indices_pga]
         pga_snr = pga_snr[match_indices_pga]
         
+        # If evyear is given (not None), then grab it here:
+        if evyear!='None':
+            evyear = evyear[match_indices_pga]
+        
         # these are from PGV databse, so use match_indices_pgv:
         pgv_cmsec = pgv_cmsec[match_indices_pgv]
         pgv_snr = pgv_snr[match_indices_pgv]
@@ -1440,4 +1471,7 @@ def match_pga_pgv(evnum_pga,evlat,evlon,evdep,sta_pga,stlat,stlon,stelv,grcircle
         source_i,receiver_i = find_source_receiver_indices(evnum,sta)
         
         # Then return:
-        return evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,pga_millig,pga_snr,pgv_cmsec,pgv_snr,source_i,receiver_i
+        if evyear=='None':
+            return evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,pga_millig,pga_snr,pgv_cmsec,pgv_snr,source_i,receiver_i
+        else:
+            return evnum,evlat,evlon,evdep,sta,stlat,stlon,stelv,grcircle,ml,mw,pga_millig,pga_snr,pgv_cmsec,pgv_snr,source_i,receiver_i,evyear

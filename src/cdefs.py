@@ -12,7 +12,7 @@ class db:
     This class describes a set of events
     '''
     
-    def __init__(self,event,sta,N,ml,mw,DA,DV,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,vs30_method=None):
+    def __init__(self,event,sta,N,ml,mw,DA,DV,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,vs30_method=None,pga_snr=None,pgv_snr=None):
         '''
         Initiate the class by giving database information.
         Input:
@@ -34,6 +34,8 @@ class db:
             source_i:       Array with source index for raytracing
             receiver_i:     Array with receiver index for raytracing
             vs30_method:    Array with string values of the Vs30 measurement method, useful if using several types
+            pga_snr:        Array with PGA signal to noise ratio
+            pgv_snr:        Array with PGV signal to noise ratio
         '''
         import numpy as np
         
@@ -92,10 +94,21 @@ class db:
         elif vs30_method==None:
             self.vs30_method=None
             
+        if pga_snr!=None:
+            self.pga_snr=pga_snr
+        elif pga_snr==None:
+            self.pga_snr=None
         
-    def plot_allpga(self):
+        if pgv_snr!=None:
+            self.pgv_snr=pgv_snr
+        elif pgv_snr==None:
+            self.pgv_snr=None    
+        
+    def plot_allpga(self,predparamflag='pga'):
         '''
         Plots log10 of all PGA, regardless of M/r
+        Input:
+            predparamflag:      String with predictiv paramter to plot ('pga' is default)
         '''
         
         from matplotlib import pyplot as plt
@@ -105,29 +118,48 @@ class db:
         plt.figure()
         
         #Plot...
-        plt.scatter(self.mw,np.log10(self.pga_pg),marker='o')
+        if predparamflag=='pga':
+            plt.scatter(self.mw,np.log10(self.pga_pg),marker='o')
+            plt.ylabel(r"$\log_{10} PGA$")
+            plt.title(r"PGA vs. $\mathbf{M}$ for all distances")
+            
+        elif predparamflag=='pgv':
+            plt.scatter(self.mw,np.log10(self.pgv),marker='o')
+            plt.ylabel(r"$\log_{10} PGV$")
+            plt.title(r"PGV vs. $\mathbf{M}$ for all distances")
+            
         plt.xlabel(r"$\mathbf{M}$")
-        plt.ylabel(r"$\log_{10} PGA$")
-        plt.title(r"PGA vs. $\mathbf{M}$ for all distances")
+        
         
         plt.show()
         
         
-    def plot_mpga(self,bmin,bmax,axlims):
+    def plot_mpga(self,bmin,bmax,axlims,predparamflag='pga'):
         '''
         Plots log10 PGA, for various magnitude ranges specified by bmin, bmax,
         and step.
         Input:
-            bmin:       Min value for bins
-            bmax:       Max balue for bins
-            axlims:     [[xmin,xmax],[ymin,ymax]]
+            bmin:           Min value for bins
+            bmax:           Max balue for bins
+            axlims:         [[xmin,xmax],[ymin,ymax]]
+            predparam:      String with predictiv paramter to plot ('pga' is default)
         '''
         
         from matplotlib import pyplot as plt
         import numpy as np
         import matplotlib.colors as colors
         import matplotlib.cm as cm
-                
+           
+        # Get predictive paramter to plot:
+        if predparamflag=='pga':
+            predparam=self.pga_pg
+            ylabel_string = r"$\log_{10} PGA$"
+            title_string = r"PGA vs. Distance, binned by $\mathbf{M}$"
+        elif predparamflag=='pgv':
+            predparam=self.pgv
+            ylabel_string = r"$\log_{10} PGV$"
+            title_string = r"PGV vs. Distance, binned by $\mathbf{M}$"        
+                          
         #Get colormap
         mymap='viridis'
         #Make colormap:
@@ -148,7 +180,7 @@ class db:
         colorVal=scalarMap.to_rgba(self.mw)
         
        #Plot...
-        plt.scatter(self.r,np.log10(self.pga_pg),edgecolors=colorVal,facecolors='none',lw=0.5)
+        plt.scatter(self.r,np.log10(predparam),edgecolors=colorVal,facecolors='none',lw=0.5)
 
         #Add colorbar:
         cb=plt.colorbar(c)
@@ -156,8 +188,8 @@ class db:
 
         #Label the plot - Mbold on the x, log10PGA on the y, 
         plt.xlabel('Distance (km)')
-        plt.ylabel(r"$\log_{10} PGA$")
-        plt.title(r"PGA vs. Distance, binned by $\mathbf{M}$")
+        plt.ylabel(ylabel_string)
+        plt.title(title_string)
         
         #Axis labels:
         plt.xlim(axlims[0][0],axlims[0][1])
@@ -167,7 +199,7 @@ class db:
         
         return f1
         
-    def plot_rpga(self,bmin,bmax,axlims):
+    def plot_rpga(self,bmin,bmax,axlims,predparamflag='pga'):
         '''
         Plots log10 PGA, for various distance ranges specified by bmin, bmax,
         and step.
@@ -182,6 +214,17 @@ class db:
         import matplotlib.colors as colors
         import matplotlib.cm as cm
                 
+        # Get predictive paramter to plot:
+        if predparamflag=='pga':
+            predparam=self.pga_pg
+            ylabel_string = r"$\log_{10} PGA$"
+            title_string = r"PGA vs. $\mathbf{M}$, binned by distance"
+        elif predparamflag=='pgv':
+            predparam=self.pgv
+            ylabel_string = r"$\log_{10} PGV$"
+            title_string = r"PGV vs. $\mathbf{M}$, binned by distance"
+        
+        
         #Get colormap
         mymap='viridis'
         #Make colormap:
@@ -202,7 +245,7 @@ class db:
         colorVal=scalarMap.to_rgba(self.r)
         
        #Plot...
-        plt.scatter(self.mw,np.log10(self.pga_pg),edgecolors=colorVal,facecolors='none',lw=0.5)
+        plt.scatter(self.mw,np.log10(predparam),edgecolors=colorVal,facecolors='none',lw=0.5)
         
         #Add colorbar:
         cb=plt.colorbar(c)
@@ -210,8 +253,8 @@ class db:
 
         #Label the plot - Mbold on the x, log10PGA on the y, 
         plt.xlabel(r"$\mathbf{M}$")
-        plt.ylabel(r"$\log_{10} PGA$")
-        plt.title(r"PGA vs. $\mathbf{M}$, binned by distance")
+        plt.ylabel(ylabel_string)
+        plt.title(title_string)
         
         #Axis labels:
         plt.xlim(axlims[0][0],axlims[0][1])
@@ -221,13 +264,13 @@ class db:
         
         return f1
         
-    def plot_m_rrup(self,bmin,bmax,axlims):
+    def plot_m_rrup(self,bmin,bmax,axlims,predparamflag='pga'):
         '''
         Plots log10 PGA, for various distance ranges specified by bmin, bmax,
         and step.
         Input:
-            bmin:       Min value for colorscale (PGA)
-            bmax:       Max balue for colorscale (PGA)
+            bmin:       Min value for colorscale (PGA or PGV)
+            bmax:       Max balue for colorscale (PGA or PGV)
             axlims:     [[xmin,xmax],[ymin,ymax]]
         '''
         
@@ -235,7 +278,13 @@ class db:
         import numpy as np
         import matplotlib.colors as colors
         import matplotlib.cm as cm
-                
+               
+        # Get cbar label depending on predictive paramter:        
+        if predparamflag=='pga':
+            cbar_string = r"$\log_{10}$ PGA (g)"
+        elif predparamflag=='pgv':
+            cbar_string = r"$\log_{10}$ PGV (m/s)"        
+                    
         #Get colormap
         mymap='viridis'
         #Make colormap:
@@ -262,7 +311,7 @@ class db:
         
         #Add colorbar:
         cb=plt.colorbar(c)
-        cb.set_label(r"$\log_{10}$ PGA (g)")
+        cb.set_label(cbar_string)
 
         #Label the plot - Mbold on the x, log10PGA on the y, 
         plt.xlabel(r"$\log_{10} R_{rup}$")
@@ -592,7 +641,7 @@ class event:
     Save all data for one event, to use in residual computation
     '''
     
-    def __init__(self,evnum,sta,stnum,ml,mw,pga,pgv,pga_pg,r,vs30,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,vs30_method=None):
+    def __init__(self,evnum,sta,stnum,ml,mw,pga,pgv,pga_pg,r,vs30,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,vs30_method=None,pga_snr=None,pgv_snr=None):
         self.evnum=evnum
         self.sta=sta
         self.stnum=stnum
@@ -618,6 +667,16 @@ class event:
             self.vs30_method=None
         elif vs30_method!=None:
             self.vs30_method=vs30_method
+            
+        if pga_snr==None:
+            self.pga_snr=None
+        elif pga_snr!=None:
+            self.pga_snr=pga_snr
+            
+        if pgv_snr==None:
+            self.pgv_snr=None
+        elif pgv_snr!=None:
+            self.pgv_snr=pgv_snr
         
     def add_total_resid(self,total_residuals):
         self.total_residual=total_residuals
@@ -640,7 +699,7 @@ class station:
     Save all data for one station
     '''
     
-    def __init__(self,sta,stnum,vs30,evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,total_residual,E_residual,W_residual,vs30_method=None):
+    def __init__(self,sta,stnum,vs30,evnum,ml,mw,pga_pg,pga,pgv,ffdf,md_ffdf,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,total_residual,E_residual,W_residual,vs30_method=None,pga_snr=None,pgv_snr=None):
         self.sta=sta
         self.stnum=stnum
         self.vs30=vs30
@@ -668,6 +727,16 @@ class station:
             self.vs30_method=None
         elif vs30_method!=None:
             self.vs30_method=vs30_method
+            
+        if pga_snr==None:
+            self.pga_snr=None
+        elif pga_snr!=None:
+            self.pga_snr=pga_snr
+            
+        if pgv_snr==None:
+            self.pgv_snr=None
+        elif pgv_snr!=None:
+            self.pgv_snr=pgv_snr
             
     def get_site_resid(self):
         from numpy import mean,std
@@ -744,7 +813,7 @@ class residuals:
     
     def __init__(self,dbpath,event_list_path,station_list_path,init_style='basic',
                     evnum=None,elat=None,elon=None,edepth=None,sta=None,stnum=None,ml=None,mw=None,
-                    pga=None,pgv=None,pga_pg=None,r=None,vs30=None,ffdf=None,md_ffdf=None,stlat=None,
+                    pga=None,pgv=None,pga_pg=None,pga_snr=None,pgv_snr=None,r=None,vs30=None,ffdf=None,md_ffdf=None,stlat=None,
                     stlon=None,stelv=None,source_i=None,receiver_i=None,vs30_method=None,total_residual=None,E_residual=None,
                     E_mean=None,E_std=None,W_residual=None,W_mean=None,W_std=None,site_terms=None,site_mean=None,site_stderr=None,site_std=None,
                     path_terms=None,path_mean=None,path_std=None):
@@ -776,6 +845,8 @@ class residuals:
             self.pga=pga
             self.pgv=pgv
             self.pga_pg=pga_pg
+            self.pga_snr=pga_snr
+            self.pgv_snr=pgv_snr
             self.r=r
             self.vs30=vs30
             self.vs30_method=vs30_method
@@ -825,6 +896,8 @@ class residuals:
             self.pga=db.pga
             self.pgv=db.pgv
             self.pga_pg=db.pga_pg
+            self.pga_snr=db.pga_snr
+            self.pgv_snr=db.pgv_snr
             self.r=db.r
             self.vs30=db.vs30
             self.vs30_method=db.vs30_method
@@ -1911,7 +1984,7 @@ class mixed_residuals:
     Save database info plus residuals into one object for analysis
     '''
     
-    def __init__(self,db,total_resid,tresidmean,tresidstd,evresid,ev_stderr,evmean,evstd,weresid,wemean,westd,siteresid,site_stderr,sitemean,sitestd,pathresid,pathmean,pathstd):
+    def __init__(self,db,total_resid,tresidmean,tresidstd,evresid,ev_stderr,evmean,evstd,weresid,wemean,westd,siteresid,site_stderr,sitemean,sitestd,pathresid,pathmean,pathstd,snrflag='off'):
         '''
         Initialize database - pull necessary information and save to the object
         Input:
@@ -1933,6 +2006,7 @@ class mixed_residuals:
             pathresid:          Array of path terms
             pathmean:           Mean of path terms
             pathstd:            Standard deviation of path terms
+            snrflag:            Flag as to whether the db provided has snr for pga/pgv (default: 'off')
         Output:
             residual:           Object holding all data and residuals for a database＜
         '''
@@ -1964,6 +2038,10 @@ class mixed_residuals:
             self.vs30_method=db.vs30_method
         else:
             self.vs30_method=None
+            
+        if snrflag=='on':
+            self.pga_snr=db.pga_snr
+            self.pgv_snr=db.pgv_snr
         
         self.total_residual=total_resid
         
