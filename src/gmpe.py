@@ -256,21 +256,23 @@ def ask2014(M,Rrup,coeff_file,mdep_ffdf,dist_ranges,ncoeff=5,predictive_paramete
     #Frv, Fn, Fas, Fhw are flags to turn on/off reverse faulting, normal faulting, and aftershocks, respectively.
     
     #Basic model:
-    def basic(M,Rrup,t_flag,ncoeff):
+    def basic(M,Rrup,t_flag,ncoeff,Ztor=15,vs30=760):
         '''
         Basic form in computing the predictive paramater (here, PGA) using 
         Abrahamson, Silva, and Kamai 2014's model.
         Input:
             M:          Moment Magnitude
-            Rrup:       Closest distance to rupture
+            Rrup:       Array with closest distance to rupture, same length as M
             t_flag:     Flag for predictive parameter. 0=PGA, 1=PGV
             ncoeff:     Number of coefficients in version
+            Ztor:       Depth to top of rupture - default is 15km
+            vs30:       Vs30 value for vs30 scaling and soil depth scaling, default is 760 m/s
         Output: 
             f1 (log10(predictive parameter)), 
             to put into full functional form or use alone
         '''
         
-        from numpy import log10,exp
+        from numpy import log10,exp,log
         
         #Define coefficients for given predictive parameter:
         M1t=M1[t_flag]
@@ -288,6 +290,9 @@ def ask2014(M,Rrup,coeff_file,mdep_ffdf,dist_ranges,ncoeff=5,predictive_paramete
         a7t=a7 
         M2t=M2
         
+        # Ztor:
+        a15t = a15[t_flag]
+        a46t = a46[t_flag]
         
         #First, get magnitude dependent fictitious depth, c:
         #Where is it above M5:
@@ -327,6 +332,14 @@ def ask2014(M,Rrup,coeff_file,mdep_ffdf,dist_ranges,ncoeff=5,predictive_paramete
                         (a2t + a3t*(M2t - M1t))*log(R[m3_ind]) + \
                         a17t*Rrup[m3_ind]
                         
+        ## Add on depth to top of rupture:
+        #f6 = a15t*(Ztor/20)
+        #
+        ## Add soil depth:
+        #zref_inside = log((vs30**4 + 610.**4)/(1360.**4 + 610.**4))
+        #z1ref = (1./1000)*exp((-7.67/4)*zref_inside)
+        #
+        #f10 = a46t*ln(
                         
         #Sort them by magnitude also, for plotting:
         sort_ind=argsort(M)
@@ -369,3 +382,24 @@ def ask2014(M,Rrup,coeff_file,mdep_ffdf,dist_ranges,ncoeff=5,predictive_paramete
         f1,M_sort,f1_sort=basic(M,Rrup,1,ncoeff)
     
     return f1,M_sort,f1_sort
+    
+    
+def compute_baltay_anza_fixeddist(Mw,Rhyp):
+    '''
+    Given magnitude, compute PGA for the GMPE of Baltay et al. (2017) for fixed distance
+    Input:
+        Mw:             Array with magnitudes to compute for
+        Rhyp:           Value of fixed hypocentral distance to plot
+    Output:
+        ln_PGA:         Array with PGA values in ln PGA
+    '''
+    
+    import numpy as np
+    
+    log10pga = -6.13 + 1.5*Mw - np.log10(Rhyp)
+    
+    pga = 10**log10pga
+    
+    ln_pga = np.log(pga)
+    
+    return ln_pga

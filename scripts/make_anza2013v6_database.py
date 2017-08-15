@@ -319,8 +319,17 @@ f.close()
 #########################
 #####Sample Database#####
 #########################
-#
-#print 'Sampling database'
+
+print 'Sampling database'
+
+# Some recordigns are bad because the lat/lon is printed twice, so distances
+#   are huge...find where this is NOT the case, and keep those indices.
+#  At the same time, remove places where pga_snr or pgv_snr are equal to infinity...
+rrup_snr_good_indices = np.where((rrup<500) & (pga_snr!=np.inf) & (pgv_snr!=np.inf) & (pga_snr>=4) & (pgv_snr>=2))[0]
+
+# Sample:
+dr.recording_sample(dbfname_raw,rrup_snr_good_indices,dbfname_pgrid)
+
 ##Then, sample the database so that it includes only events inside the propagation bridge
 ##   plus a buffer, and also recorded on a minimum number of stations:
 #
@@ -333,61 +342,82 @@ f.close()
 ## Sample to remove events outside of propagation grid:
 #dr.db_propgrid_sample(dbfname_raw,propgrid,dbfname_pgrid)
 #print 'Removed events outside of grid, saved to %s' % dbfname_pgrid
-#
-##Sample by minimum number of stations:
-#dr.db_station_sample(dbfname_pgrid,min_stations,dbfname)
-#print 'Sampled by minimum number of stations, saved to %s' % dbfname
-#
-## Set the output directory to the last one here:
-#dbpathout = dbfname
-#
-########################End making database object############################
-#
-#
-#####################################################
-##############Preliminary Plots######################
-#####################################################
-#
-#print 'Making plots'
-#
-####Make plots with the sampled database###
-##Open the database object;
-#datobj=open(dbpathout,'r')
-#db=pickle.load(datobj)
-#datobj.close()
-#
-##Plot against magintude, with distance colored:
-#bm_min=10
-#bm_max=120
-#axlims_m=[[0,4.5],[-7,-1]]
-#f_mpath=fig_dir+dbname+'_mag.pdf'
-#f_mpng=fig_dir+dbname+'_mag.png'
-#
-#f_mag=db.plot_rpga(bm_min,bm_max,axlims_m)
-#f_mag.savefig(f_mpath)
-#f_mag.savefig(f_mpng)
-#
-##Plot against distance, with magnitude colored:
-#br_min=0.6
-#br_max=3
-#
-#axlims_r=[[0,180],[-7,-1]]
-#f_rpath=fig_dir+dbname+'_r.pdf'
-#f_rpng=fig_dir+dbname+'_r.png'
-#
-#f_r=db.plot_mpga(br_min,br_max,axlims_r)
-#f_r.savefig(f_rpath)
-#f_r.savefig(f_rpng)
-#
-##Plot M vs. Rrup, with log10 pga colored:
-#bpga_min = -6.9
-#bpga_max = -2
-#
-#axlims_pga = [[0,250],[0,4.9]]
-#f_pgapath = fig_dir+dbname+'_m_rrup.pdf'
-#f_pgapng = fig_dir+dbname+'_m_rrup.png'
-#
-#f_pga = db.plot_m_rrup(bpga_min,bpga_max,axlims_pga)
-#f_pga.savefig(f_pgapath)
-#f_pga.savefig(f_pgapng)
-#
+
+#Sample by minimum number of stations:
+dr.db_station_sample(dbfname_pgrid,min_stations,dbfname)
+print 'Sampled by minimum number of stations, saved to %s' % dbfname
+
+# Set the output directory to the last one here:
+dbpathout = dbfname
+
+#######################End making database object############################
+
+
+####################################################
+#############Preliminary Plots######################
+####################################################
+
+print 'Making plots'
+
+###Make plots with the sampled database###
+#Open the database object;
+datobj=open(dbpathout,'r')
+db=pickle.load(datobj)
+datobj.close()
+
+#Plot PGA against magintude, with distance colored:
+bm_min=10
+bm_max=250
+axlims_m=[[0.2,4.6],[-7,0]]
+f_mpath=fig_dir+dbname+'_pga_mag.pdf'
+f_mpng=fig_dir+dbname+'_pga_mag.png'
+
+f_mag=db.plot_rpga(bm_min,bm_max,axlims_m)
+f_mag.savefig(f_mpath)
+f_mag.savefig(f_mpng)
+
+#PGV..
+axlims_m=[[0.2,4.6],[-8,-1]]
+f_mpath=fig_dir+dbname+'_pgv_mag.pdf'
+f_mpng=fig_dir+dbname+'_pgv_mag.png'
+
+f_mag=db.plot_rpga(bm_min,bm_max,axlims_m,predparamflag='pgv')
+f_mag.savefig(f_mpath)
+f_mag.savefig(f_mpng)
+
+
+######
+#Plot against distance, with magnitude colored:
+br_min=0.6
+br_max=4.5
+
+axlims_r=[[0,300],[-7,-1]]
+f_rpath=fig_dir+dbname+'_pga_r.pdf'
+f_rpng=fig_dir+dbname+'_pga_r.png'
+
+f_r=db.plot_mpga(br_min,br_max,axlims_r)
+f_r.savefig(f_rpath)
+f_r.savefig(f_rpng)
+
+# PGV:
+axlims_r=[[0,300],[-8,-0]]
+f_rpath=fig_dir+dbname+'_pgv_r.pdf'
+f_rpng=fig_dir+dbname+'_pgv_r.png'
+
+f_r=db.plot_mpga(br_min,br_max,axlims_r,predparamflag='pgv')
+f_r.savefig(f_rpath)
+f_r.savefig(f_rpng)
+
+######
+#Plot M vs. Rrup, with log10 pga colored:
+bpga_min = -6.9
+bpga_max = -2
+
+axlims_pga = [[0,300],[0,5]]
+f_pgapath = fig_dir+dbname+'_pga_m_rrup.pdf'
+f_pgapng = fig_dir+dbname+'_pga_m_rrup.png'
+
+f_pga = db.plot_m_rrup(bpga_min,bpga_max,axlims_pga)
+f_pga.savefig(f_pgapath)
+f_pga.savefig(f_pgapng)
+

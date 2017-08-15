@@ -383,6 +383,16 @@ def db_station_sample(dbpath_in,numstas,dbpath_out):
         vs30_method=db_orig.vs30_method[keep_event_ind]
     else:
         vs30_method=None
+        
+    if db_orig.pga_snr!=None:
+        pga_snr = db_orig.pga_snr[keep_event_ind]
+    else:
+        pga_snr = None
+        
+    if db_orig.pgv_snr!=None:
+        pgv_snr = db_orig.pgv_snr[keep_event_ind]
+    else:
+        pgv_snr = None
     
     ###Change the source and receiver indices for raytracing...
     #Get the unique station and event indices:
@@ -429,7 +439,7 @@ def db_station_sample(dbpath_in,numstas,dbpath_out):
     #DV=pga/1e-9
     
     #Make sampled database:
-    db_samp=cdf.db(evnum,sta,stnum,ml,mw,pga,pgv,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,vs30_method=vs30_method)
+    db_samp=cdf.db(evnum,sta,stnum,ml,mw,pga,pgv,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,vs30_method=vs30_method,pga_snr=pga_snr,pgv_snr=pgv_snr)
     
     #Save to file...
     doutfile=open(dbpath_out,'w')
@@ -491,6 +501,16 @@ def recording_sample(dbpath_in,recording_indices,dbpath_out):
         vs30_method=db_orig.vs30_method[recording_indices]
     else:
         vs30_method=None
+        
+    if db_orig.pga_snr!=None:
+        pga_snr = db_orig.pga_snr[recording_indices]
+    else:
+        pga_snr = None
+        
+    if db_orig.pgv_snr!=None:
+        pgv_snr = db_orig.pgv_snr[recording_indices]
+    else:
+        pgv_snr = None
     
     ###Change the source and receiver indices for raytracing...
     #Get the unique station and event indices:
@@ -537,7 +557,7 @@ def recording_sample(dbpath_in,recording_indices,dbpath_out):
     #DV=pga/1e-9
     
     #Make sampled database:
-    db_samp=cdf.db(evnum,sta,stnum,ml,mw,pga,pgv,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,vs30_method=vs30_method)
+    db_samp=cdf.db(evnum,sta,stnum,ml,mw,pga,pgv,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,vs30_method=vs30_method,pga_snr=pga_snr,pgv_snr=pgv_snr)
     
     #Save to file...
     doutfile=open(dbpath_out,'w')
@@ -628,6 +648,15 @@ def db_propgrid_sample(dbpath_in,propgrid,dbpath_out):
     else:
         vs30_method=None
     
+    if dbin.pga_snr!=None:
+        pga_snr = dbin.pga_snr[keep_event_ind]
+    else:
+        pga_snr = None
+        
+    if dbin.pgv_snr!=None:
+        pgv_snr = dbin.pgv_snr[keep_event_ind]
+    else:
+        pgv_snr = None
     
     
     
@@ -677,7 +706,7 @@ def db_propgrid_sample(dbpath_in,propgrid,dbpath_out):
     
     
     ## Now make new sampled database:
-    dbsamp = cdf.db(evnum,sta,stnum,ml,mw,pga,pgv,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,vs30_method=vs30_method)
+    dbsamp = cdf.db(evnum,sta,stnum,ml,mw,pga,pgv,r,vs30,elat,elon,edepth,stlat,stlon,stelv,source_i,receiver_i,vs30_method=vs30_method,pga_snr=pga_snr,pgv_snr=pgv_snr)
     
     #Save to file...
     doutfile=open(dbpath_out,'w')

@@ -174,7 +174,7 @@ def plot_data_model(home,dbpath,dbname,modelpath,coeff_file,mdep_ffdf,sdist,ask_
     Rrup=ask_dist*ones(ask_mw.shape)
     
     #Get the NGA predictions...
-    freq1,M_sort,freq1_sort=gm.ask2014(ask_mw,Rrup,coeff_file,0,[0,0])
+    freq1,M_sort,freq1_sort=gm.ask2014(ask_mw,Rrup,coeff_file,0,[0,0],predictive_parameter=predictive_parameter)
 
 
     ############
