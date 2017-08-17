@@ -170,6 +170,183 @@ def compute_model_fixeddist(m,rng,sdist,Mc,mdep_ffdf,ncoeff=5):
     return mw_out,d_out
 
 
+
+###############################################################################
+def oq_ask2014(M,Rrup,predictive_parameter='pga',vs30=760,ztor=7.13,rake=0.0,dip=90.0,width=10.0,z1pt0 = 0.05):
+    '''
+    Compute the predicted ground motions with Abrahamson, Silva, and Kamai 2014 model
+        from OpenQuake engine.  Assuming all events are a point source.
+    Input:
+        M:                      Float or array with magnitudes to compute
+        Rrup:                   Float or array with rrups - if it's an array, it should be np.logspace(log10(start),log10(stop),num)
+        predictive_parameter:   Predictive parameter to compute: 'pga','pgv', or float with SA period (i.e., 1.0).  Default: 'pga'
+        vs30:                   Value or array with Vs30 to use.  Default: 760. 
+        ztor:                   Depth to top of rupture. Default: 7.13 from Annemarie. ASSUMPTION IS RRUP > ZTOR!!!!
+        rake:                   Rake.  Default: 0.0 degrees.
+        dip:                    Dip.  Default: 90.0 degrees.
+        width:                  Fault width.  Default: 10.0
+        z1pt0:                  Soil depth to Vs = 1.0km/s, in km.  Default: 0.05.
+    Output:
+        lmean_ask14:            Mean ground motion. If M and Rrup floats returns float, if M float and Rrup array returns array like Rrup,
+                                    if M array and Rrup float returns array like M, if M and rrup arrays returns array like len(M) x len(Rrup)
+        sd_ask14:               Standard deviation. If M and Rrup floats returns float, if M float and Rrup array returns array like Rrup,
+                                    if M array and Rrup float returns array like M, if M and rrup arrays returns array like len(M) x len(Rrup)
+        
+    '''
+    from openquake.hazardlib.gsim.abrahamson_2014 import AbrahamsonEtAl2014
+    from openquake.hazardlib import imt, const
+    from openquake.hazardlib.gsim.base import RuptureContext
+    from openquake.hazardlib.gsim.base import DistancesContext
+    from openquake.hazardlib.gsim.base import SitesContext
+    import numpy as np
+    
+    # Initiate which model:
+    ASK14 = AbrahamsonEtAl2014()
+
+    # Predictive parameter:
+    if predictive_parameter=='pga':
+        IMT = imt.PGA()
+    elif predictive_parameter=='pgv':
+        IMT = imt.PGV()
+    else:
+        IMT = imt.SA(predictive_parameter)
+        
+    # Initiate the rupture, distances, and sites objects:
+    rctx = RuptureContext()
+    dctx = DistancesContext()
+    sctx = SitesContext()
+    sctx_rock = SitesContext()
+
+    # Fill the rupture context...assuming rake is 0, dip is 90,
+    rctx.rake = rake
+    rctx.dip = dip
+    rctx.ztor = ztor
+    rctx.width = width   
+    
+    # Scenario I: If M and Rrup are both single values:
+    #   Then set the magnitude as a float, and the rrup/distance as an array
+    #   of one value
+    if isinstance(M,float) & isinstance(Rrup,float):
+        rctx.mag = M
+        dctx.rrup = np.logspace(np.log10(Rrup),np.log10(Rrup),1)
+
+        # Then compute everything else...
+	#    Assuming average ztor, get rjb:
+        dctx.rjb = np.sqrt(dctx.rrup**2 - rctx.ztor**2)
+        dctx.rhypo = dctx.rrup
+        dctx.rx = dctx.rjb
+        dctx.ry0 = dctx.rx
+        
+        #   Set site parameters
+        sctx.vs30 = np.ones_like(dctx.rrup) * vs30
+        sctx.vs30measured = np.full_like(dctx.rrup, False, dtype='bool')
+        sctx.z1pt0 = np.ones_like(dctx.rrup) * z1pt0
+        
+        # Compute prediction
+        lmean_ask14, sd_ask14 = ASK14.get_mean_and_stddevs(
+            sctx, rctx, dctx, IMT, [const.StdDev.TOTAL])
+            
+        return lmean_ask14, sd_ask14
+
+    
+    # Scenario II: If M is a single value and Rrup is an array:
+    if isinstance(M,float) & isinstance(Rrup,np.ndarray):
+        # Set them as intended...Rrup should be in logspace
+        rctx.mag = M
+        dctx.rrup = Rrup
+        
+	# Assuming average ztor, get rjb:
+        dctx.rjb = np.sqrt(dctx.rrup**2 - rctx.ztor**2)
+        dctx.rhypo = dctx.rrup
+        dctx.rx = dctx.rjb
+        dctx.ry0 = dctx.rx
+        
+        sctx.vs30 = np.ones_like(dctx.rrup) * vs30
+        sctx.vs30measured = np.full_like(dctx.rrup, False, dtype='bool')
+        sctx.z1pt0 = np.ones_like(dctx.rrup) * z1pt0
+        
+        lmean_ask14, sd_ask14 = ASK14.get_mean_and_stddevs(
+            sctx, rctx, dctx, IMT, [const.StdDev.TOTAL])
+            
+        return lmean_ask14, sd_ask14
+    
+    
+    # Scenario III: If M is an array and Rrup is a single value:
+    if isinstance(M,np.ndarray) & isinstance(Rrup,float):
+        # Set dctx to be a single value array, like in scenario I:
+        dctx.rrup = np.logspace(np.log10(Rrup),np.log10(Rrup),1)
+        
+        # The rest of dctx depends only on rrup, as wella s site, so populate those:
+	# Assuming average ztor, get rjb:
+        dctx.rjb = np.sqrt(dctx.rrup**2 - rctx.ztor**2)
+        dctx.rhypo = dctx.rrup
+        dctx.rx = dctx.rjb
+        dctx.ry0 = dctx.rx
+        
+        # Site: 
+        sctx.vs30 = np.ones_like(dctx.rrup) * vs30
+        sctx.vs30measured = np.full_like(dctx.rrup, False, dtype='bool')
+        sctx.z1pt0 = np.ones_like(dctx.rrup) * z1pt0
+        
+        # But rctx depends on M and can only take a float, so will have to run many times.
+        # Initiate mean and std lists:
+        lmean_ask14 = np.zeros_like(M)
+        sd_ask14 = np.zeros_like(M)
+        
+        # Then loop over M's for rctx:
+        for iMag in range(len(M)):
+            # Set mag:
+            rctx.mag = M[iMag]
+            
+            # Set 
+            i_lmean_ask14, i_sd_ask14 = ASK14.get_mean_and_stddevs(
+                sctx, rctx, dctx, IMT, [const.StdDev.TOTAL])
+                
+            lmean_ask14[iMag] = i_lmean_ask14
+            sd_ask14[iMag] = i_sd_ask14[0]
+            
+        return lmean_ask14,sd_ask14
+    
+     
+    # If both M and Rrup are arrays: 
+    if isinstance(M,np.ndarray) & isinstance(Rrup,np.ndarray):
+        # Set dctx to be its array as intended:
+        dctx.rrup = Rrup
+        
+        # The rest of dctx depends only on rrup, as wella s site, so populate those:
+	# Assuming average ztor, get rjb:	
+        #dctx.rjb = np.log10(np.sqrt((10**dctx.rrup)**2 - rctx.ztor**2))
+        dctx.rjb = dctx.rrup
+        dctx.rhypo = dctx.rrup
+        dctx.rx = dctx.rjb
+        dctx.ry0 = dctx.rx
+        
+        # Site: 
+        sctx.vs30 = np.ones_like(dctx.rrup) * vs30
+        sctx.vs30measured = np.full_like(dctx.rrup, False, dtype='bool')
+        sctx.z1pt0 = np.ones_like(dctx.rrup) * z1pt0
+        
+        # But rctx depends on M and can only take a float, so will have to run many times.
+        # Initiate mean and std lists:
+        lmean_ask14 = np.zeros((len(M),len(Rrup)))
+        sd_ask14 = np.zeros((len(M),len(Rrup)))
+        
+        # Then loop over M's for rctx:
+        for iMag in range(len(M)):
+            # Set mag:
+            rctx.mag = M[iMag]
+            
+            # Set 
+            i_lmean_ask14, i_sd_ask14 = ASK14.get_mean_and_stddevs(
+                sctx, rctx, dctx, IMT, [const.StdDev.TOTAL])
+                
+            lmean_ask14[iMag,:] = i_lmean_ask14
+            sd_ask14[iMag,:] = i_sd_ask14[0]
+        
+        return lmean_ask14,sd_ask14
+
+
+
 ###############################################################################
 def ask2014(M,Rrup,coeff_file,mdep_ffdf,dist_ranges,ncoeff=5,predictive_parameter='pga'):
     '''
