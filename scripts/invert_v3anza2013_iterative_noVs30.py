@@ -67,7 +67,7 @@ ncoeff=5
 
 #Axis limits for plotting:
 #axlims=[[0,6],[-8,-0.5]]
-axlims=[[0,5.5],[-7,-0.5]]
+axlims=[[0,5.5],[-7,-0.1]]
 
 
 #Number of distances to include in smoothing - there will be this many extra
