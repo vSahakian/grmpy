@@ -33,7 +33,8 @@ v2vp_rayfile = HOME+'/anza/fm3d/run_raytracing_v2anza2013_res4_Vp/rays.dat'
 v2path = '/Users/vsahakian/anza/models/residuals/mixedregr_v2anza2013_pga_5coeff_Mc_8.5_res4_noVs30/mixedcoeff_v2anza2013_pga_noVs30_5coeff_pga__ncoeff5_Mc_8.5_VR_99.9_robj.pckl'
 v3path = '/Users/vsahakian/anza/models/residuals/mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30/mixedcoeff_v3anza2013_pga_noVs30_5coeff_a4_-1.2_pga__ncoeff5_Mc_8.5_VR_99.6_a4_-1.2_robj.pckl'
 
-
+# Output filtered object - v3, but with only the recordings shared by v3 and v2:
+rayfile_out = HOME+'/anza/models/residuals/mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30/mixedcoeff_v3anza2013_pga_noVs30_5coeff_a4_-1.2_pga__ncoeff5_Mc_8.5_VR_99.6_a4_-1.2_robj_FILTERED_vp_vs.pckl'
 
 #############################################################################
 
@@ -151,7 +152,7 @@ path_std_cut = v3obj.path_std
 source_i_cut = v3obj.source_i[v3_withraypath_ind]
 receiver_i_cut = v3obj.receiver_i[v3_withraypath_ind]
 
-
+# Make residuals object:
 v3_rayfiltered_obj = cdf.residuals(dbpath,event_list_path,station_list_path,init_style='notbasic',
                     evnum=evnum_cut,elat=elat_cut,elon=elon_cut,edepth=edepth_cut,sta=sta_cut,stnum=stnum_cut,ml=ml_cut,mw=mw_cut,
                     pga=pga_cut,pgv=pgv_cut,pga_pg=pga_pg_cut,pga_snr=pga_snr_cut,pgv_snr=pgv_snr_cut,r=r_cut,vs30=vs30_cut,ffdf=ffdf_cut,md_ffdf=md_ffdf_cut,stlat=stlat_cut,
@@ -160,8 +161,12 @@ v3_rayfiltered_obj = cdf.residuals(dbpath,event_list_path,station_list_path,init
                     path_terms=path_terms_cut,path_mean=path_mean_cut,path_std=path_std_cut)
     
 
-    
-### NEXT::
+# Add raypaths:
+v3_rayfiltered_obj.add_vp_paths(v3_vp_raydepth,v3_vp_raylat,v3_vp_raylon)
+v3_rayfiltered_obj.add_vs_paths(v3_vs_raydepth,v3_vs_raylat,v3_vs_raylon)
+        
 
-# 3. Add the raypaths to it
-# 4. Save it....come up with a useful name...
+# Save to file:
+rfileout = open(rayfile_out,'w')
+pickle.dump(v3_rayfiltered_obj,rfileout)
+rfileout.close()
