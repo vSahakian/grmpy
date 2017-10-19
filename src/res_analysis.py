@@ -1420,3 +1420,174 @@ def plot_method_method(home,run_name,method_type,largerpath,smallerpath,largerna
     
     #Show the figures
     pafig.show()
+
+
+#############################################################################
+def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,color_by,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz):
+    '''
+    VJS 10/2017
+    Plots a metric vs. residual for certain bins, returns a figure with number
+    of subplots equal to number of bins
+    Input: 
+        residualobj:            Residuals object, including metrics
+        residualterm:           String with residual to plot: Event - 'event', Path - 'path', Site - 'site'
+        metric:                 String with metric to plot: Path integral - 'ind_{ray - p or s}_{velocity - vp or vs}_pathint', Normalized path integral - 'normpathint', Integral of gradient - 'gradpathint'
+        binedges:               Array with bin edges: ([bin1left,bin1right,bin2right,bin3right,etc.])
+        bin_by:                 String with variable to bin by: Rrup - 'Rrup', M - 'M', Az from site - 'Site Azimuth'
+        axlims:                 List with axis limits: [[xmin,xmax],[ymin,ymax]]
+        color_by:               String with variable to color by: Rrup - 'Rrup', M - 'M', Az from site - 'Site Azimuth'
+        colorscheme:            String with colormap to use 
+        clims:                  List with colorscale limits: [cmin,cmax,cincrement]
+        cbartick:               Tick increment for colorbar (a single number)
+        plotdims:               Plot dimensions: [width,height]
+        plotrowscols:           List with rows and columns: [numberrows, numbercolumns]
+        fontsz:               Number with font size, i.e., 14
+    Output:
+        binned_figure:          Figure with subplots for bins
+    '''
+    
+    import matplotlib.pyplot as plt
+    from numpy import where,arange,around
+    from pyproj import Geod
+    from scipy.stats.stats import pearsonr
+    import matplotlib.cm as cm
+    import matplotlib.colors as colors
+    
+    # Number of bins:
+    numberbins = len(binedges)-1
+    
+    # Get what you're binning by:
+    if bin_by == 'Rrup':
+        binvalue = residualobj.r
+    elif bin_by == 'M':
+        binvalue = residualobj.mw
+    elif bin_by == 'Site Azimuth':
+        # Initiate projection object:
+        g = Geod(ellps='WGS84')
+        az,backaz,distance = g.inv(residualobj.stlon,residualobj.stlat,residualobj.elon,residualobj.elat)
+        binvalue = az
+        
+    # Get what you're coloring by:
+    if color_by == 'Rrup':
+        colorvalue = residualobj.r
+    elif color_by == 'M':
+        colorvalue = residualobj.mw
+    elif color_by == 'Site Azimuth':
+        # Initiate projection object:
+        g = Geod(ellps='WGS84')
+        az,backaz,distance = g.inv(residualobj.stlon,residualobj.stlat,residualobj.elon,residualobj.elat)
+        colorvalue = az
+        
+    # Get the metric:
+    if metric == 'ind_s_vs_pathint':
+        metricvalue = residualobj.ind_s_vs_pathint
+        xlabel = 'Path Integral Metric'
+    elif metric == 'ind_s_vs_normpathint':
+        metricvalue = residualobj.ind_s_vs_normpathint
+        xlabel = 'Normalized Path Metric'
+    elif metric == 'ind_s_vs_gradpathint':
+        metricvalue = residualobj.ind_s_vs_gradpathint
+        xlabel = 'Gradient Metric'
+
+    elif metric == 'ind_p_vs_pathint':
+        metricvalue = residualobj.ind_p_vs_pathint
+        xlabel = 'Path Integral Metric'
+    elif metric == 'ind_p_vs_normpathint':
+        metricvalue = residualobj.ind_p_vs_normpathint
+        xlabel = 'Normalized Path Metric'
+    elif metric == 'ind_p_vs_gradpathint':
+        metricvalue = residualobj.ind_p_vs_gradpathint
+        xlabel = 'Gradient Metric'
+        
+    # Get the residual:
+    if residualterm == 'event':
+        residual = residualobj.E_residual
+        ylabel = 'Event Residual'
+    elif residualterm == 'site':
+        residual = residualobj.site_terms
+        ylabel = 'Site Residual'
+    elif residualterm == 'path':
+        residual = residualobj.path_terms
+        ylabel = 'Path Residual'
+    
+    # Now go through bins, and append them to a list:
+    residual_list = []
+    metric_list = []
+    r_value_list = []
+    p_value_list = []
+    color_value_list = []
+    
+    # Loop through bins to get indices for each bin:
+    for bin_i in range(numberbins):
+        i_bin_ind = where((binvalue > binedges[bin_i]) & (binvalue <= binedges[bin_i+1]))
+        i_residual = residual[i_bin_ind]
+        i_metric = metricvalue[i_bin_ind]
+        i_colorval = colorvalue[i_bin_ind]
+        
+        # Append to their lists:
+        residual_list.append(i_residual)
+        metric_list.append(i_metric)
+        color_value_list.append(i_colorval)
+        
+        # Get Statistics - pearsons and p value:
+        i_bin_r,i_bin_p = pearsonr(i_residual,i_metric)
+        
+        # Append statistics to lists:
+        r_value_list.append(i_bin_r)
+        p_value_list.append(i_bin_p)
+    
+    
+    ########################
+    
+    ## Initiate plot:
+    binnedplot, binnedaxes = plt.subplots(nrows=plotrowscols[0],ncols=plotrowscols[1],figsize=(plotdims[0],plotdims[1]))
+    
+    # Flatten the axes array so that it can easily be looped over per bin:
+    binnedaxes = binnedaxes.flatten()
+    
+    # For each bin, plot:
+    for subplot_i in range(numberbins):
+        axis_i = binnedaxes[subplot_i]
+        
+        plottext = str(binedges[subplot_i]) + ' < ' + bin_by + ' <= ' + str(binedges[subplot_i + 1])
+        p_val = '%.1e' % p_value_list[subplot_i]
+        plottextstats = 'r = ' + str(around(r_value_list[subplot_i],1)) + ', p = ' + str(p_val)
+        
+        # Make colormap
+        colormap=plt.get_cmap(colorscheme)
+        # Make a normalized colorscale
+        cNorm=colors.Normalize(vmin=clims[0], vmax=clims[1])
+        # Apply normalization to colormap:
+        scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap)
+        
+        # Make a fake contour plot for the colorbar:
+        Z=[[0,0],[0,0]]
+        levels=arange(clims[0],clims[1],clims[2])
+        c=plt.contourf(Z, levels, cmap=colormap)
+        
+        # Assign values to colormap
+        colorVal = scalarMap.to_rgba(color_value_list[subplot_i])
+        
+        # Scatter:
+        axis_i.scatter(metric_list[subplot_i],residual_list[subplot_i],facecolors='none',edgecolors=colorVal,marker='o',s=5)
+        
+        # Colorbar: 
+        axis_i_cb = plt.colorbar(c,ax=axis_i,shrink=0.70)
+        axis_i_cb.set_label(color_by,labelpad=0,rotation=90)
+        axis_i_cb.set_ticks(ticks=arange(clims[0],clims[1],cbartick))
+        
+        # Labels:
+        axis_i.set_xlabel(xlabel,labelpad=0,fontsize=fontsz)
+        axis_i.set_ylabel(ylabel,labelpad=0,fontsize=fontsz)
+        axis_i.set_title(plottext + '\n' + plottextstats,fontsize=fontsz+2)        
+
+        
+    # Remove empty axes:
+    for axis_j in range(len(binnedaxes)):
+        if axis_j >= numberbins:
+            binnedaxes[axis_j].axis('off')
+            binnedplot.delaxes(binnedaxes[axis_j])
+            
+            
+    # Return figure:
+    return binnedplot
