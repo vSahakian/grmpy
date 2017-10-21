@@ -1430,8 +1430,11 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
     of subplots equal to number of bins
     Input: 
         residualobj:            Residuals object, including metrics
-        residualterm:           String with residual to plot: Event - 'event', Path - 'path', Site - 'site'
-        metric:                 String with metric to plot: Path integral - 'ind_{ray - p or s}_{velocity - vp or vs}_pathint', Normalized path integral - 'normpathint', Integral of gradient - 'gradpathint'
+        residualterm:           String with residual to plot: Event - 'event', Path - 'path', Site - 'site', Path and site = 'path_site'
+        metric:                 String with metric to plot: Path integral - 'ind_{ray - p or s}_{velocity - vp or vs}_pathint', 
+                                        Normalized path integral - 'normpathint', Integral of gradient - 'gradpathint', 
+                                        Gradient divided by distance - 'ind_s_vs_gradpathint_normdist'
+
         binedges:               Array with bin edges: ([bin1left,bin1right,bin2right,bin3right,etc.])
         bin_by:                 String with variable to bin by: Rrup - 'Rrup', M - 'M', Az from site - 'Site Azimuth'
         axlims:                 List with axis limits: [[xmin,xmax],[ymin,ymax]]
@@ -1465,6 +1468,14 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
         # Initiate projection object:
         g = Geod(ellps='WGS84')
         az,backaz,distance = g.inv(residualobj.stlon,residualobj.stlat,residualobj.elon,residualobj.elat)
+        
+        # But azimuth from this is -180 to 180, so change to be 0 to 360
+        # Find where it's negative
+        az_negative = where(az<0)[0]
+        # Where it's negative, set it to the 180 + absolute value of negative
+        az[az_negative] = 180 + abs(az[az_negative])
+        
+        # Set bin value to this
         binvalue = az
         
     # Get what you're coloring by:
@@ -1476,6 +1487,14 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
         # Initiate projection object:
         g = Geod(ellps='WGS84')
         az,backaz,distance = g.inv(residualobj.stlon,residualobj.stlat,residualobj.elon,residualobj.elat)
+        
+        # But azimuth from this is -180 to 180, so change to be 0 to 360
+        # Find where it's negative
+        az_negative = where(az<0)[0]
+        # Where it's negative, set it to the 180 + absolute value of negative
+        az[az_negative] = 180 + abs(az[az_negative])
+        
+        # Set color value to this
         colorvalue = az
         
     # Get the metric:
@@ -1488,6 +1507,10 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
     elif metric == 'ind_s_vs_gradpathint':
         metricvalue = residualobj.ind_s_vs_gradpathint
         xlabel = 'Gradient Metric'
+    elif metric == 'ind_s_vs_gradpathint_normdist':
+        metricvalue = residualobj.ind_s_vs_gradpathint/residualobj.r
+        xlabel = 'Gradient Metric/Rrup'
+
 
     elif metric == 'ind_p_vs_pathint':
         metricvalue = residualobj.ind_p_vs_pathint
@@ -1509,6 +1532,9 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
     elif residualterm == 'path':
         residual = residualobj.path_terms
         ylabel = 'Path Residual'
+    elif residualterm == 'path_site':
+        residual = residualobj.site_terms + residualobj.path_terms
+        ylabel = 'Path and Site Residuals'
     
     # Now go through bins, and append them to a list:
     residual_list = []
@@ -1521,6 +1547,7 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
     for bin_i in range(numberbins):
         i_bin_ind = where((binvalue > binedges[bin_i]) & (binvalue <= binedges[bin_i+1]))
         i_residual = residual[i_bin_ind]
+
         i_metric = metricvalue[i_bin_ind]
         i_colorval = colorvalue[i_bin_ind]
         
@@ -1568,6 +1595,9 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
         # Assign values to colormap
         colorVal = scalarMap.to_rgba(color_value_list[subplot_i])
         
+        # Clear axes:
+        axis_i.clear()
+        
         # Scatter:
         axis_i.scatter(metric_list[subplot_i],residual_list[subplot_i],facecolors='none',edgecolors=colorVal,marker='o',s=5)
         
@@ -1579,7 +1609,259 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
         # Labels:
         axis_i.set_xlabel(xlabel,labelpad=0,fontsize=fontsz)
         axis_i.set_ylabel(ylabel,labelpad=0,fontsize=fontsz)
-        axis_i.set_title(plottext + '\n' + plottextstats,fontsize=fontsz+2)        
+        axis_i.set_title(plottext + '\n' + plottextstats,fontsize=fontsz+2)
+        
+        # Limits:
+        axis_i.set_xlim[axlims[0]]
+        axis_i.set_ylim[axlims[1]]        
+
+        
+    # Remove empty axes:
+    for axis_j in range(len(binnedaxes)):
+        if axis_j >= numberbins:
+            binnedaxes[axis_j].axis('off')
+            binnedplot.delaxes(binnedaxes[axis_j])
+            
+            
+    # Return figure:
+    return binnedplot
+
+
+
+#############################################################################
+def plot_binned_metric_statistic(residualobj,residualterm,metric,binedges,bin_by,axlims,color_by,color_by_stat,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz):
+    '''
+    VJS 10/2017
+    Plots a mean or median metric vs. residual for certain bins, returns a figure with number
+    of subplots equal to number of bins
+    Input: 
+        residualobj:            Residuals object, including metrics
+        residualterm:           String with residual to plot: Event - 'event', Site - 'site'
+        metric:                 String with metric to plot: 
+                                        Median of gradient per site in bin - 'ind_s_vs_gradpathint_sitemedian'
+                                        Mean of gradient per site in bin - 'ind_s_vs_gradpathint_sitemean'
+        binedges:               Array with bin edges: ([bin1left,bin1right,bin2right,bin3right,etc.])
+        bin_by:                 String with variable to bin by: Rrup - 'Rrup', M - 'M', Az from site - 'Site Azimuth'
+        axlims:                 List with axis limits: [[xmin,xmax],[ymin,ymax]]
+        color_by:               String with variable to color by: Mean Rrup - 'Mean Rrup', M - 'Mean M', Mean Az from site - 'Mean Site Azimuth'
+                                    Median Rrup - 'Median Rrup', M - 'Median M', Median Az from site - 'Median Site Azimuth'
+        color_by_stat:          String with statistic for color_by: 'mean' or 'median'
+        colorscheme:            String with colormap to use 
+        clims:                  List with colorscale limits: [cmin,cmax,cincrement]
+        cbartick:               Tick increment for colorbar (a single number)
+        plotdims:               Plot dimensions: [width,height]
+        plotrowscols:           List with rows and columns: [numberrows, numbercolumns]
+        fontsz:               Number with font size, i.e., 14
+    Output:
+        binned_figure:          Figure with subplots for bins
+    '''
+    
+    import matplotlib.pyplot as plt
+    from numpy import where,arange,around,unique,mean,median,array,zeros
+    from pyproj import Geod
+    from scipy.stats.stats import pearsonr
+    import matplotlib.cm as cm
+    import matplotlib.colors as colors
+    
+    # Number of bins:
+    numberbins = len(binedges)-1
+    
+    # Get what you're binning by:
+    if bin_by == 'Rrup':
+        binvalue = residualobj.r
+    elif bin_by == 'M':
+        binvalue = residualobj.mw
+    elif bin_by == 'Site Azimuth':
+        # Initiate projection object:
+        g = Geod(ellps='WGS84')
+        az,backaz,distance = g.inv(residualobj.stlon,residualobj.stlat,residualobj.elon,residualobj.elat)
+        
+        # But azimuth from this is -180 to 180, so change to be 0 to 360
+        # Find where it's negative
+        az_negative = where(az<0)[0]
+        # Where it's negative, set it to the 180 + absolute value of negative
+        az[az_negative] = 180 + abs(az[az_negative])
+        
+        # Set bin value to this
+        binvalue = az
+        
+    # Get what you're coloring by:
+    if color_by == 'Mean Rrup':
+        colorvalue = residualobj.r
+    elif color_by == 'Mean M':
+        colorvalue = residualobj.mw
+    elif color_by == 'Mean Site Azimuth':
+        # Initiate projection object:
+        g = Geod(ellps='WGS84')
+        az,backaz,distance = g.inv(residualobj.stlon,residualobj.stlat,residualobj.elon,residualobj.elat)
+        
+        # But azimuth from this is -180 to 180, so change to be 0 to 360
+        # Find where it's negative
+        az_negative = where(az<0)[0]
+        # Where it's negative, set it to the 180 + absolute value of negative
+        az[az_negative] = 180 + abs(az[az_negative])
+        
+        # Set color value to this
+        colorvalue = az
+        
+    # Get what you're coloring by:
+    if color_by == 'Rrup':
+        colorvalue = residualobj.r
+    elif color_by == 'M':
+        colorvalue = residualobj.mw
+    elif color_by == 'Site Azimuth':
+        # Initiate projection object:
+        g = Geod(ellps='WGS84')
+        az,backaz,distance = g.inv(residualobj.stlon,residualobj.stlat,residualobj.elon,residualobj.elat)
+        
+        # But azimuth from this is -180 to 180, so change to be 0 to 360
+        # Find where it's negative
+        az_negative = where(az<0)[0]
+        # Where it's negative, set it to the 180 + absolute value of negative
+        az[az_negative] = 180 + abs(az[az_negative])
+        
+        # Set color value to this
+        colorvalue = az
+        
+    # Get color by statistic:
+    if color_by_stat == 'mean':
+        color_by_label = 'Mean ' + color_by
+    elif color_by_stat == 'median':
+        color_by_label = 'Median ' + color_by
+        
+    # Get the metric:
+
+    if metric == 'ind_s_vs_gradpathint_sitemean':
+        metricvalue = residualobj.ind_s_vs_gradpathint
+        xlabel = 'Gradient Metric mean per station'
+    elif metric == 'ind_s_vs_gradpathint_sitemedian':
+        metricvalue = residualobj.ind_s_vs_gradpathint
+        xlabel = 'Gradient Metric median per station'
+
+        
+    # Get the residual:
+    if residualterm == 'event':
+        residual = residualobj.E_residual
+        ylabel = 'Event Residual'
+    elif residualterm == 'site':
+        residual = residualobj.site_terms
+        ylabel = 'Site Residual'
+
+    
+    # Now go through bins, and append them to a list:
+    residual_list = []
+    metric_list = []
+    r_value_list = []
+    p_value_list = []
+    color_value_list = []
+    
+    # Loop through bins to get indices for each bin:
+    for bin_i in range(numberbins):
+        i_bin_ind = where((binvalue > binedges[bin_i]) & (binvalue <= binedges[bin_i+1]))[0]
+        i_residual_all = residual[i_bin_ind]
+        i_metric_all = metricvalue[i_bin_ind]
+        i_colorval_all = colorvalue[i_bin_ind]
+        
+        
+        
+        # Get unique stations in here/median per station:
+        if residualterm == 'site':
+            i_all_sta = residualobj.sta[i_bin_ind]
+
+            # Unique sites in this bin:
+            usta = unique(i_all_sta)
+            
+            # Reset metric list for each station/event:
+            i_metric=zeros((len(usta)))
+            i_colorval=zeros((len(usta)))
+            i_residual=zeros((len(usta)))
+            
+            # Loop through the sites and for every site, find the mean metric:
+            for sta_i in range(len(usta)):
+                i_ind_sta = where(i_all_sta == usta[sta_i])[0]
+                
+                if metric == 'ind_s_vs_gradpathint_sitemean':
+                    i_metric_sta = mean(i_metric_all[i_ind_sta])
+                    i_residual_sta = i_residual_all[i_ind_sta][0]
+                elif metric == 'ind_s_vs_gradpathint_sitemedian':
+                    i_metric_sta = median(i_metric_all[i_ind_sta])
+                    i_residual_sta = i_residual_all[i_ind_sta][0]
+
+                if color_by_stat == 'mean':
+                    i_colorval_sta = mean(i_colorval_all[i_ind_sta])
+                elif color_by_stat == 'median':
+                    i_colorval_sta = median(i_colorval_all[i_ind_sta])
+                    
+                
+                # Add these to the array
+                i_metric[sta_i] = i_metric_sta
+                i_colorval[sta_i] = i_colorval_sta
+                i_residual[sta_i] = i_residual_sta
+
+        
+        # Append to their lists:
+        residual_list.append(i_residual)
+        metric_list.append(i_metric)
+        color_value_list.append(i_colorval)
+        
+        # Get Statistics - pearsons and p value:
+        i_bin_r,i_bin_p = pearsonr(i_residual,i_metric)
+        
+        # Append statistics to lists:
+        r_value_list.append(i_bin_r)
+        p_value_list.append(i_bin_p)
+    
+    
+    ########################
+    
+    ## Initiate plot:
+    binnedplot, binnedaxes = plt.subplots(nrows=plotrowscols[0],ncols=plotrowscols[1],figsize=(plotdims[0],plotdims[1]))
+    
+    # Flatten the axes array so that it can easily be looped over per bin:
+    binnedaxes = binnedaxes.flatten()
+    
+    # For each bin, plot:
+    for subplot_i in range(numberbins):
+        axis_i = binnedaxes[subplot_i]
+        
+        plottext = str(binedges[subplot_i]) + ' < ' + bin_by + ' <= ' + str(binedges[subplot_i + 1])
+        p_val = '%.1e' % p_value_list[subplot_i]
+        plottextstats = 'r = ' + str(around(r_value_list[subplot_i],1)) + ', p = ' + str(p_val)
+        
+        # Make colormap
+        colormap=plt.get_cmap(colorscheme)
+        # Make a normalized colorscale
+        cNorm=colors.Normalize(vmin=clims[0], vmax=clims[1])
+        # Apply normalization to colormap:
+        scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap)
+        
+        # Make a fake contour plot for the colorbar:
+        Z=[[0,0],[0,0]]
+        levels=arange(clims[0],clims[1],clims[2])
+        c=plt.contourf(Z, levels, cmap=colormap)
+        
+        # Assign values to colormap
+        colorVal = scalarMap.to_rgba(color_value_list[subplot_i])
+        
+        # Clear axes:
+        axis_i.clear()
+        
+        # Scatter:
+        axis_i.scatter(metric_list[subplot_i],residual_list[subplot_i],facecolors='none',edgecolors=colorVal,marker='o',s=5)
+        
+        # Colorbar: 
+        axis_i_cb = plt.colorbar(c,ax=axis_i,shrink=0.70)
+        axis_i_cb.set_label(color_by_label,labelpad=0,rotation=90)
+        axis_i_cb.set_ticks(ticks=arange(clims[0],clims[1],cbartick))
+        
+        # Labels:
+        axis_i.set_xlabel(xlabel,labelpad=0,fontsize=fontsz)
+        axis_i.set_ylabel(ylabel,labelpad=0,fontsize=fontsz)
+        axis_i.set_title(plottext + '\n' + plottextstats,fontsize=fontsz+2)  
+        
+        # Limits:
+        axis_i.set_xlim(axlims[0])
+        axis_i.set_ylim(axlims[1])        
 
         
     # Remove empty axes:
