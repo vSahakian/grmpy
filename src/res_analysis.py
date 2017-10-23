@@ -1450,7 +1450,7 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
     '''
     
     import matplotlib.pyplot as plt
-    from numpy import where,arange,around
+    from numpy import where,arange,around,shape
     from pyproj import Geod
     from scipy.stats.stats import pearsonr
     import matplotlib.cm as cm
@@ -1569,16 +1569,21 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
     ## Initiate plot:
     binnedplot, binnedaxes = plt.subplots(nrows=plotrowscols[0],ncols=plotrowscols[1],figsize=(plotdims[0],plotdims[1]))
     
-    # Flatten the axes array so that it can easily be looped over per bin:
-    binnedaxes = binnedaxes.flatten()
+    # Flatten the axes array so that it can easily be looped over per bin:    
+    if len(shape(binnedaxes))>0:
+        binnedaxes = binnedaxes.flatten()
     
     # For each bin, plot:
     for subplot_i in range(numberbins):
-        axis_i = binnedaxes[subplot_i]
+        
+        if len(shape(binnedaxes))>0:
+            axis_i = binnedaxes[subplot_i]
+        else:
+            axis_i = binnedaxes
         
         plottext = str(binedges[subplot_i]) + ' < ' + bin_by + ' <= ' + str(binedges[subplot_i + 1])
         p_val = '%.1e' % p_value_list[subplot_i]
-        plottextstats = 'r = ' + str(around(r_value_list[subplot_i],1)) + ', p = ' + str(p_val)
+        plottextstats = 'r = ' + str(around(r_value_list[subplot_i],2)) + ', p = ' + str(p_val)
         
         # Make colormap
         colormap=plt.get_cmap(colorscheme)
@@ -1603,26 +1608,29 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
         
         # Colorbar: 
         axis_i_cb = plt.colorbar(c,ax=axis_i,shrink=0.70)
-        axis_i_cb.set_label(color_by,labelpad=0,rotation=90)
+        axis_i_cb.set_label(color_by,labelpad=0,rotation=90,fontsize=fontsz)
         axis_i_cb.set_ticks(ticks=arange(clims[0],clims[1],cbartick))
         
         # Labels:
         axis_i.set_xlabel(xlabel,labelpad=0,fontsize=fontsz)
         axis_i.set_ylabel(ylabel,labelpad=0,fontsize=fontsz)
-        axis_i.set_title(plottext + '\n' + plottextstats,fontsize=fontsz+2)
+        axis_i.set_title(plottext + '\n' + plottextstats,fontsize=fontsz)
         
         # Limits:
-        axis_i.set_xlim[axlims[0]]
-        axis_i.set_ylim[axlims[1]]        
+        axis_i.set_xlim(axlims[0])
+        axis_i.set_ylim(axlims[1])        
 
         
     # Remove empty axes:
-    for axis_j in range(len(binnedaxes)):
-        if axis_j >= numberbins:
-            binnedaxes[axis_j].axis('off')
-            binnedplot.delaxes(binnedaxes[axis_j])
-            
-            
+    if len(shape(binnedaxes)) > 0:
+        for axis_j in range(len(binnedaxes)):
+            if axis_j >= numberbins:
+                binnedaxes[axis_j].axis('off')
+                binnedplot.delaxes(binnedaxes[axis_j])
+                
+    
+    plt.tight_layout()
+                    
     # Return figure:
     return binnedplot
 
