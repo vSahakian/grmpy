@@ -1583,7 +1583,7 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
         
         plottext = str(binedges[subplot_i]) + ' < ' + bin_by + ' <= ' + str(binedges[subplot_i + 1])
         p_val = '%.1e' % p_value_list[subplot_i]
-        plottextstats = 'r = ' + str(around(r_value_list[subplot_i],2)) + ', p = ' + str(p_val)
+        plottextstats = 'r = ' + str(around(r_value_list[subplot_i],2))  # + ', p = ' + str(p_val)
         
         # Make colormap
         colormap=plt.get_cmap(colorscheme)
