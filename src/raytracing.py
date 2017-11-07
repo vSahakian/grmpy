@@ -626,6 +626,11 @@ def pull_rays_frombox_forstation(r_object,bounds,station_name,ray_type,mymap):
         ray_type:           Type of ray: 'Vp' or 'Vs'
         mymap:              Colormap string
     Output:
+        select_ind:         Indices of station within residuals object - i.e., array with all indices where station_name is found
+        keep_event_ind:     Indices of events within box, at that station: i.e., robj[select_ind][keep_event_ind] is all events at station_name
+        all_rays:           Figure with all rays recorded at station_name
+        box_rays_map:       Figure, map view, with all events from box (keep_event_ind) recorded at select_ind
+        box_rays_londep:    Figure, depth vs. lon, with all events from box (keep_event_ind) recorded at select_ind
     '''
     
     import cPickle as pickle
@@ -796,7 +801,7 @@ def pull_rays_frombox_forstation(r_object,bounds,station_name,ray_type,mymap):
     return select_ind, keep_event_ind, all_rays, box_rays_map, box_rays_londep
     
     
-def save_box_data(text_dir,fig_dir,pdf_dir,bounds,select_sta,bound_name,all_rays_fig,box_rays_map,box_rays_londep):
+def save_box_bounds(text_dir,fig_dir,pdf_dir,bounds,select_sta,bound_name,all_rays_fig,box_rays_map,box_rays_londep):
     '''
     Input: 
         text_dir:                   String with text directory for bounds info
@@ -846,3 +851,68 @@ def save_box_data(text_dir,fig_dir,pdf_dir,bounds,select_sta,bound_name,all_rays
     
     box_rays_londep.savefig(png_cross)
     box_rays_londep.savefig(pdf_cross)
+    
+    
+#############################
+def save_box_data(robj,text_dir,select_sta,bound_name,station_ind,event_ind):
+    '''
+    Save the station and event box data to a file - include, for every station, the events
+    recorded in the box, station info, event info, station residual and path residual.
+    Format:
+    sta_j  stlon_j stlat_j  stelv_j  stresidual_j  evlon_i  evlat_i  evdepth_i  pathresidual_ij
+    Input:
+        robj:               Residuals object
+        text_dir:           Directory for text file
+        select_sta:                 String with station name
+        bound_name:                 String with box bound name, i.e. '3a'
+        station_ind:        Indices in robj where station can be found
+        event_ind:          Indices in robj[station_ind] where the box events can be found
+    Output:
+        box_data_file:      With format as specified above.
+    '''
+    
+    import numpy as np
+    
+    
+    ## Get information for selection
+    ## NOTE: forcing Vs ray locations in Vs model!!
+
+    # Get stations as array sso they're easier to write out:
+    sta = robj.sta[station_ind]
+    stlon = robj.stlon[station_ind]
+    stlat = robj.stlat[station_ind]
+    stelv = robj.stelv[station_ind]
+    
+    # Event information (rays):
+    evnum = robj.evnum[station_ind][event_ind]
+    evlon = robj.elon[station_ind][event_ind]
+    evlat = robj.elat[station_ind][event_ind]
+    evdep = robj.edepth[station_ind][event_ind]
+    
+    # Residual info:
+    site_residual = robj.site_terms[station_ind]
+    site_stderr = robj.site_stderr[station_ind]
+    path_residual = robj.path_terms[station_ind][event_ind]
+    
+    # Gradient info:
+    pathint = robj.ind_s_vs_pathint[station_ind][event_ind]
+    normpathint = robj.ind_s_vs_normpathint[station_ind][event_ind]
+    gradpathint = robj.ind_s_vs_gradpathint[station_ind][event_ind]
+    
+    
+    # Now write it out line by line:
+    # Path:
+    combo_name = select_sta + '_'+ bound_name + '_data'
+    textpath = text_dir + combo_name + '.txt'
+    
+    # Open file:
+    f = open(textpath,'w')
+    # Write header:
+    headerline = '%s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \n' % ('site','stlon','stlat','stelv','evnum','evlon','evlat','evdepth','site_residual','site_stderr','path_residual','pathint','normpathint','gradpathint')
+    f.write(headerline)
+    # Loop through and write:
+    for recordingi in range(len(evnum)):
+        writeline = '%s \t %.8f \t %.8f \t %.4f \t %i \t %.8f \t %.8f \t %.4f \t %.3f \t %.3f \t %.3f \t %.3f \t %.3f \t %.3f \n' % (sta[recordingi],stlon[recordingi],stlat[recordingi],stelv[recordingi],evnum[recordingi],evlon[recordingi],evlat[recordingi],evdep[recordingi],site_residual[recordingi],site_stderr[recordingi],path_residual[recordingi],pathint[recordingi],normpathint[recordingi],gradpathint[recordingi])
+        f.write(writeline)
+    f.close()
+    
