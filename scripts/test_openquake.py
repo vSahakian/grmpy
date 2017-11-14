@@ -15,38 +15,38 @@ fig_dir = '/Users/vsahakian/anza/models/statistics/misc/oq_vs_matlab/'
 
 ## This all works..... ##
 
-#ASK14 = AbrahamsonEtAl2014()
-#
-#IMT = imt.PGA()
-#rctx = RuptureContext()
-#dctx = DistancesContext()
-#sctx = SitesContext()
-#sctx_rock = SitesContext()
-#
-#rctx.rake = 0.0
-#rctx.dip = 90.0
-#rctx.ztor = 7.13
-#rctx.mag = 3.0
+ASK14 = AbrahamsonEtAl2014()
+
+IMT = imt.PGA()
+rctx = RuptureContext()
+dctx = DistancesContext()
+sctx = SitesContext()
+sctx_rock = SitesContext()
+
+rctx.rake = 0.0
+rctx.dip = 90.0
+rctx.ztor = 7.13
+rctx.mag = 3.0
 #rctx.mag = np.linspace(0.1,5.)
-#rctx.width = 10.0
-#rctx.hypo_depth = 8.0
-#
-##dctx.rrup = np.logspace(1,np.log10(200),100)
-#dctx.rrup = np.logspace(np.log10(10),np.log10(10.0),1)
-#
-#
-## Assuming average ztor, get rjb:
-#dctx.rjb = np.sqrt(dctx.rrup**2 - rctx.ztor**2)
-#dctx.rhypo = dctx.rrup
-#dctx.rx = dctx.rjb
-#dctx.ry0 = dctx.rx
-#
-#sctx.vs30 = np.ones_like(dctx.rrup) * 760.0
-#sctx.vs30measured = np.full_like(dctx.rrup, False, dtype='bool')
-#sctx.z1pt0 = np.ones_like(dctx.rrup) * 0.05
-#
-#lmean_ask14, sd_ask14 = ASK14.get_mean_and_stddevs(
-#    sctx, rctx, dctx, IMT, [const.StdDev.TOTAL])
+rctx.width = 10.0
+rctx.hypo_depth = 8.0
+
+#dctx.rrup = np.logspace(1,np.log10(200),100)
+dctx.rrup = np.logspace(np.log10(10),np.log10(10.0),1)
+
+
+# Assuming average ztor, get rjb:
+dctx.rjb = np.sqrt(dctx.rrup**2 - rctx.ztor**2)
+dctx.rhypo = dctx.rrup
+dctx.rx = dctx.rjb
+dctx.ry0 = dctx.rx
+
+sctx.vs30 = np.ones_like(dctx.rrup) * 760.0
+sctx.vs30measured = np.full_like(dctx.rrup, False, dtype='bool')
+sctx.z1pt0 = np.ones_like(dctx.rrup) * 0.05
+
+lmean_ask14, sd_ask14 = ASK14.get_mean_and_stddevs(
+    sctx, rctx, dctx, IMT, [const.StdDev.TOTAL])
 
 
 

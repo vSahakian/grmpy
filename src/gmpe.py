@@ -561,6 +561,8 @@ def ask2014(M,Rrup,coeff_file,mdep_ffdf,dist_ranges,ncoeff=5,predictive_paramete
     return f1,M_sort,f1_sort
     
     
+    
+########################################################################################
 def compute_baltay_anza_fixeddist(Mw,Rhyp):
     '''
     Given magnitude, compute PGA for the GMPE of Baltay et al. (2017) for fixed distance
@@ -580,3 +582,316 @@ def compute_baltay_anza_fixeddist(Mw,Rhyp):
     ln_pga = np.log(pga)
     
     return ln_pga
+    
+
+
+########################################################################################
+def extract_vs30_forpandas(dataframe,xytmpfile,xy_vs30tmpfile,vs30_grdfile):
+    '''
+    Extract Vs30 from a proxy-based grd file for a list of station lon/lats, from a pandas dataframe
+    (formatted as in D.Melgar's Mexico 2017 ground motion files)
+    Input:
+        dataframe:              Pandas dataframe, must have station lon/lat named as 'stlat'/'stlon'
+        xytmpfile:              Path to tmp file for the xy station lon/lat
+        xy_vs30tmpfile:         Path to the tmp file with xy and vs30 values
+        vs30_grdfile:           Path to Vs30 grd file
+    Output:
+        vs30:                   Array with Vs30 for each row in dataframe
+    '''
+    
+    import pandas as pd
+    import numpy as np
+    import subprocess
+    from shlex import split
+    
+
+    # Write out station lat lon to tmp file:
+    
+    xy_out = np.c_[dataframe['stlon'],dataframe['stlat']]
+    
+    np.savetxt(xytmpfile,xy_out,fmt='%.8f\t%.8f')
+    
+    # Make command:
+    command = split('grdtrack ' + xytmpfile + ' -G' + vs30_grdfile + ' > ' + xy_vs30tmpfile)
+    
+    # Run subprocess:
+    p=subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    out,err=p.communicate()
+    
+    # Read back in:
+    vs30 = np.genfromtxt(xy_vs30tmpfile,usecols=[2])
+
+    # Return
+    return vs30
+    
+    
+########################################################################################
+def compute_openquake_distances(slip_model,gm_data,hypo_location,slip_rake=None):
+    '''
+    Compute distances for openquake rupture class, from a pandas dataframe
+    Input:
+        slip_model:             Pandas dataframe with slip model, formatted like D. Melgar's slip models
+        gm_data:                Pandas dataframe with ground motion data, formatted like Mexico 2017 files from D. Melgar
+        hypo_location:          Hypocenter location: [hypo_lon, hypo_lat, hypo_depth]
+        slip_rake:              Average slip rake.  If slip_rake==None, compute this.
+        
+    '''
+    
+    import numpy as np
+    from pyproj import Geod
+    
+    
+    # Get strike/dip:
+    tehuantepec_strike = slip_model['strike']
+    tehuantepec_dip = slip_model['dip']
+    slip_rake = np.full_like(tehuantepec_strike,slip_rake)
+    
+    # Now get min distance for each statioN:
+    rrup = []
+    rhypo = []
+    
+    for stationi in range(len(gm_data['station'])):
+        # Get station location:
+        i_stlon = gm_data['stlon'][stationi]
+        i_stlat = gm_data['stlat'][stationi]
+        
+        # Get projection:
+        g = Geod(ellps='WGS84')
+        
+        ###############    
+        # Get distances:
+        az,backaz,horizdist = g.inv(i_stlon,i_stlat,hypo_location[0],hypo_location[1])
+        
+        # Get overall:
+        i_rhypo = np.sqrt(horizdist**2 + (hypo_location[2]*1000)**2)
+        
+        # Append to list:
+        rhypo.append(i_rhypo)
+        
+        #####################################
+        # For Rrup:
+        
+        # Turn into arrays length of slip model subfautls:
+        i_stlon = np.full_like(slip_model['lon'],i_stlon)
+        i_stlat = np.full_like(slip_model['lat'],i_stlat)
+        
+        # Get slip model lat/lon:
+        slip_lon = slip_model.as_matrix(columns=['lon'])
+        slip_lat = slip_model.as_matrix(columns=['lat'])
+        # Get slip depth in m:
+        slip_depth = slip_model.as_matrix(columns=['z'])*1000
+        
+        # Get horizontal distances:
+        i_az,i_backaz,i_horizontaldist = g.inv(i_stlon,i_stlat,slip_lon,slip_lat)
+    
+        # Get distances:
+        i_dist = np.sqrt(i_horizontaldist**2 + slip_depth**2)
+        
+        # Find minimum distance:
+        i_mindist = np.min(i_dist)
+    
+        # Append:
+        rrup.append(i_mindist)
+    
+        
+    # Turn minimum distance into an array, convert to km:
+    rrup = np.array(rrup)/1000
+    rhypo = np.array(rhypo)/1000
+
+    # Return:
+    return rrup, rhypo
+    
+    
+#########################################################################################
+def get_imt_list(dataframe,f_to_compute,damping,pga=None,pgv=None):
+    '''
+    Get a list with OpenQuake IMT's to put into a fixed distance or other GMPE computation
+    Input:
+        dataframe:          Pandas dataframe with ground motion data computing. SA columns must be specified as: 'SAfrequency'
+        f_to_compute:       List with frequencies to compute in SA
+        damping:            Damping in percents to use
+        pga:                Compute PGA - default is no.  If yes, set to 1
+        pgv:                Compute PGV - default is no.  If yes, set to 1
+    Output:
+        IMT_list:           List with IMT's
+    '''
+    
+    from openquake.hazardlib import imt
+    import numpy as np
+
+    # Get period:
+    IMT = []
+    for item in list(dataframe):
+        if 'SA' in item:
+            freq = np.float(item.split('SA')[1])
+            
+            if freq in f_to_compute:        
+                period = 1./freq
+                
+                # Add to imt:
+                i_imt = imt.SA(period,damping)
+                
+                # Add to list:
+                IMT.append(i_imt)
+
+    if pgv!=None:
+        IMT.append(imt.PGV())
+    if pga!=None:
+        IMT.append(imt.PGA())
+
+    # Return:
+    return IMT
+
+
+#########################################################################################
+def garcia2005_fixeddist(imt_list,rrup,rhypo,hypo_depth,mag):
+    '''
+    Compute fixed distances for frequencies from a set
+    Input:
+        imt_list:                   List of intensity measures to compute (openquake IMT class)
+        rrup:                       Logspace array with Rrup to compute for
+        rhypo:                      Logspace array with Rhypo to compute for
+        hypo_depth:                 Number with hypocenter depth
+        mag:                        Magnitude to compute for
+    Output:
+        lmean_garcia2005:           List of arrays with mean prediction for each IMT in imt_list
+        lmean_plus_sd_garcia2005:   List of arrays with mean pred + std for each IMT in imt_list
+        lmean_mins_sd_garcia2005:   List of arrays with mean pred - std for each IMT in imt_list
+        sd_garcia2005:              List of arrays with standard deviation for each IMT in imt_list        
+    '''
+    
+    import numpy as np
+    from openquake.hazardlib.gsim.garcia_2005 import GarciaEtAl2005SSlab
+    from openquake.hazardlib import imt, const
+    from openquake.hazardlib.gsim.base import RuptureContext
+    from openquake.hazardlib.gsim.base import DistancesContext
+    from openquake.hazardlib.gsim.base import SitesContext
+
+                
+    # Initiate the rupture, distances, and sites objects:
+    rctx = RuptureContext()
+    dctx = DistancesContext()
+    sctx = SitesContext()
+    
+    # Add to it - set Vs30 to 760 since Garcia uses NEHRP class B site, just that
+    #     oq engine wants an array with it:
+    sctx.vs30 = np.full_like(rrup,760)
+    
+    dctx.rrup = rrup
+    dctx.rhypo = rhypo
+    
+    rctx.mag = mag
+    rctx.hypo_depth = hypo_depth
+    
+    # Get predictions:
+    garcia2005 = GarciaEtAl2005SSlab()
+    
+    #Initiate emtpy arrays to append to:
+    lmean_garcia2005 = []
+    lmean_plus_sd_garcia2005 = []
+    lmean_mins_sd_garcia2005 = []
+    sd_garcia2005 = []
+    
+    for predictive_param in range(len(imt_list)):
+        i_lmean_garcia2005, i_sd_garcia2005 = garcia2005.get_mean_and_stddevs(sctx, rctx, dctx, imt_list[predictive_param], [const.StdDev.TOTAL])
+    
+        # Get plus/minus bounds:
+        i_lmean_plus_sd_garcia2005 = np.exp(i_lmean_garcia2005 + i_sd_garcia2005[0])
+        i_lmean_mins_sd_garcia2005 = np.exp(i_lmean_garcia2005 - i_sd_garcia2005[0])
+        
+        i_lmean_garcia2005 = np.exp(i_lmean_garcia2005)
+        i_sd_garcia2005 = np.exp(i_sd_garcia2005)
+    
+        # If it's PGV, convert from cm/s to m/s:
+        if 'PGV' in imt_list[predictive_param]:
+            i_lmean_plus_sd_garcia2005 = i_lmean_plus_sd_garcia2005/100
+            i_lmean_mins_sd_garcia2005 = i_lmean_mins_sd_garcia2005/100
+            i_lmean_garcia2005 = i_lmean_garcia2005/100
+            i_sd_garcia2005 = i_sd_garcia2005/100
+    
+        # Append:
+        lmean_garcia2005.append(i_lmean_garcia2005)
+        lmean_plus_sd_garcia2005.append(i_lmean_plus_sd_garcia2005)
+        lmean_mins_sd_garcia2005.append(i_lmean_mins_sd_garcia2005)
+        sd_garcia2005.append(i_sd_garcia2005)
+        
+    # Return:
+    return lmean_garcia2005, lmean_plus_sd_garcia2005, lmean_mins_sd_garcia2005,sd_garcia2005
+
+
+#########################################################################################
+def zhao2006_fixeddist(imt_list,rrup,hypo_depth,mag,rake,gmpe_type):
+    '''
+    Compute fixed distances for frequencies from a set of IMT's for Zhao 2006
+    Input:
+        imt_list:                   List of intensity measures to compute (openquake IMT class)
+        rrup:                       Logspace array with Rrup to compute for
+        hypo_depth:                 Number with hypocenter depth
+        mag:                        Magnitude to compute for
+        rake:                       Rake for rupture to use
+        gmpe_type:                  String with which Zhao GMPE to use: 'Asc' for active shallow crust, or 'Sslab' for Slab events
+    Output:
+        lmean_zhao2006:           List of arrays with mean prediction for each IMT in imt_list
+        lmean_plus_sd_zhao2006:   List of arrays with mean pred + std for each IMT in imt_list
+        lmean_mins_sd_zhao2006:   List of arrays with mean pred - std for each IMT in imt_list
+        sd_zhao2006:              List of arrays with standard deviation for each IMT in imt_list        
+    '''
+    
+    import numpy as np
+    from openquake.hazardlib import imt, const
+    from openquake.hazardlib.gsim.base import RuptureContext
+    from openquake.hazardlib.gsim.base import DistancesContext
+    from openquake.hazardlib.gsim.base import SitesContext
+    from openquake.hazardlib.gsim.zhao_2006 import ZhaoEtAl2006Asc, ZhaoEtAl2006SSlab 
+                
+    # Initiate the rupture, distances, and sites objects:
+    rctx = RuptureContext()
+    dctx = DistancesContext()
+    sctx = SitesContext()
+    
+    # Add to it - set Vs30 to 760 since this is fixed distance
+    sctx.vs30 = np.full_like(rrup,760)
+    
+    dctx.rrup = rrup
+    
+    rctx.mag = mag
+    rctx.hypo_depth = hypo_depth
+    rctx.rake = rake
+    
+    # Get predictions:
+    if gmpe_type == 'Asc':
+        zhao2006 = ZhaoEtAl2006Asc()
+    elif gmpe_type == 'Sslab':
+        zhao2006 = ZhaoEtAl2006SSlab()
+    
+    #Initiate emtpy arrays to append to:
+    lmean_zhao2006 = []
+    lmean_plus_sd_zhao2006 = []
+    lmean_mins_sd_zhao2006 = []
+    sd_zhao2006 = []
+    
+    for predictive_param in range(len(imt_list)):
+        i_lmean_zhao2006, i_sd_zhao2006 = zhao2006.get_mean_and_stddevs(sctx, rctx, dctx, imt_list[predictive_param], [const.StdDev.TOTAL])
+    
+        # Get plus/minus bounds:
+        i_lmean_plus_sd_zhao2006 = np.exp(i_lmean_zhao2006 + i_sd_zhao2006[0])
+        i_lmean_mins_sd_zhao2006 = np.exp(i_lmean_zhao2006 - i_sd_zhao2006[0])
+        
+        i_lmean_zhao2006 = np.exp(i_lmean_zhao2006)
+        i_sd_zhao2006 = np.exp(i_sd_zhao2006)
+    
+        # If it's PGV, convert from cm/s to m/s:
+        if 'PGV' in imt_list[predictive_param]:
+            i_lmean_plus_sd_zhao2006 = i_lmean_plus_sd_zhao2006/100
+            i_lmean_mins_sd_zhao2006 = i_lmean_mins_sd_zhao2006/100
+            i_lmean_zhao2006 = i_lmean_zhao2006/100
+            i_sd_zhao2006 = i_sd_zhao2006/100
+    
+        # Append:
+        lmean_zhao2006.append(i_lmean_zhao2006)
+        lmean_plus_sd_zhao2006.append(i_lmean_plus_sd_zhao2006)
+        lmean_mins_sd_zhao2006.append(i_lmean_mins_sd_zhao2006)
+        sd_zhao2006.append(i_sd_zhao2006)
+        
+    # Return:
+    return lmean_zhao2006, lmean_plus_sd_zhao2006, lmean_mins_sd_zhao2006,sd_zhao2006
