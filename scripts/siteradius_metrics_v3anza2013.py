@@ -11,11 +11,11 @@ import numpy as np
 #0=desktop
 #1=mac
 
-what_home=1
+what_home=0
 
 if what_home==0:
     #Desktop:
-    HOME='/media/vsahakian/katmai'
+    HOME='/katmai'
 elif what_home==1:
     #Mac:
     HOME='/Users/vsahakian'
@@ -36,7 +36,6 @@ mpath = HOME+'/anza/data/pckl/FangVs.pckl'
 
 ## Material flag - what kind is it?  0=Vp, 1=Vs, 2=Vp/Vs, 3=Qp, 4=Qs, 5=Qp/Qs
 materialflag=1 # Vs
-raytype=([0,1]) # Vs
 
 
 ########################
