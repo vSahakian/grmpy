@@ -83,7 +83,105 @@ def interpolate_rays(residobj,materialobj,interptype,rayflag):
     return ray_data
         
         
-############
+        
+################################################################################
+def get_rays_inradius(residobj,radius,direction_flag,ray_type):
+    '''
+    Get the ray locations only within X km radius of an event or station.
+    Input: 
+        residobj:               Residuals object, with raypath locations
+        radius:                 Radius in km away from event/site to get rays
+        direction_flag:         Away from site or event?  'site' or 'event'
+        ray_type:               Type of raypath location: 'vp' or 'vs'
+    Output:
+        radius_distance_lon:    List of arrays of ray lon, within radius away from direction
+        radius_distance_lat:    List of arrays of ray lat, within radius away from direction
+        radius_distance_depth:  List of arrays of ray depth, within radius away from directoin
+        residobj_radius:        New residuals object, with rays replaced with radius rays
+    '''
+    
+    from pyproj import Geod
+    import numpy as np
+    import cPickle as pickle
+    
+    
+    # Get ray info:
+    if ray_type=='vp':
+        raylon = residobj.vp_lon
+        raylat = residobj.vp_lat
+        raydepth = residobj.vp_depth
+    elif ray_type=='vs':
+        raylon = residobj.vs_lon
+        raylat = residobj.vs_lat
+        raydepth = residobj.vs_depth
+        
+    # Get "direction" location - even tor site?
+    if direction_flag == 'event':
+        dir_lon = residobj.elon
+        dir_lat = residobj.elat
+        dir_depth = residobj.edepth
+    elif direction_flag == 'site':
+        dir_lon = residobj.stlon
+        dir_lat = residobj.stlat
+        dir_depth = residobj.stelv
+    
+    # Get projection:
+    g = Geod(ellps='WGS84')
+    
+    # Make empty distances list:
+    radius_distance_lon = []
+    radius_distance_lat = []
+    radius_distance_depth = []
+    
+    # Get distances:
+    for rayi in range(len(raylon)):
+        i_dir_lon = np.full_like(raylon[rayi],dir_lon[rayi])
+        i_dir_lat = np.full_like(raylat[rayi],dir_lat[rayi])
+        i_dir_dep = np.full_like(raydepth[rayi],dir_depth[rayi])
+    
+        iraylon = raylon[rayi]
+        iraylat = raylat[rayi]
+        iraydepth = raydepth[rayi]
+        
+        # Get distances:
+        iaz,ibackaz,ihoriz_distance = g.inv(i_dir_lon,i_dir_lat,iraylon,iraylat)
+        
+        # NOw get overall distance:
+        idistance = np.sqrt((ihoriz_distance/1000)**2 + (i_dir_dep - iraydepth)**2)
+        
+        # Find where these are less than the radius:
+        within_radius_ind = np.where(idistance <= radius)[0]
+        
+        # Keep these only:
+        iraylon_radius = iraylon[within_radius_ind]
+        iraylat_radius = iraylat[within_radius_ind]
+        iraydepth_radius = iraydepth[within_radius_ind]
+    
+        # append to lists:
+        radius_distance_lon.append(iraylon_radius)
+        radius_distance_lat.append(iraylat_radius)
+        radius_distance_depth.append(iraydepth_radius)
+        
+    # Add back into residuals object:
+    residobj_radius = residobj
+    
+    if ray_type == 'vp':
+        residobj_radius.vp_lon = radius_distance_lon
+        residobj_radius.vp_lat = radius_distance_lat
+        residobj_radius.vp_depth = radius_distance_depth
+    elif ray_type == 'vs':
+        residobj_radius.vs_lon = radius_distance_lon
+        residobj_radius.vs_lat = radius_distance_lat
+        residobj_radius.vs_depth = radius_distance_depth
+    
+    
+    # Return:
+    return radius_distance_lon, radius_distance_lat, radius_distance_depth, residobj_radius
+    
+    
+        
+############################################################################################
+
 ##Compute indices##
 #Path integral:
 def compute_pathintegral(ray_vals,materialobject,normalize_flag):
@@ -136,7 +234,8 @@ def compute_pathintegral(ray_vals,materialobject,normalize_flag):
     #Return the array:
     return pathintegral_index
     
-#####
+    
+################################################################################
 #Path integral:
 def compute_devpathintegral(ray_vals,materialobject,normalize_flag):
     '''
@@ -269,7 +368,8 @@ def plot_pterms(home,run_name,robj,index,axlims):
     #Return
     return f1
     
-##
+##################################################################################
+
 def plot_pathterms_colored(home,run_name,robj,index,axlims,color_by,cvals,mymap):
     '''
     Plot path terms vs. some index, with path terms on the x-axis.
@@ -370,7 +470,7 @@ def plot_pathterms_colored(home,run_name,robj,index,axlims,color_by,cvals,mymap)
     
 ##
 #Other terms...
-##
+######################################################################################
 def plot_terms_colored(home,run_name,robj,term,index,axlims,color_by,cvals,mymap):
     '''
     Plot path terms vs. some index, with path terms on the x-axis.
