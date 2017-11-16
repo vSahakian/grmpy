@@ -1,11 +1,13 @@
 ###########################################################################
 ## Compute metrics for set distances away from teh site
-## Compare them with path terms
+
 
 import cPickle as pickle
 import run_res_analysis as runra
 import res_analysis as ra
 import numpy as np
+import pandas as pd
+from pyproj import Geod
 
 #Change this parameter depending on where you run:
 #0=desktop
@@ -38,12 +40,18 @@ mpath = HOME+'/anza/data/pckl/FangVs.pckl'
 materialflag=1 # Vs
 
 
+metricdfpath = home + 'mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30_siteradiusmetrics.pckl'
+
+
 ########################
 #######  Params  #######
 ########################
 
 # BAse model name:
 basepath = rpath.split('.pckl')[0]
+
+## Material flag - what kind is it?  0=Vp, 1=Vs, 2=Vp/Vs, 3=Qp, 4=Qs, 5=Qp/Qs
+materialflag=1 # Vs
 
 dist_from = 'site'
 site_radius = np.array([0.5,1,2,5,10,20])
@@ -77,14 +85,28 @@ print 'Read in material object model'
 ######   Get new rays   #######
 ###############################
 
+# First get azimuths frm site to event:
+g = Geod(ellps='WGS84')
+azimuth,backazimuth,distance = g.inv(robj.stlon,robj.stlat,robj.elon,robj.elat)
+
 ## Make empty lists for metrics:
-ind_s_vs_path = []
-ind_s_vs_normpath = []
-ind_s_vs_gradpathint = [] 
+ind_s_vs_path = np.zeros((len(robj.path_terms),len(site_radius)))
+ind_s_vs_normpath = np.zeros((len(robj.path_terms),len(site_radius)))
+ind_s_vs_gradpath = np.zeros((len(robj.path_terms),len(site_radius))) 
+
+column_list_path = []
+column_list_normpath = []
+column_list_gradpath = []
+
 
 ## For every distance metric, get the new rays and a new object:
 for radiusi in range(len(site_radius)):
-
+    
+    # Add to columns list for dataframe:
+    column_list_path.append('path' + np.str(site_radius[radiusi]))
+    column_list_normpath.append('normpath' + np.str(site_radius[radiusi]))
+    column_list_gradpath.append('gradpath' + np.str(site_radius[radiusi]))
+    
     ## Get new locations and interpolation:
     print 'Getting ray locations for site radius ' + np.str(site_radius[radiusi]) + '...'
     i_radius_distance_lon, i_radius_distance_lat, i_radius_distance_depth, i_residobj_radius = ra.get_rays_inradius(robj,site_radius[radiusi],dist_from,ray_type)
@@ -122,14 +144,31 @@ for radiusi in range(len(site_radius)):
     i_residobj_radius.add_indices(i_ind_s_vs_gradpath,2,1,1)
     
     # Append to lists:
-    ind_s_vs_path.append(i_ind_s_vs_path)
-    ind_s_vs_normpath.append(i_ind_s_vs_normpath)
-    ind_s_vs_gradpathint.append(i_ind_s_vs_gradpath)
+    ind_s_vs_path[:,radiusi] = i_ind_s_vs_path
+    ind_s_vs_normpath[:,radiusi] = i_ind_s_vs_normpath
+    ind_s_vs_gradpath[:,radiusi] = i_ind_s_vs_gradpath
     
-    # Save to a file:
-    i_rpath = basepath + '_site' + np.str(site_radius[radiusi]) + 'km.pckl'
-    irfile = open(i_rpath,'w')
-    pickle.dump(i_residobj_radius,irfile)
-    irfile.close()
+    ## Save to a file:
+    #i_rpath = basepath + '_site' + np.str(site_radius[radiusi]) + 'km.pckl'
+    #irfile = open(i_rpath,'w')
+    #pickle.dump(i_residobj_radius,irfile)
+    #irfile.close()
     
-#
+## Now save the metrics themselves to a file 
+# First make a dataframe...
+#   Start with required terms:
+basic_df_array = np.c_[robj.evnum,robj.stnum,robj.mw,robj.r,azimuth,robj.E_residual,robj.site_terms,robj.path_terms,robj.site_stderr]
+basic_df = pd.DataFrame(basic_df_array,columns=['evnum','stnum','M','rrup','site2ev_azimuth','E_residual','site_terms','path_terms','site_stderr'])
+
+# Then make array with each metric for all radii:
+ind_s_vs_path_df = pd.DataFrame(ind_s_vs_path,columns=column_list_path)
+ind_s_vs_normpath_df = pd.DataFrame(ind_s_vs_normpath,columns=column_list_normpath)
+ind_s_vs_gradpath_df = pd.DataFrame(ind_s_vs_gradpath,columns=column_list_gradpath)
+
+# Append them all:
+site_radius_df = pd.concat([basic_df,ind_s_vs_path_df,ind_s_vs_normpath_df,ind_s_vs_gradpath_df],axis=1)
+
+## Now dump this to an object:
+metricfile = open(metricdfpath,'w')
+pickle.dump(site_radius_df,metricfile)
+metricfile.close()
