@@ -33,8 +33,6 @@ home=HOME+'/anza/models/residuals/'
 ## Main residual model:
 rpath = home + 'mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30/mixedcoeff_v3anza2013_pga_noVs30_5coeff_a4_-1.2_pga__ncoeff5_Mc_8.5_VR_99.6_a4_-1.2_robj_FILTERED_raydat.pckl'
 
-rpath = home + 'mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30/mixedcoeff_v3anza2013_pga_noVs30_5coeff_a4_-1.2_pga__ncoeff5_Mc_8.5_VR_99.6_a4_-1.2_robj_FILTERED_raydat.pckl'
-
 ## Material model:
 mpath = HOME+'/anza/data/pckl/FangVs.pckl'
 
@@ -108,33 +106,57 @@ for radiusi in range(len(site_radius)):
     column_list_path.append('path' + np.str(site_radius[radiusi]))
     column_list_normpath.append('normpath' + np.str(site_radius[radiusi]))
     column_list_gradpath.append('gradpath' + np.str(site_radius[radiusi]))
+
+    print 'ray length of original is \n'
+    print len(robj.vs_lon[0])
     
     ## Get new locations and interpolation:
     print 'Getting ray locations for site radius ' + np.str(site_radius[radiusi]) + '...'
     i_radius_distance_lon, i_radius_distance_lat, i_radius_distance_depth, i_residobj_radius = ra.get_rays_inradius(robj,site_radius[radiusi],dist_from,ray_type)
     print 'Have new res object for site radius ' + np.str(site_radius[radiusi]) + '.'
-    
+
+    print 'ray length of original is \n'
+    print len(robj.vs_lon[0])    
+
+    print 'ray length of radius is \n'
+    print len(i_residobj_radius.vs_lon[0])
+
     ## INterpolate for metrics...
     print 'About to interpolate rays through velocity model for site radius ' + np.str(site_radius[radiusi])
     i_s_ray_data=runra.interp_rays(i_residobj_radius,mobj,interpolation_type,interpraytype)
     print 'Finished interpolating for site radius '+ np.str(site_radius[radiusi])
+
+    print 'ray length of original is \n'
+    print len(robj.vs_lon[0])
 
     ## Add to and save in a residuals object:
     # Values for s rays:
     print 'Adding to the residual object...'
     i_residobj_radius.add_material_values(i_s_ray_data,materialflag,1)
 
+    print 'ray length of original is \n'
+    print len(robj.vs_lon[0])
+
     ## Compute metrics:
     print 'Computing path integral for site radius ' + np.str(site_radius[radiusi])
     i_ind_s_vs_path=ra.compute_pathintegral(i_s_ray_data,mobj,0)
+
+    print 'ray length of original is \n'
+    print len(robj.vs_lon[0])
 
     #normalization:
     print 'Computing normalized path integral for site radius ' + np.str(site_radius[radiusi])
     i_ind_s_vs_normpath=ra.compute_pathintegral(i_s_ray_data,mobj,1)
 
+    print 'ray length of original is \n'
+    print len(robj.vs_lon[0])
+
     #gradient:
     print 'Computing velocity gradient metric for site radius ' + np.str(site_radius[radiusi])
     i_ind_s_vs_gradpath=ra.compute_devpathintegral(i_s_ray_data,mobj,0)
+
+    print 'ray length of original is \n'
+    print len(robj.vs_lon[0])
 
     # ## Save to residuals object:
     # #indext type =0, ray type is s=1,material type is vs=1) 
@@ -150,6 +172,9 @@ for radiusi in range(len(site_radius)):
     ind_s_vs_normpath[:,radiusi] = i_ind_s_vs_normpath
     ind_s_vs_gradpath[:,radiusi] = i_ind_s_vs_gradpath
     
+    print 'ray length of original is \n'
+    print len(robj.vs_lon[0])
+
     ## Save to a file:
     #i_rpath = basepath + '_site' + np.str(site_radius[radiusi]) + 'km.pckl'
     #irfile = open(i_rpath,'w')
@@ -159,16 +184,28 @@ for radiusi in range(len(site_radius)):
 ## Now save the metrics themselves to a file 
 # First make a dataframe...
 #   Start with required terms:
+print 'ray length of original is \n'
+print len(robj.vs_lon[0])
+
 basic_df_array = np.c_[robj.evnum,robj.stnum,robj.mw,robj.r,azimuth,robj.E_residual,robj.site_terms,robj.path_terms,robj.site_stderr]
 basic_df = pd.DataFrame(basic_df_array,columns=['evnum','stnum','M','rrup','site2ev_azimuth','E_residual','site_terms','path_terms','site_stderr'])
+
+print 'ray length of original is \n'
+print len(robj.vs_lon[0])
 
 # Then make array with each metric for all radii:
 ind_s_vs_path_df = pd.DataFrame(ind_s_vs_path,columns=column_list_path)
 ind_s_vs_normpath_df = pd.DataFrame(ind_s_vs_normpath,columns=column_list_normpath)
 ind_s_vs_gradpath_df = pd.DataFrame(ind_s_vs_gradpath,columns=column_list_gradpath)
 
+print 'ray length of original is \n'
+print len(robj.vs_lon[0])
+
 # Append them all:
 site_radius_df = pd.concat([basic_df,ind_s_vs_path_df,ind_s_vs_normpath_df,ind_s_vs_gradpath_df],axis=1)
+
+print 'ray length of original is \n'
+print len(robj.vs_lon[0])
 
 ## Now dump this to an object:
 metricfile = open(metricdfpath,'w')

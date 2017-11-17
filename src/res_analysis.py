@@ -107,13 +107,17 @@ def get_rays_inradius(residobj,radius,direction_flag,ray_type):
     
     # Get ray info:
     if ray_type=='vp':
+        print 'running for vp'
         raylon = residobj.vp_lon
         raylat = residobj.vp_lat
         raydepth = residobj.vp_depth
     elif ray_type=='vs':
+        print 'running for vs'
         raylon = residobj.vs_lon
         raylat = residobj.vs_lat
         raydepth = residobj.vs_depth
+
+        print 'length of vs_lon [0] is ' + np.str(len(residobj.vs_lon[0]))
         
     # Get "direction" location - even tor site?
     if direction_flag == 'event':
@@ -164,6 +168,8 @@ def get_rays_inradius(residobj,radius,direction_flag,ray_type):
         
     # Add back into residuals object:
     residobj_radius = residobj
+
+    print 'len of residual object radius vs_lon[0] is: ' + np.str(len(radius_distance_lon[0]))
     
     if ray_type == 'vp':
         residobj_radius.vp_lon = radius_distance_lon
