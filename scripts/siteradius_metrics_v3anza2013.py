@@ -33,6 +33,8 @@ home=HOME+'/anza/models/residuals/'
 ## Main residual model:
 rpath = home + 'mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30/mixedcoeff_v3anza2013_pga_noVs30_5coeff_a4_-1.2_pga__ncoeff5_Mc_8.5_VR_99.6_a4_-1.2_robj_FILTERED_raydat.pckl'
 
+rpath = home + 'mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30/mixedcoeff_v3anza2013_pga_noVs30_5coeff_a4_-1.2_pga__ncoeff5_Mc_8.5_VR_99.6_a4_-1.2_robj_FILTERED_raydat.pckl'
+
 ## Material model:
 mpath = HOME+'/anza/data/pckl/FangVs.pckl'
 
@@ -40,7 +42,7 @@ mpath = HOME+'/anza/data/pckl/FangVs.pckl'
 materialflag=1 # Vs
 
 
-metricdfpath = home + 'mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30_siteradiusmetrics.pckl'
+metricdfpath = home + 'mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30/mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30_siteradiusmetrics.pckl'
 
 
 ########################
@@ -134,14 +136,14 @@ for radiusi in range(len(site_radius)):
     print 'Computing velocity gradient metric for site radius ' + np.str(site_radius[radiusi])
     i_ind_s_vs_gradpath=ra.compute_devpathintegral(i_s_ray_data,mobj,0)
 
-    ## Save to residuals object:
-    #indext type =0, ray type is s=1,material type is vs=1) 
-    print 'Saving metrics to residuals object...'
-    i_residobj_radius.add_indices(i_ind_s_vs_path,0,1,1)
-    #indextype =1,
-    i_residobj_radius.add_indices(i_ind_s_vs_normpath,1,1,1)
-    #indextype=2:
-    i_residobj_radius.add_indices(i_ind_s_vs_gradpath,2,1,1)
+    # ## Save to residuals object:
+    # #indext type =0, ray type is s=1,material type is vs=1) 
+    # print 'Saving metrics to residuals object...'
+    # i_residobj_radius.add_indices(i_ind_s_vs_path,0,1,1)
+    # #indextype =1,
+    # i_residobj_radius.add_indices(i_ind_s_vs_normpath,1,1,1)
+    # #indextype=2:
+    # i_residobj_radius.add_indices(i_ind_s_vs_gradpath,2,1,1)
     
     # Append to lists:
     ind_s_vs_path[:,radiusi] = i_ind_s_vs_path
