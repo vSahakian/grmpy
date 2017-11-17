@@ -61,6 +61,8 @@ interpraytype = np.array([1])
 ######  Read in models  #######
 ###############################
 
+print 'Reading in models'
+
 ## Read in the residuals object
 rfile = open(rpath,'r')
 robj = pickle.load(rfile)
