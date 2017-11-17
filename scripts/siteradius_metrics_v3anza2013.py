@@ -41,7 +41,7 @@ materialflag=1 # Vs
 
 
 metricdfpath = home + 'mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30/mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30_siteradiusmetrics.pckl'
-
+metriccsvpath = home + 'mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30/mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30_siteradiusmetrics.csv'
 
 ########################
 #######  Params  #######
@@ -175,3 +175,6 @@ site_radius_df = pd.concat([basic_df,ind_s_vs_path_df,ind_s_vs_normpath_df,ind_s
 metricfile = open(metricdfpath,'w')
 pickle.dump(site_radius_df,metricfile)
 metricfile.close()
+
+# And a csv:
+site_radius_df.to_csv(metriccsvpath)
