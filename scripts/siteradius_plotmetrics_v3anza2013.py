@@ -76,3 +76,31 @@ for radiusi in range(len(site_radius)):
 
         i_binned_figure.savefig(i_figpath)
         i_binned_figure.savefig(i_pdfpath)
+
+
+#######################################################################################
+
+# First do for site term, for one set distance bin:
+residualterm = 'site'
+bin_by = 'Rrup'
+axlims = [[[0, 7], [-3, 2.5]], [[0.3, 1], [-3, 2.5]], [[0, 1], [-3, 2.5]] ]
+color_by = 'Rrup'
+clims = [0, 140, 1]
+cbartick = 40
+plotrowscols = [1, 1]
+binplot_dims = [15,10]
+
+
+for radiusi in range(len(site_radius)):
+    for metrici in range(len(metric_list)):
+        metric = metric_list[metrici] + np.str(site_radius[radiusi])
+        binedges = np.array([ 0.0, 180])
+        
+        i_binned_figure = ra.plot_binned_metric_dataframe(metricdf,residualterm,metric,binedges,bin_by,axlims[metrici],color_by,colorscheme,clims,cbartick,binplot_dims,plotrowscols,binplot_font)
+        
+        i_figname = 'siteradius_' + metric + '_' + np.str(len(binedges)-1) + 'bins'
+        i_figpath = fig_dir + i_figname + '.png'
+        i_pdfpath = fig_dir + 'pdfs/' + i_figname + '.pdf'
+
+        i_binned_figure.savefig(i_figpath)
+        i_binned_figure.savefig(i_pdfpath)

@@ -103,6 +103,7 @@ def get_rays_inradius(residobj,radius,direction_flag,ray_type):
     from pyproj import Geod
     import numpy as np
     import cPickle as pickle
+    import copy
     
     
     # Get ray info:
@@ -167,7 +168,7 @@ def get_rays_inradius(residobj,radius,direction_flag,ray_type):
         radius_distance_depth.append(iraydepth_radius)
         
     # Add back into residuals object:
-    residobj_radius = residobj
+    residobj_radius = copy.deepcopy(residobj)
 
     print 'len of residual object radius vs_lon[0] is: ' + np.str(len(radius_distance_lon[0]))
     
