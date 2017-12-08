@@ -58,7 +58,17 @@ slice_axlims=[[-116.9,-116.4],[-19.67,2.62]]
 #######Make grid object:#####
 #############################
 
-#gobj=ra.grid_path_term(home,run_name,bindims,veltype,stattype)
+
+#run_dir=path.expanduser(home+run_name+'/')
+#rpath=run_dir+run_name+'_robj_raydat.pckl'
+
+#gobj=ra.grid_path_term(rpath,bindims,veltype,stattype)
+
+##Save:
+#gobjpath=run_dir+run_name+'_pterm_grid.pckl'
+#gfile=open(gobjpath,'w')
+#pickle.dump(gobj,gfile)
+#gfile.close()
 
 #############################
 #############################

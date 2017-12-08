@@ -713,18 +713,18 @@ def plot_terms_colored_condition(home,run_name,condition,robj,robj_x,robj_y,term
     
        
 ###########################3             
-def grid_path_term(home,run_name,bindims,raytype,stat_type):
+def grid_path_term(rpath,bindims,raytype,stat_type,rpath_type='path'):
     '''
     Average the path terms for every cell on a 3d grid.  Uses run_name_robj_raydat.pckl
     Input:
-        home:               String with home directory (i.e., anza/models/residuals)
-        run_name:           String with run name, database/inversion combo
-        bindims:            Bin dimensions (nx, ny, nz)
+        rpath:              STring with path to the residuals object, with raydat - OR - residuals object (see rpath flag below)
+        bindims:            Bin dimensions (nx, ny, nz), OR bin edges (sequence of arrays, [[x1, x2, ..,xn],[y1,y2,...yn],[z1,z2,...zn]] **SEE FLAG BELOW
         raytype:            Type of ray: 0=Vp, 1=Vs
         stat_type:          String, type of statistic for binning:
                                 'mean', 'median', 'count',or sum'
+        rpath_type:         String with flag for rpath type: 'path' or 'object'. Default: 'path'
     Output:
-        grid_object:            Gridded object, also saves to /home/run_name/run_name_pterm_grid.pckl
+        grid_object:            Gridded object
     '''
     
     from scipy.stats import binned_statistic_dd 
@@ -733,14 +733,15 @@ def grid_path_term(home,run_name,bindims,raytype,stat_type):
     import cdefs as cdf
     from os import path
     
-    run_dir=path.expanduser(home+run_name+'/')
-    rpath=run_dir+run_name+'_robj_raydat.pckl'
-    gobjpath=run_dir+run_name+'_pterm_grid.pckl'
-    
-    #Open object:
-    rfile=open(rpath,'r')
-    robj=pickle.load(rfile)
-    rfile.close()
+
+    # If it's a path provided, open the object:
+    if rpath_type == 'path':        
+        #Open object:
+        rfile=open(rpath,'r')
+        robj=pickle.load(rfile)
+        rfile.close()
+    elif rpath_type == 'object':
+        robj = rpath
     
     ##Setup input##
     #First make the path term to match the lat and lon format - a list of arrays, with the same path term value:
@@ -792,10 +793,7 @@ def grid_path_term(home,run_name,bindims,raytype,stat_type):
     
     #Save as an object:
     grid_object=cdf.pterm_3dgrid(statistic,bin_edges,binnumber)
-    #Save:
-    gfile=open(gobjpath,'w')
-    pickle.dump(grid_object,gfile)
-    gfile.close()
+
     
     #And return:
     return grid_object
@@ -1776,6 +1774,7 @@ def plot_binned_metric_dataframe(dataframe,residualterm,metric,binedges,bin_by,a
     import matplotlib.cm as cm
     import matplotlib.colors as colors
     import pandas as pd
+    import copy
     
     # Number of bins:
     numberbins = len(binedges)-1
@@ -1787,7 +1786,7 @@ def plot_binned_metric_dataframe(dataframe,residualterm,metric,binedges,bin_by,a
         binvalue = dataframe['M']
     elif bin_by == 'Site Azimuth':
         # Initiate projection object:
-        az = dataframe['site2ev_azimuth']
+        az = copy.copy(dataframe['site2ev_azimuth'].as_matrix())
         
         # But azimuth from this is -180 to 180, so change to be 0 to 360
         # Find where it's negative
@@ -1804,7 +1803,7 @@ def plot_binned_metric_dataframe(dataframe,residualterm,metric,binedges,bin_by,a
     elif color_by == 'M':
         colorvalue = dataframe['M']
     elif color_by == 'Site Azimuth':
-        az = dataframe['site2ev_azimuth']
+        az = copy.copy(dataframe['site2ev_azimuth'].as_matrix())
         
         # But azimuth from this is -180 to 180, so change to be 0 to 360
         # Find where it's negative
@@ -1892,7 +1891,7 @@ def plot_binned_metric_dataframe(dataframe,residualterm,metric,binedges,bin_by,a
         
         plottext = str(binedges[subplot_i]) + ' < ' + bin_by + ' <= ' + str(binedges[subplot_i + 1])
         p_val = '%.1e' % p_value_list[subplot_i]
-        plottextstats = 'r = ' + str(around(r_value_list[subplot_i],2))  # + ', p = ' + str(p_val)
+        plottextstats = 'r = ' + str(around(r_value_list[subplot_i],2)) + ', p = ' + str(p_val)
         
         # Make colormap
         colormap=plt.get_cmap(colorscheme)
@@ -2192,3 +2191,323 @@ def plot_binned_metric_statistic(residualobj,residualterm,metric,binedges,bin_by
             
     # Return figure:
     return binnedplot
+    
+    
+    
+#############################################################################
+def plot_binned_metric_statistic_df(dataframe,residualterm,metric,statistic,binedges,bin_by,axlims,color_by,color_by_stat,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz,markersize):
+    '''
+    VJS 10/2017
+    Plots a mean or median metric vs. residual for certain bins, returns a figure with number
+    of subplots equal to number of bins
+    Input: 
+        dataframe:              Pandas dataframe, including metrics
+        residualterm:           String with residual to plot: Event - 'event', Site - 'site'
+        metric:                 String with metric to plot, directly from pandas dataframe column name
+        statistic:              Statistic to use: 'mean' or 'median'
+        binedges:               Array with bin edges: ([bin1left,bin1right,bin2right,bin3right,etc.])
+        bin_by:                 String with variable to bin by: Rrup - 'Rrup', M - 'M', Az from site - 'Site Azimuth'
+        axlims:                 List with axis limits: [[xmin,xmax],[ymin,ymax]]
+        color_by:               String with variable to color by: Mean Rrup - 'Mean Rrup', M - 'Mean M', Mean Az from site - 'Mean Site Azimuth'
+                                    Median Rrup - 'Median Rrup', M - 'Median M', Median Az from site - 'Median Site Azimuth'
+        color_by_stat:          String with statistic for color_by: 'mean' or 'median'
+        colorscheme:            String with colormap to use 
+        clims:                  List with colorscale limits: [cmin,cmax,cincrement]
+        cbartick:               Tick increment for colorbar (a single number)
+        plotdims:               Plot dimensions: [width,height]
+        plotrowscols:           List with rows and columns: [numberrows, numbercolumns]
+        fontsz:                 Number with font size, i.e., 14
+        markersize:             Number with size for scattered circles
+    Output:
+        binned_figure:          Figure with subplots for bins
+    '''
+    
+    import matplotlib.pyplot as plt
+    from numpy import where,arange,around,unique,mean,median,array,zeros,shape
+    from scipy.stats.stats import pearsonr
+    import matplotlib.cm as cm
+    import matplotlib.colors as colors
+    
+    # Number of bins:
+    numberbins = len(binedges)-1
+    
+    print statistic
+    print color_by_stat
+    
+    # Get what you're binning by:
+    if bin_by == 'Rrup':
+        binvalue = dataframe['rrup'].as_matrix()
+    elif bin_by == 'M':
+        binvalue = dataframe['M'].as_matrix()
+    elif bin_by == 'Site Azimuth':
+        # Initiate projection object:
+        az = dataframe['site2ev_azimuth'].as_matrix()
+        
+        # But azimuth from this is -180 to 180, so change to be 0 to 360
+        # Find where it's negative
+        az_negative = where(az<0)[0]
+        # Where it's negative, set it to the 180 + absolute value of negative
+        az[az_negative] = 180 + abs(az[az_negative])
+        
+        # Set bin value to this
+        binvalue = az
+        
+    # Get what you're coloring by:
+    if color_by == 'Rrup':
+        colorvalue = dataframe['rrup'].as_matrix()
+    elif color_by == 'M':
+        colorvalue = dataframe['M'].as_matrix()
+    elif color_by == 'Site Azimuth':
+        # Initiate projection object:
+        az = dataframe['site2ev_azimuth'].as_matrix()
+        
+        # But azimuth from this is -180 to 180, so change to be 0 to 360
+        # Find where it's negative
+        az_negative = where(az<0)[0]
+        # Where it's negative, set it to the 180 + absolute value of negative
+        az[az_negative] = 180 + abs(az[az_negative])
+        
+        # Set color value to this
+        colorvalue = az
+        
+    # Get color by statistic:
+    if color_by_stat == 'mean':
+        color_by_label = 'Mean ' + color_by
+    elif color_by_stat == 'median':
+        color_by_label = 'Median ' + color_by
+        
+    # Get the metric:
+    metricvalue = dataframe[metric]
+
+    # Get the label:
+    if metric.split('path')[0] == '':
+        xlabel_metric = 'Path Velocity'
+    elif metric.split('path')[0] == 'norm':
+        xlabel_metric = 'Normalized Path Velocity'
+    elif metric.split('path')[0] == 'grad':
+        xlabel_metric = 'Velocity gradient'
+        
+    xlabel_metricdist = metric.split('path')[1] + ' km'
+    
+    xlabel = xlabel_metric  + ' ' + xlabel_metricdist
+        
+    # Get the residual:
+    if residualterm == 'event':
+        residual = dataframe['E_residual'].as_matrix()
+        ylabel = 'Event Residual'
+    elif residualterm == 'site':
+        residual = dataframe['site_terms'].as_matrix()
+        ylabel = 'Site Residual'
+
+    
+    # Now go through bins, and append them to a list:
+    residual_list = []
+    metric_list = []
+    r_value_list = []
+    p_value_list = []
+    color_value_list = []
+
+    
+    # Loop through bins to get indices for each bin:
+    for bin_i in range(numberbins):
+        i_bin_ind = where((binvalue > binedges[bin_i]) & (binvalue <= binedges[bin_i+1]))[0]
+        i_residual_all = residual[i_bin_ind]
+        i_metric_all = metricvalue[i_bin_ind]
+        i_colorval_all = colorvalue[i_bin_ind]
+        
+        # Get unique stations in here/median per station:
+        if residualterm == 'site':
+            i_all_sta = dataframe['stnum'].as_matrix()[i_bin_ind]
+
+            # Unique sites in this bin:
+            usta = unique(i_all_sta)
+            
+            # Reset metric list for each station/event:
+            i_metric=zeros((len(usta)))
+            i_colorval=zeros((len(usta)))
+            i_residual=zeros((len(usta)))
+            
+            # Loop through the sites and for every site, find the mean metric:
+            for sta_i in range(len(usta)):
+                i_ind_sta = where(i_all_sta == usta[sta_i])[0]
+                                
+                if statistic == 'mean':
+                    i_metric_sta = mean(i_metric_all.as_matrix()[i_ind_sta])
+                    i_residual_sta = i_residual_all[i_ind_sta][0]
+                elif statistic == 'median':
+                    i_metric_sta = median(i_metric_all.as_matrix()[i_ind_sta])
+                    i_residual_sta = i_residual_all[i_ind_sta][0]
+
+                if color_by_stat == 'mean':
+                    i_colorval_sta = mean(i_colorval_all[i_ind_sta])
+                elif color_by_stat == 'median':
+                    i_colorval_sta = median(i_colorval_all[i_ind_sta])
+                
+                # Add these to the array
+                i_metric[sta_i] = i_metric_sta
+                i_colorval[sta_i] = i_colorval_sta
+                i_residual[sta_i] = i_residual_sta
+
+        
+        # Append to their lists:
+        residual_list.append(i_residual)
+        metric_list.append(i_metric)
+        color_value_list.append(i_colorval)
+        
+        # Get Statistics - pearsons and p value:
+        i_bin_r,i_bin_p = pearsonr(i_residual,i_metric)
+        
+        # Append statistics to lists:
+        r_value_list.append(i_bin_r)
+        p_value_list.append(i_bin_p)
+    
+    
+    ########################
+    
+    ## Initiate plot:
+    binnedplot, binnedaxes = plt.subplots(nrows=plotrowscols[0],ncols=plotrowscols[1],figsize=(plotdims[0],plotdims[1]))
+    
+    # Flatten the axes array so that it can easily be looped over per bin:
+    if shape(binnedaxes):
+        binnedaxes = binnedaxes.flatten()
+    else:
+        binnedaxes = binnedaxes
+    
+    # For each bin, plot:
+    for subplot_i in range(numberbins):
+        if shape(binnedaxes):
+            axis_i = binnedaxes[subplot_i]
+        else:
+            axis_i = binnedaxes
+        
+        plottext = str(around(binedges[subplot_i],1)) + ' < ' + bin_by + ' <= ' + str(binedges[subplot_i + 1])
+        p_val = '%.1e' % p_value_list[subplot_i]
+        plottextstats = 'r = ' + str(around(r_value_list[subplot_i],1)) + ', p = ' + str(p_val)
+        
+        # Make colormap
+        colormap=plt.get_cmap(colorscheme)
+        # Make a normalized colorscale
+        cNorm=colors.Normalize(vmin=clims[0], vmax=clims[1])
+        # Apply normalization to colormap:
+        scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap)
+        
+        # Make a fake contour plot for the colorbar:
+        Z=[[0,0],[0,0]]
+        levels=arange(clims[0],clims[1],clims[2])
+        c=plt.contourf(Z, levels, cmap=colormap)
+        
+        # Assign values to colormap
+        colorVal = scalarMap.to_rgba(color_value_list[subplot_i])
+        
+        # Clear axes:
+        axis_i.clear()
+        
+        # Scatter:
+        axis_i.scatter(metric_list[subplot_i],residual_list[subplot_i],facecolors=colorVal,edgecolors='k',marker='o',s=markersize)
+        
+        # Colorbar: 
+        axis_i_cb = plt.colorbar(c,ax=axis_i,shrink=0.70)
+        axis_i_cb.set_label(color_by_label,labelpad=0,rotation=90)
+        axis_i_cb.set_ticks(ticks=arange(clims[0],clims[1],cbartick))
+        
+        # Labels:
+        axis_i.set_xlabel(xlabel,labelpad=0,fontsize=fontsz)
+        axis_i.set_ylabel(ylabel,labelpad=0,fontsize=fontsz)
+        axis_i.set_title(plottext + '\n' + plottextstats,fontsize=fontsz+2)  
+        
+        # Limits:
+        axis_i.set_xlim(axlims[0])
+        axis_i.set_ylim(axlims[1])        
+
+        
+    # Remove empty axes:
+    if shape(binnedaxes):
+        for axis_j in range(len(binnedaxes)):
+            if axis_j >= numberbins:
+                binnedaxes[axis_j].axis('off')
+                binnedplot.delaxes(binnedaxes[axis_j])
+            
+    binnedplot.tight_layout()
+            
+    # Return figure:
+    return binnedplot
+    
+    
+    
+###################################################################################
+def get_total_res_imtlist(dataframe,IMT,prediction,pred_plus_sd,pred_mins_sd,resname):
+    '''
+    Compute total residuals for a list of IMT's, gmpe, and obs dataframe
+    Input:
+        dataframe:              Pandas dataframe with data and labeled periods
+        IMT:                    IMT list for which to compute residuals
+        prediction:             List of arrays with prediction for each in IMT
+        pred_plus_sd:           List of arrays with mean plus standard deviation
+        pred_mins_sd:           List of arrays with mean minus standard deviation
+        resname:                String with name to append to residual column name.
+    Output: 
+        total_residual:         List of arrays (same format as prediction) with ln(obs) - ln(mean pred)
+        total_residual_plussd:  List of arrays with ln obs - ln mean pred + sd
+        total_residual_minssd:  List of arrays with ln obs - mean pred - sd
+        new_df:                 Dataframe with residuals appended for each period
+    '''
+    
+    import pandas as pd
+    import numpy as np
+    import openquake
+    import copy
+    
+    # Inititate output arrays
+    total_residual = []
+    total_residual_plussd = []
+    total_residual_minssd = []
+    column_names = []
+    
+    # Make output dataframe:
+    residualframe = pd.DataFrame()
+    
+    # For each imt:
+    for i_predictive_param in range(len(IMT)):
+        # Get prediction:
+        i_prediction = prediction[i_predictive_param]
+        i_pred_plus_sd = pred_plus_sd[i_predictive_param]
+        i_pred_mins_sd = pred_mins_sd[i_predictive_param]
+        
+        # Get observation:
+        if type(IMT[i_predictive_param]) is openquake.hazardlib.imt.PGA:
+            i_observation = dataframe['pga']
+            i_colname = resname + '_res_pga'
+            i_colname_plus = resname + '_res_sdplus_pga'
+            i_colname_mins = resname + '_res_sdmins_pga'
+        elif type(IMT[i_predictive_param]) is openquake.hazardlib.imt.PGV:
+            i_observation = dataframe['pgv']
+            i_colname = resname + '_res_pgv'
+            i_colname_plus = resname + '_res_sdplus_pgv'
+            i_colname_mins = resname + '_res_sdmins_pgv'
+        elif type(IMT[i_predictive_param]) is openquake.hazardlib.imt.SA:
+            i_colstring = 'SA' + np.str(IMT[i_predictive_param].period)
+            i_observation = dataframe[i_colstring]
+            i_colname = resname + '_res_' + i_colstring
+            i_colname_plus = resname + '_res_sdplus_' + i_colstring
+            i_colname_mins = resname + '_res_sdmins_' + i_colstring
+            
+        # Get differences:
+        i_total_residual = np.log(i_observation) - np.log(i_prediction)
+        i_total_residual_plus_sd = np.log(i_observation) - np.log(i_pred_plus_sd)
+        i_total_residual_mins_sd = np.log(i_observation) - np.log(i_pred_mins_sd)
+        
+        # Append to lists:
+        total_residual.append(i_total_residual)
+        total_residual_plussd.append(i_total_residual_plus_sd)
+        total_residual_minssd.append(i_total_residual_mins_sd)
+        column_names.append(i_colname)
+        
+        # Add to dataframe:
+        residualframe[i_colname] = i_total_residual
+        residualframe[i_colname_plus] = i_total_residual_plus_sd
+        residualframe[i_colname_mins] = i_total_residual_mins_sd 
+        
+    # Return:
+    return total_residual, total_residual_plussd, total_residual_minssd, residualframe
+        
+        
