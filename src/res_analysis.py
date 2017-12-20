@@ -713,7 +713,7 @@ def plot_terms_colored_condition(home,run_name,condition,robj,robj_x,robj_y,term
     
        
 ###########################3             
-def grid_path_term(rpath,bindims,raytype,stat_type,rpath_type='path'):
+def grid_path_term(rpath,bindims,raytype,stat_type,rpath_type='path',subset='all'):
     '''
     Average the path terms for every cell on a 3d grid.  Uses run_name_robj_raydat.pckl
     Input:
@@ -746,44 +746,81 @@ def grid_path_term(rpath,bindims,raytype,stat_type,rpath_type='path'):
     ##Setup input##
     #First make the path term to match the lat and lon format - a list of arrays, with the same path term value:
     path_list=[]
-    for ray_i in range(len(robj.path_terms)):
-        ray_length_i=len(robj.vs_lon[ray_i])
-        path_terms_i=robj.path_terms[ray_i]*ones(ray_length_i)
-        
-        #Append to the list of path terms:
-        path_list.append(path_terms_i)
+    
+    if subset == 'all':
+        for ray_i in range(len(robj.path_terms)):
+            ray_length_i=len(robj.vs_lon[ray_i])
+            path_terms_i=robj.path_terms[ray_i]*ones(ray_length_i)
+            
+            #Append to the list of path terms:
+            path_list.append(path_terms_i)
+    else:
+        for ray_i in range(len(subset)):
+            ray_length_i=len(robj.vs_lon[subset[ray_i]])
+            path_terms_i=robj.path_terms[subset[ray_i]]*ones(ray_length_i)
+            
+            #Append to the list of path terms:
+            path_list.append(path_terms_i)
         
     
     #Now loop over the number of rays, and for each ray, append it to the larger array:
     #Classify if it's p or s:
     #If it's P:
     if raytype==0:
-        for ray_i in range(len(path_list)):
-            #If it's the first ray, initiate the arrays:
-            if ray_i==0:
-                lon=robj.vp_lon[ray_i]
-                lat=robj.vp_lat[ray_i]
-                dep=robj.vp_depth[ray_i]
-                path=path_list[ray_i]
-            else:
-                lon=r_[lon,robj.vp_lon[ray_i]]
-                lat=r_[lat,robj.vp_lat[ray_i]]
-                dep=r_[dep,robj.vp_depth[ray_i]]
-                path=r_[path,path_list[ray_i]]
+        if subset == 'all':
+            for ray_i in range(len(path_list)):
+                #If it's the first ray, initiate the arrays:
+                if ray_i==0:
+                    lon=robj.vp_lon[ray_i]
+                    lat=robj.vp_lat[ray_i]
+                    dep=robj.vp_depth[ray_i]
+                    path=path_list[ray_i]
+                else:
+                    lon=r_[lon,robj.vp_lon[ray_i]]
+                    lat=r_[lat,robj.vp_lat[ray_i]]
+                    dep=r_[dep,robj.vp_depth[ray_i]]
+                    path=r_[path,path_list[ray_i]]
+        else:
+            for ray_i in range(len(path_list)):
+                #If it's the first ray, initiate the arrays:
+                if ray_i==0:
+                    lon=robj.vp_lon[subset[ray_i]]
+                    lat=robj.vp_lat[subset[ray_i]]
+                    dep=robj.vp_depth[subset[ray_i]]
+                    path=path_list[subset[ray_i]]
+                else:
+                    lon=r_[lon,robj.vp_lon[subset[ray_i]]]
+                    lat=r_[lat,robj.vp_lat[subset[ray_i]]]
+                    dep=r_[dep,robj.vp_depth[subset[ray_i]]]
+                    path=r_[path,path_list[subset[ray_i]]]
                 
     elif raytype==1:
-        for ray_i in range(len(path_list)):
-            #If it's the first ray, initiate the arrays:
-            if ray_i==0:
-                lon=robj.vs_lon[ray_i]
-                lat=robj.vs_lat[ray_i]
-                dep=robj.vs_depth[ray_i]
-                path=path_list[ray_i]
-            else:
-                lon=r_[lon,robj.vs_lon[ray_i]]
-                lat=r_[lat,robj.vs_lat[ray_i]]
-                dep=r_[dep,robj.vs_depth[ray_i]]
-                path=r_[path,path_list[ray_i]]
+        if subset == 'all':
+            for ray_i in range(len(path_list)):
+                #If it's the first ray, initiate the arrays:
+                if ray_i==0:
+                    lon=robj.vs_lon[ray_i]
+                    lat=robj.vs_lat[ray_i]
+                    dep=robj.vs_depth[ray_i]
+                    path=path_list[ray_i]
+                else:
+                    lon=r_[lon,robj.vs_lon[ray_i]]
+                    lat=r_[lat,robj.vs_lat[ray_i]]
+                    dep=r_[dep,robj.vs_depth[ray_i]]
+                    path=r_[path,path_list[ray_i]]
+        else:
+            for ray_i in range(len(path_list)):
+                #If it's the first ray, initiate the arrays:
+                if ray_i==0:
+                    lon=robj.vs_lon[subset[ray_i]]
+                    lat=robj.vs_lat[subset[ray_i]]
+                    dep=robj.vs_depth[subset[ray_i]]
+                    path=path_list[subset[ray_i]]
+                else:
+                    lon=r_[lon,robj.vs_lon[subset[ray_i]]]
+                    lat=r_[lat,robj.vs_lat[subset[ray_i]]]
+                    dep=r_[dep,robj.vs_depth[subset[ray_i]]]
+                    path=r_[path,path_list[subset[ray_i]]]
                 
     #Concatenate width wise to put in:
     sample=c_[lon,lat,dep]

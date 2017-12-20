@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 #0=desktop
 #1=mac
 
-what_home=0
+what_home=1
 
 if what_home==0:
     #Desktop:
@@ -63,7 +63,7 @@ x_numedges = len(mobj.x) + 1
 y_numedges = len(mobj.y) + 1
 z_numedges = len(mobj.z) + 1
 
-# Get the differences betwee nodes:
+# Get the differences between nodes:
 x_diff = np.diff(mobj.x)
 y_diff = np.diff(mobj.y)
 z_diff = np.diff(mobj.z)
@@ -101,12 +101,15 @@ for i_node in range(len(mobj.z)):
 # Make binedges arrays:
 all_binedges = [x_binedges,y_binedges,z_binedges]
 
+
 ###############################################
 ########### Step 3 - Compute grid   ###########
 ###############################################
 
+# Use all rays:
+ind_subset = 'all'
 
-gridded_obj=ra.grid_path_term(robj,all_binedges,raytype,statistic,rpath_type='object')
+gridded_obj=ra.grid_path_term(robj,all_binedges,raytype,statistic,rpath_type='object',subset=ind_subset)
 
 # Save to desktop...
 gfile = open(gobjpath,'w')
