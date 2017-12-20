@@ -3191,7 +3191,7 @@ class pterm_3dgrid:
         '''
         Plot a slice of the path term grid model.
         Input:
-            sliceaxis:          Axes handle to plot on
+            sliceaxis:          Plot axes handle to plot on
             slicecoord:         Coordinate (lon, lat in degree, depth in km) of the slice to plot.
                                 If depth, it must be positive.
             coordtype:          Type of coordinate: 'lon', 'lat', 'depth'
@@ -3211,6 +3211,7 @@ class pterm_3dgrid:
         #Get the slice from the 3D array that corresponds to this lat/lon:
         if coordtype=='lon':
             binind=argmin(abs(self.binedges[0]+slicecoord))
+            print binind
             #If it's the right hand side or last edge of tha tdimension, use the bin to the inside:
             if binind==len(self.binedges[0]):
                 binind=binind=1
