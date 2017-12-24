@@ -111,18 +111,18 @@ all_binedges = [x_binedges,y_binedges,z_binedges]
 ###############################################
 ########### Step 3 - Compute grid   ###########
 ###############################################
-
-print 'Gridding for mean...'
 # Use all rays:
 ind_subset = 'all'
 
-gridded_obj_mean=ra.grid_path_term(robj,all_binedges,raytype,statistic,rpath_type='object',subset=ind_subset)
-
-print 'Saving mean grid...'
-# Save grid to file:
-gfile = open(gobjpath_mean,'w')
-pickle.dump(gridded_obj_mean,gfile)
-gfile.close()
+#print 'Gridding for mean...'
+#
+#gridded_obj_mean=ra.grid_path_term(robj,all_binedges,raytype,statistic,rpath_type='object',subset=ind_subset)
+#
+#print 'Saving mean grid...'
+## Save grid to file:
+#gfile = open(gobjpath_mean,'w')
+#pickle.dump(gridded_obj_mean,gfile)
+#gfile.close()
 
 ####################
 print 'Gridding for counts...'
