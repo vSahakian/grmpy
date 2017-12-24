@@ -3200,7 +3200,7 @@ class pterm_3dgrid:
             climits:            Value for colorscale [cmin,cmax]
             axlims:             Axis limits for plot [[xmin,xmax],[ymin,ymax]]
         Output:
-            pterm_ax:           Axis with path t            plt.show()erm grid slice plotted
+            pterm_ax:           Axis with path term grid slice plotted
         '''
         
         from numpy import argmin
