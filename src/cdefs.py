@@ -3180,14 +3180,14 @@ class pterm_3dgrid:
         Input: 
             statistic:      Array (dims (nx, ny, nz)) with the path term statistic
             binedges:       Array with three arrays, containing bin edges (lon, lat, depth)
-                            dims: (nx+1, ny+1, nz+1)
+                            dims: (nx+1, ny+1, nz+1).  Depth MUST be positive down!!
             binnumber:      Array with indices of bin number
         '''
         self.statistic=statistic
         self.binedges=binedges
         self.binnumber=binnumber
         
-    def plot_slice(self,sliceaxis,slicecoord,coordtype,aspectr,cmap,climits,axlims):
+    def plot_slice(self,sliceaxis,slicecoord,coordtype,aspectr,colormap,climits,axlims):
         '''
         Plot a slice of the path term grid model.
         Input:
@@ -3196,7 +3196,7 @@ class pterm_3dgrid:
                                 If depth, it must be positive.
             coordtype:          Type of coordinate: 'lon', 'lat', 'depth'
             aspectr:            Aspect ratio to plot
-            cmap:               String with colormap, i.e., 'jet'
+            colormap:               String with colormap, i.e., 'jet'
             climits:            Value for colorscale [cmin,cmax]
             axlims:             Axis limits for plot [[xmin,xmax],[ymin,ymax]]
         Output:
@@ -3210,15 +3210,16 @@ class pterm_3dgrid:
        
         #Get the slice from the 3D array that corresponds to this lat/lon:
         if coordtype=='lon':
-            binind=argmin(abs(self.binedges[0]+slicecoord))
-            print binind
+            # Subtract slicecoord since lon is negative:
+            binind=argmin(abs(self.binedges[0]-slicecoord))
             #If it's the right hand side or last edge of tha tdimension, use the bin to the inside:
             if binind==len(self.binedges[0]):
-                binind=binind=1
+                binind=binind-1
             #Get array to plot:
+            print binind
             statistic=self.statistic[binind,:,:]
             
-            #Get axes and extent information:
+            #Get axes and extent information - here x is latitude, y is depth:
             xmin=min(self.binedges[1])
             xmax=max(self.binedges[1])
             ymin=min(self.binedges[2])
@@ -3230,19 +3231,19 @@ class pterm_3dgrid:
             ptitle='Path term slice at Longitude '+str(slicecoord)
             
             #Plot:
-            sliceaxis.imshow(statistic.T,origin='lower',aspect=aspectr,extent=[xmin,xmax,ymin,ymax],interpolation='spline36',vmin=climits[0],vmax=climits[1])
-            cbar=plt.colorbar()
+            sliceax_handle = sliceaxis.imshow(statistic.T,cmap=colormap,origin='lower',aspect=aspectr,extent=[xmin,xmax,ymin,ymax],interpolation='spline36',vmin=climits[0],vmax=climits[1])
+            cbar=plt.colorbar(sliceax_handle,ax=sliceaxis)
             cbar.set_label('ln Residual')
             
         elif coordtype=='lat':
             binind=argmin(abs(self.binedges[1]-slicecoord))
             #If it's the right hand side or last edge of tha tdimension, use the bin to the inside:
             if binind==len(self.binedges[0]):
-                binind=binind=1
+                binind=binind-1
             #Get array to plot:
             statistic=self.statistic[:,binind,:]
             
-            #Get axes and extent information:
+            #Get axes and extent information - here x is longitude, y is depth:
             xmin=min(self.binedges[0])
             xmax=max(self.binedges[0])
             ymin=min(self.binedges[2])
@@ -3253,21 +3254,21 @@ class pterm_3dgrid:
             ptitle='Path term slice at Latitude '+str(slicecoord)
             
             #Plot:
-            sliceaxis.imshow(statistic.T,origin='lower',aspect=aspectr,extent=[xmin,xmax,ymin,ymax],interpolation='spline36',vmin=climits[0],vmax=climits[1])
+            sliceax_handle = sliceaxis.imshow(statistic.T,cmap=colormap,origin='lower',aspect=aspectr,extent=[xmin,xmax,ymin,ymax],interpolation='spline36',vmin=climits[0],vmax=climits[1])
             divider=make_axes_locatable(sliceaxis)
             caxis=divider.append_axes('right',size='25%',pad=0.05)
             cbar=plt.colorbar(sliceaxis,cax=caxis)
             cbar.set_label('ln Residual')     
                      
         elif coordtype=='depth':
-            binind=argmin(abs(self.binedges[2]+slicecoord))
+            binind=argmin(abs(self.binedges[2]-slicecoord))
             #If it's the right hand side or last edge of tha tdimension, use the bin to the inside:
             if binind==len(self.binedges[0]):
                 binind=binind=1
             #Get array to plot:
             statistic=self.statistic[:,:,binind]
             
-            #Get axes and extent information:
+            #Get axes and extent information - here x is longitude, y is latitutde:
             xmin=min(self.binedges[0])
             xmax=max(self.binedges[0])
             ymin=min(self.binedges[1])
@@ -3278,8 +3279,8 @@ class pterm_3dgrid:
             ptitle='Path term slice at Depth '+str(slicecoord)
             
             #Plot:
-            sliceaxis.imshow(statistic.T,origin='lower',aspect=aspectr,extent=[xmin,xmax,ymin,ymax],interpolation='spline36',vmin=climits[0],vmax=climits[1])
-            cbar=plt.colorbar()
+            sliceax_handle = sliceaxis.imshow(statistic.T,cmap=colormap,origin='lower',aspect=aspectr,extent=[xmin,xmax,ymin,ymax],interpolation='spline36',vmin=climits[0],vmax=climits[1])
+            cbar=plt.colorbar(sliceax_handle,ax=sliceaxis)
             cbar.set_label('ln Residual')
             
 
@@ -3291,6 +3292,14 @@ class pterm_3dgrid:
         
         sliceaxis.set_xlim(axlims[0][0],axlims[0][1])
         sliceaxis.set_ylim(axlims[1][0],axlims[1][1])
+        
+        # IF it's a latitude or longitude slice, invert the y axis
+        if (coordtype == 'lon') or (coordtype == 'lat'):
+            sliceaxis.invert_yaxis()
+        
+        
+        print axlims[1][0]
+        print axlims[1][1]
         
         #Return:
         return sliceaxis
