@@ -3017,16 +3017,18 @@ class material_model:
         self.nz=nz
         self.materials=material_model
         
-    def plot_zslice(self,z_val,colormap,climits,xlab,ylab,modellab):
+    def plot_zslice(self,sliceaxis,z_val,colormap,climits,xlab,ylab,modellab,axlims):
         '''
         Plot a z slice
         Input:
+            sliceaxis:      Axis handle to plot on
             zval:           Depth at which to plot
             colormap:       String with colormap to use
             climits:        Array with limits for color: [cmin, cmax]
             xlab:           String with xlabel
             ylab:           String with ylabel
             modellab:       String with label for the colorbar (i.e., 'Vs')
+            axlims:         Axis limits [[xmin,xmax],[ymin,ymax]]
         '''
         
         import matplotlib.pyplot as plt
@@ -3045,15 +3047,8 @@ class material_model:
         X=self.x
         Y=self.y
         
-        #Initiate plot:
-        #f1=plt.figure()
-        #plt.pcolormesh(X,Y,slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1])
-        #plt.axis([X.min(),X.max(),Y.min(),Y.max()])
-        #plt.colorbar()
-        
-        f1=plt.figure()
-        plt.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='lower')
-        cbar=plt.colorbar()
+        sliceaxis_handle = sliceaxis.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='lower')
+        cbar=plt.colorbar(sliceaxis_handle,ax=sliceaxis)
         cbar.set_label(modellab+' (km/s)')
     
         ###Title:
@@ -3061,16 +3056,19 @@ class material_model:
         z_plot=self.z[min_zdist_i]
         ptitle='Depth slice at '+str(z_plot)+' km'
         
-        plt.title(ptitle)
-        plt.xlabel(xlab)
-        plt.ylabel(ylab)
-
-        return f1
+        #Titles and limits:
+        sliceaxis.set_xlabel(xlab)
+        sliceaxis.set_ylabel(ylab)
+        sliceaxis.set_title(ptitle)
         
-    def plot_yslice(self,y_val,colormap,climits,xlab,zlab,modellab,aspectr):
+        sliceaxis.set_xlim(axlims[0][0],axlims[0][1])
+        sliceaxis.set_ylim(axlims[1][0],axlims[1][1]) 
+        
+    def plot_yslice(self,sliceaxis,y_val,colormap,climits,xlab,zlab,modellab,aspectr,axlims):
         '''
         Plot a z slice
         Input:
+            sliceaxis:      Axis handle to use for plotting on a subplot
             yval:           y node at which to plot
             colormap:       String with colormap to use
             climits:        Array with limits for color: [cmin, cmax]
@@ -3078,6 +3076,7 @@ class material_model:
             zlab:           String with zlabel
             modellab:       String with label for the colorbar (i.e., 'Vs')
             aspectr:        Aspect ratio for plot
+            axlims:         Axis limits [[xmin,xmax],[ymin,ymax]]
         '''
         
         import matplotlib.pyplot as plt
@@ -3094,34 +3093,33 @@ class material_model:
         slice_array=self.materials[:,:,min_ydist_i]
         #Get X and Y to plot:
         X=self.x
-        Y=-1*self.z
+        Y=self.z
         
-        #Initiate plot:
-        #f1=plt.figure()
-        #plt.pcolormesh(X,Y,slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1])
-        #plt.axis([X.min(),X.max(),Y.min(),Y.max()])
-        #plt.colorbar()
-        
-        f1=plt.figure()
-        plt.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='upper',aspect=aspectr)
-        cbar=plt.colorbar()
+        sliceaxis_handle = sliceaxis.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='upper',aspect=aspectr)
+        cbar=plt.colorbar(sliceaxis_handle,ax=sliceaxis)
         cbar.set_label(modellab+' (km/s)')
-        
+                
         ###Title:
         #depth being plotted:
         y_plot=self.y[min_ydist_i]
         ptitle='Latitude slice at '+str(y_plot)+' degrees'
         
-        plt.title(ptitle)
-        plt.xlabel(xlab)
-        plt.ylabel(zlab)
-
-        return f1
+        #Titles and limits:
+        sliceaxis.set_xlabel(xlab)
+        sliceaxis.set_ylabel(zlab)
+        sliceaxis.set_title(ptitle)
         
-    def plot_xslice(self,x_val,colormap,climits,ylab,zlab,modellab,aspectr):
+        sliceaxis.set_xlim(axlims[0][0],axlims[0][1])
+        sliceaxis.set_ylim(axlims[1][0],axlims[1][1])  
+        
+        #Invert axis since it's a depth slice and z needs to be positive down:
+        sliceaxis.invert_yaxis()
+        
+    def plot_xslice(self,sliceaxis,x_val,colormap,climits,ylab,zlab,modellab,aspectr,axlims):
         '''
         Plot a z slice
         Input:
+            sliceaxis:      Axis handle to plot on (so it can go on a subplot)
             xval:           x node at which to plot
             colormap:       String with colormap to use
             climits:        Array with limits for color: [cmin, cmax]
@@ -3129,6 +3127,7 @@ class material_model:
             zlab:           String with zlabel
             modellab:       String with label for the colorbar (i.e., 'Vs')
             aspectr:        Aspect ratio for plot
+            axlims:         Axis limits - [[xmin,xmax],[ymin,ymax]]
         '''
         
         import matplotlib.pyplot as plt
@@ -3145,17 +3144,10 @@ class material_model:
         slice_array=self.materials[:,:,min_xdist_i]
         #Get X and Y to plot:
         X=self.y
-        Y=-1*self.z
+        Y=self.z
         
-        #Initiate plot:
-        #f1=plt.figure()
-        #plt.pcolormesh(X,Y,slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1])
-        #plt.axis([X.min(),X.max(),Y.min(),Y.max()])
-        #plt.colorbar()
-        
-        f1=plt.figure()
-        plt.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='upper',aspect=aspectr)
-        cbar=plt.colorbar()
+        sliceaxis_handle = sliceaxis.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='upper',aspect=aspectr)
+        cbar=plt.colorbar(sliceaxis_handle,ax=sliceaxis)
         cbar.set_label(modellab+' (km/s)')
         
         ###Title:
@@ -3163,12 +3155,16 @@ class material_model:
         x_plot=self.x[min_xdist_i]
         ptitle='Longitude slice at '+str(x_plot)+' degrees'
         
-        plt.title(ptitle)
-        plt.xlabel(ylab)
-        plt.ylabel(zlab)
-
-        return f1        
+        #Titles and limits:
+        sliceaxis.set_xlabel(ylab)
+        sliceaxis.set_ylabel(zlab)
+        sliceaxis.set_title(ptitle)
         
+        sliceaxis.set_xlim(axlims[0][0],axlims[0][1])
+        sliceaxis.set_ylim(axlims[1][0],axlims[1][1])   
+        
+        #Invert axis since it's a depth slice and z needs to be positive down:
+        sliceaxis.invert_yaxis()
         
         
 #########PLACEHOLDER########
@@ -3255,9 +3251,7 @@ class pterm_3dgrid:
             
             #Plot:
             sliceax_handle = sliceaxis.imshow(statistic.T,cmap=colormap,origin='lower',aspect=aspectr,extent=[xmin,xmax,ymin,ymax],interpolation='spline36',vmin=climits[0],vmax=climits[1])
-            divider=make_axes_locatable(sliceaxis)
-            caxis=divider.append_axes('right',size='25%',pad=0.05)
-            cbar=plt.colorbar(sliceaxis,cax=caxis)
+            cbar=plt.colorbar(sliceax_handle,ax=sliceaxis)
             cbar.set_label('ln Residual')     
                      
         elif coordtype=='depth':
@@ -3296,10 +3290,6 @@ class pterm_3dgrid:
         # IF it's a latitude or longitude slice, invert the y axis
         if (coordtype == 'lon') or (coordtype == 'lat'):
             sliceaxis.invert_yaxis()
-        
-        
-        print axlims[1][0]
-        print axlims[1][1]
         
         #Return:
         return sliceaxis
