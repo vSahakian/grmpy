@@ -205,7 +205,7 @@ scatterfig.savefig(pdf_dir + figname + '.pdf')
 slicefig,(velax,pathax) = plt.subplots(nrows=1,ncols=2,figsize=(15,9))
 
 # First plot the velocity model slice:
-mobj.plot_xslice(velax,-117,'magma',[2.5,5],'Depth (km)', 'Latitude','FangVs',0.1,[[32.5,34],[-2,22]])
+mobj.plot_xslice(velax,-116,'magma',[2.5,5],'Latitude','Depth (km)','FangVs',0.1,[[32.5,34],[-2,22]])
 
 # Then the path axis:
-gridded_obj_mean.plot_slice(pathax,-117,'lon',0.1,'magma',[-2,2],[[32.5,34],[-2,22]])
+gridded_obj_mean.plot_slice(pathax,-116,'lon',0.1,'magma',[-2,2],[[32.5,34],[-2,22]],binnodes=np.array([mobj.x,mobj.y,mobj.z]))

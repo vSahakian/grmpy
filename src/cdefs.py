@@ -3090,10 +3090,17 @@ class material_model:
         print 'Closest y node to requested value is '+str(self.y[min_ydist_i])
         
         #Get array to plot:
-        slice_array=self.materials[:,:,min_ydist_i]
+        slice_array=self.materials[:,min_ydist_i,:]
         #Get X and Y to plot:
         X=self.x
         Y=self.z
+        
+        print X
+        print Y
+        print X.min()
+        print X.max()
+        print Y.min()
+        print Y.max()
         
         sliceaxis_handle = sliceaxis.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='upper',aspect=aspectr)
         cbar=plt.colorbar(sliceaxis_handle,ax=sliceaxis)
@@ -3146,6 +3153,13 @@ class material_model:
         X=self.y
         Y=self.z
         
+        print X
+        print Y
+        print X.min()
+        print X.max()
+        print Y.min()
+        print Y.max()
+        
         sliceaxis_handle = sliceaxis.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='upper',aspect=aspectr)
         cbar=plt.colorbar(sliceaxis_handle,ax=sliceaxis)
         cbar.set_label(modellab+' (km/s)')
@@ -3170,7 +3184,7 @@ class material_model:
 #########PLACEHOLDER########
 ##Object to hold the raypath path term grid
 class pterm_3dgrid:
-    def __init__(self,statistic,binedges,binnumber):
+    def __init__(self,statistic,binedges,binnumber,binnodes=None):
         '''
         Initiate the path term grid object.
         Input: 
@@ -3178,12 +3192,14 @@ class pterm_3dgrid:
             binedges:       Array with three arrays, containing bin edges (lon, lat, depth)
                             dims: (nx+1, ny+1, nz+1).  Depth MUST be positive down!!
             binnumber:      Array with indices of bin number
+            binnodes:       Array (nx,ny,nz) with the bin nodes. shape(binnodes) = shape(statistic) = (nx,ny,nz). Default: None.
         '''
+    
         self.statistic=statistic
         self.binedges=binedges
         self.binnumber=binnumber
         
-    def plot_slice(self,sliceaxis,slicecoord,coordtype,aspectr,colormap,climits,axlims):
+    def plot_slice(self,sliceaxis,slicecoord,coordtype,aspectr,colormap,climits,axlims,binnodes):
         '''
         Plot a slice of the path term grid model.
         Input:
@@ -3195,6 +3211,7 @@ class pterm_3dgrid:
             colormap:               String with colormap, i.e., 'jet'
             climits:            Value for colorscale [cmin,cmax]
             axlims:             Axis limits for plot [[xmin,xmax],[ymin,ymax]]
+            binnodes:           Array (nx,ny,nz) with the bin nodes. shape(binnodes) = shape(statistic) = (nx,ny,nz). Default: None.
         Output:
             pterm_ax:           Axis with path term grid slice plotted
         '''
@@ -3215,11 +3232,38 @@ class pterm_3dgrid:
             print binind
             statistic=self.statistic[binind,:,:]
             
-            #Get axes and extent information - here x is latitude, y is depth:
-            xmin=min(self.binedges[1])
-            xmax=max(self.binedges[1])
-            ymin=min(self.binedges[2])
-            ymax=max(self.binedges[2])
+            # Get extent location.  If binnodes are not specified, just use the binedges, which will push things to the left.
+            # If binnodes are not specified in the gridding object, and binnodes are not specified in the plotting function,
+            #       use bin edges:
+            try:
+                # If binnodes ARE specified inside the gridding object, use those:
+                self.binnodes
+                print 'Binnodes specified in function, use these for extent'
+                xmin = min(self.binnodes[1])
+                xmax = max(self.binnodes[1])
+                ymin = min(self.binnodes[2])
+                ymax = max(self.binnodes[2])
+                
+            except:
+                # If binnodes ARE NOT specified inside the gridding object
+                #  and binnode in plotting are not specified:
+                if binnodes == None:
+                    print 'Using bin edges for extent, nodes not specified anywhere'
+                    #Get axes and extent information - here x is latitude, y is depth:
+                    xmin=min(self.binedges[1])
+                    xmax=max(self.binedges[1])
+                    ymin=min(self.binedges[2])
+                    ymax=max(self.binedges[2])
+            
+                # If binnodes are not specified in the gridding object but are in plotting, use
+                #   those that are specified in the plotting:
+                elif binnodes != None:
+                    print 'Using plotting function specified bin nodes'
+                    xmin = min(binnodes[1])
+                    xmax = max(binnodes[1])
+                    ymin = min(binnodes[2])
+                    ymax = max(binnodes[2])
+            
             
             #Labels:
             xlabel='Latitude'
@@ -3227,6 +3271,9 @@ class pterm_3dgrid:
             ptitle='Path term slice at Longitude '+str(slicecoord)
             
             #Plot:
+            # The dimensions of statistic for a lon slice are (nlat x ndepth), so plot statistic[slice].T.  These dims will be (ndepth x nlat), with the top left of hte matrix
+            #    being the shallowest z and southernmost latitude.  Here, set origin = 'lower' so that the "negative" earth surface and southernmost latitude
+            #    will be on the bottom left.  Later, will flip the axes.
             sliceax_handle = sliceaxis.imshow(statistic.T,cmap=colormap,origin='lower',aspect=aspectr,extent=[xmin,xmax,ymin,ymax],interpolation='spline36',vmin=climits[0],vmax=climits[1])
             cbar=plt.colorbar(sliceax_handle,ax=sliceaxis)
             cbar.set_label('ln Residual')
@@ -3238,18 +3285,47 @@ class pterm_3dgrid:
                 binind=binind-1
             #Get array to plot:
             statistic=self.statistic[:,binind,:]
+        
+            # Get extent location.  If binnodes are not specified, just use the binedges, which will push things to the left.
+            # If binnodes are not specified in the gridding object, and binnodes are not specified in the plotting function,
+            #       use bin edges:
+            try:
+                # If binnodes ARE specified inside the gridding object, use those:
+                self.binnodes
+                print 'Binnodes specified in function, use these for extent'
+                xmin = min(self.binnodes[0])
+                xmax = max(self.binnodes[0])
+                ymin = min(self.binnodes[2])
+                ymax = max(self.binnodes[2])
+                
+            except:
+                # If binnodes ARE NOT specified inside the gridding object
+                #  and binnode in plotting are not specified:
+                if binnodes == None:
+                    print 'Using bin edges for extent, nodes not specified anywhere'
+                    #Get axes and extent information - here x is latitude, y is depth:
+                    xmin=min(self.binedges[0])
+                    xmax=max(self.binedges[0])
+                    ymin=min(self.binedges[2])
+                    ymax=max(self.binedges[2])
             
-            #Get axes and extent information - here x is longitude, y is depth:
-            xmin=min(self.binedges[0])
-            xmax=max(self.binedges[0])
-            ymin=min(self.binedges[2])
-            ymax=max(self.binedges[2])
+                # If binnodes are not specified in the gridding object but are in plotting, use
+                #   those that are specified in the plotting:
+                elif binnodes != None:
+                    print 'Using plotting function specified bin nodes'
+                    xmin = min(binnodes[0])
+                    xmax = max(binnodes[0])
+                    ymin = min(binnodes[2])
+                    ymax = max(binnodes[2])
             
             xlabel='Longitude'
             ylabel='Depth (km)'
             ptitle='Path term slice at Latitude '+str(slicecoord)
             
             #Plot:
+            # The dimensions of statistic for a lon slice are (nlon x ndepth), so plot statistic[slice].T.  These dims will be (ndepth x nlon), with the top left of hte matrix
+            #    being the shallowest z and westernmost longitude.  Here, set origin = 'lower' so that the "negative" earth surface and westernmost longitude
+            #    will be on the bottom left.  Later, will flip the axes.
             sliceax_handle = sliceaxis.imshow(statistic.T,cmap=colormap,origin='lower',aspect=aspectr,extent=[xmin,xmax,ymin,ymax],interpolation='spline36',vmin=climits[0],vmax=climits[1])
             cbar=plt.colorbar(sliceax_handle,ax=sliceaxis)
             cbar.set_label('ln Residual')     
@@ -3262,22 +3338,49 @@ class pterm_3dgrid:
             #Get array to plot:
             statistic=self.statistic[:,:,binind]
             
-            #Get axes and extent information - here x is longitude, y is latitutde:
-            xmin=min(self.binedges[0])
-            xmax=max(self.binedges[0])
-            ymin=min(self.binedges[1])
-            ymax=max(self.binedges[1])
+            # Get extent location.  If binnodes are not specified, just use the binedges, which will push things to the left.
+            # If binnodes are not specified in the gridding object, and binnodes are not specified in the plotting function,
+            #       use bin edges:
+            try:
+                # If binnodes ARE specified inside the gridding object, use those:
+                self.binnodes
+                print 'Binnodes specified in function, use these for extent'
+                xmin = min(self.binnodes[0])
+                xmax = max(self.binnodes[0])
+                ymin = min(self.binnodes[1])
+                ymax = max(self.binnodes[1])
+                
+            except:
+                # If binnodes ARE NOT specified inside the gridding object
+                #  and binnode in plotting are not specified:
+                if binnodes == None:
+                    print 'Using bin edges for extent, nodes not specified anywhere'
+                    #Get axes and extent information - here x is latitude, y is depth:
+                    xmin=min(self.binedges[0])
+                    xmax=max(self.binedges[0])
+                    ymin=min(self.binedges[1])
+                    ymax=max(self.binedges[1])
+            
+                # If binnodes are not specified in the gridding object but are in plotting, use
+                #   those that are specified in the plotting:
+                elif binnodes != None:
+                    print 'Using plotting function specified bin nodes'
+                    xmin = min(binnodes[0])
+                    xmax = max(binnodes[0])
+                    ymin = min(binnodes[1])
+                    ymax = max(binnodes[1])
             
             xlabel='Longitude'
             ylabel='Latitude'
             ptitle='Path term slice at Depth '+str(slicecoord)
             
             #Plot:
+            # The dimensions of statistic for a depth slice are (nlon x nlat), so plot statistic[slice].T.  These dims will be (nlat x nlon), with the top left of hte matrix
+            #    being the westernmost longitude and southernmost latitude.  Here, set origin = 'lower' so that the southernmost latitude and westernmost longitude
+            #    will be on the bottom left.  Do not flip the axes later!
             sliceax_handle = sliceaxis.imshow(statistic.T,cmap=colormap,origin='lower',aspect=aspectr,extent=[xmin,xmax,ymin,ymax],interpolation='spline36',vmin=climits[0],vmax=climits[1])
             cbar=plt.colorbar(sliceax_handle,ax=sliceaxis)
             cbar.set_label('ln Residual')
-            
-
         
         #Titles and limits:
         sliceaxis.set_xlabel(xlabel)

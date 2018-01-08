@@ -831,7 +831,7 @@ def read_material_model(coordspath,modelpath):
         y:                      Array with the y values of the model nodes
         z:                      Array with the z values of the model nodes
         model:                  Multi-dim array with model: len(model) = len(z);
-                                    shape(model[0]) = len(x),len(y)
+                                    shape(model[0]) = len(y),len(x)
     '''
     from numpy import array,zeros,genfromtxt,shape
     
@@ -875,7 +875,7 @@ def read_material_model(coordspath,modelpath):
     nz=len(z)
     
     #Initialize the model array:
-    material_model=zeros((nz,nx,ny))
+    material_model=zeros((nz,ny,nx))
     print shape(material_model[0])
                 
     #Now extract model values.
@@ -886,11 +886,11 @@ def read_material_model(coordspath,modelpath):
     
     for z_i in range(nz):
         i_beg=z_i
-        i_end=z_i+nx
-        material_model[z_i]=model_in[count_z:count_z+nx,:]
+        i_end=z_i+ny
+        material_model[z_i]=model_in[count_z:count_z+ny,:]
         
         #Add to counter:
-        count_z=count_z+nx
+        count_z=count_z+ny
             
     
     #Return values:
