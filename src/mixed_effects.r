@@ -9,7 +9,7 @@
 
 get_fixed <- function(model, ...){ UseMethod("get_fixed") }
 
-get_fixed.merMod <- function(model, rowname...){
+get_fixed.merMod <- function(model, ...){
 	require(lme4)
 	# get a data.frame of the fixed effects
 	coef.tbl <- {
@@ -17,7 +17,7 @@ get_fixed.merMod <- function(model, rowname...){
 		coefs <- modsum[['coefficients']]
 		colnames(coefs) <- c('Estimate','Std.error','t.value')
 		coefs <- cbind(data.frame(fixed.effect=rownames(coefs)), coefs)
-		rownames(coefs) <- rowname
+		rownames(coefs) <- NULL
 		return(coefs)
 	}
 	return(coef.tbl)

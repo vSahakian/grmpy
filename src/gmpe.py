@@ -821,7 +821,7 @@ def garcia2005_fixeddist(imt_list,rrup,rhypo,hypo_depth,mag):
 #########################################################################################
 def garcia2005(imt_list,rrup,rhypo,hypo_depth,mag,vs30):
     '''
-    Compute fixed distances for frequencies from a set
+    Compute estimation from Garcia et al. 2005 for frequencies from a set
     Input:
         imt_list:                   List of intensity measures to compute (openquake IMT class)
         rrup:                       Logspace array with Rrup to compute for
@@ -978,7 +978,7 @@ def zhao2006_fixeddist(imt_list,rrup,hypo_depth,mag,rake,gmpe_type):
 #########################################################################################
 def zhao2006(imt_list,rrup,hypo_depth,mag,rake,gmpe_type,vs30):
     '''
-    Compute fixed distances for frequencies from a set of IMT's for Zhao 2006
+    Compute for frequencies from a set of IMT's for Zhao 2006
     Input:
         imt_list:                   List of intensity measures to compute (openquake IMT class)
         rrup:                       Logspace array with Rrup to compute for
@@ -1006,8 +1006,8 @@ def zhao2006(imt_list,rrup,hypo_depth,mag,rake,gmpe_type,vs30):
     dctx = DistancesContext()
     sctx = SitesContext()
     
-    # Add to it - set Vs30 to 760 since this is fixed distance
-    sctx.vs30 = np.full_like(rrup,760)
+    # Add to it - set Vs30 values from what is given above
+    sctx.vs30 = vs30
     
     dctx.rrup = rrup
     
@@ -1052,3 +1052,169 @@ def zhao2006(imt_list,rrup,hypo_depth,mag,rake,gmpe_type,vs30):
         
     # Return:
     return lmean_zhao2006, lmean_plus_sd_zhao2006, lmean_mins_sd_zhao2006,sd_zhao2006
+    
+    
+#########################################################################################
+def bchydro_fixeddist(imt_list,rrup,rhypo,hypo_depth,mag,gmpe_type):
+    '''
+    Compute fixed distances for frequencies from a set of IMT's for BC Hydro model for Inslab events
+    Input:
+        imt_list:                   List of intensity measures to compute (openquake IMT class)
+        rrup:                       Logspace array with Rrup to compute for
+        rhypo:                      Logspace array with Rhypo to compute for
+        hypo_depth:                 Number with hypocenter depth
+        mag:                        Magnitude to compute for
+        rake:                       Rake for rupture to use
+        gmpe_type:                  String with which Inslab to use: 'central','high','low'
+    Output:
+        lmean_bchydro:           List of arrays with mean prediction for each IMT in imt_list
+        lmean_plus_sd_bchydro:   List of arrays with mean pred + std for each IMT in imt_list
+        lmean_mins_sd_bchydro:   List of arrays with mean pred - std for each IMT in imt_list
+        sd_bchydro:              List of arrays with standard deviation for each IMT in imt_list        
+    '''
+    
+    import numpy as np
+    from openquake.hazardlib import imt, const
+    from openquake.hazardlib.gsim.base import RuptureContext
+    from openquake.hazardlib.gsim.base import DistancesContext
+    from openquake.hazardlib.gsim.base import SitesContext
+    from openquake.hazardlib.gsim.abrahamson_2015 import AbrahamsonEtAl2015SSlab,AbrahamsonEtAl2015SSlabHigh,AbrahamsonEtAl2015SSlabLow
+    # Initiate the rupture, distances, and sites objects:
+    rctx = RuptureContext()
+    dctx = DistancesContext()
+    sctx = SitesContext()
+    
+    # Add to it - set Vs30 to 760 since this is fixed distance, and assume
+    #   all points are backarc (set backarc to False - assumes are all forearc, or unkonwn)
+    sctx.vs30 = np.full_like(rrup,760)
+    sctx.backarc = np.full_like(rrup,False,dtype='bool')
+    
+    dctx.rrup = rrup
+    dctx.rhypo = rhypo
+    
+    rctx.mag = mag
+    rctx.hypo_depth = hypo_depth
+    
+    # Get predictions:
+    if gmpe_type == 'central':
+        bchydro = AbrahamsonEtAl2015SSlab()
+    elif gmpe_type == 'high':
+        bchydro = AbrahamsonEtAl2015SSlabHigh()
+    elif gmpe_type == 'low':
+        bchydro = AbrahamsonEtAl2015SSlabLow()
+    
+    #Initiate emtpy arrays to append to:
+    lmean_bchydro = []
+    lmean_plus_sd_bchydro = []
+    lmean_mins_sd_bchydro = []
+    sd_bchydro = []
+    
+    for predictive_param in range(len(imt_list)):
+        i_lmean_bchydro, i_sd_bchydro = bchydro.get_mean_and_stddevs(sctx, rctx, dctx, imt_list[predictive_param], [const.StdDev.TOTAL])
+    
+        # Get plus/minus bounds:
+        i_lmean_plus_sd_bchydro = np.exp(i_lmean_bchydro + i_sd_bchydro[0])
+        i_lmean_mins_sd_bchydro = np.exp(i_lmean_bchydro - i_sd_bchydro[0])
+        
+        i_lmean_bchydro = np.exp(i_lmean_bchydro)
+        i_sd_bchydro = np.exp(i_sd_bchydro)
+    
+        # If it's PGV, convert from cm/s to m/s:
+        if 'PGV' in imt_list[predictive_param]:
+            i_lmean_plus_sd_bchydro = i_lmean_plus_sd_bchydro/100
+            i_lmean_mins_sd_bchydro = i_lmean_mins_sd_bchydro/100
+            i_lmean_bchydro = i_lmean_bchydro/100
+            i_sd_bchydro = i_sd_bchydro/100
+    
+        # Append:
+        lmean_bchydro.append(i_lmean_bchydro)
+        lmean_plus_sd_bchydro.append(i_lmean_plus_sd_bchydro)
+        lmean_mins_sd_bchydro.append(i_lmean_mins_sd_bchydro)
+        sd_bchydro.append(i_sd_bchydro)
+        
+    # Return:
+    return lmean_bchydro, lmean_plus_sd_bchydro, lmean_mins_sd_bchydro,sd_bchydro
+    
+    
+#########################################################################################
+def bchydro(imt_list,rrup,rhypo,hypo_depth,mag,gmpe_type,vs30,forebackarc):
+    '''
+    Compute for frequencies from a set of IMT's for BC Hydro model for Inslab events
+    Input:
+        imt_list:                   List of intensity measures to compute (openquake IMT class)
+        rrup:                       Logspace array with Rrup to compute for
+        rhypo:                      Logspace array with Rhypo to compute for
+        hypo_depth:                 Number with hypocenter depth
+        mag:                        Magnitude to compute for
+        rake:                       Rake for rupture to use
+        gmpe_type:                  String with which Inslab to use: 'central','high','low'
+        vs30:                       Array with Vs30 values
+        forebackarc:                Boolean array with True for a backarc site, False for a forearc or uknown site
+    Output:
+        lmean_bchydro:           List of arrays with mean prediction for each IMT in imt_list
+        lmean_plus_sd_bchydro:   List of arrays with mean pred + std for each IMT in imt_list
+        lmean_mins_sd_bchydro:   List of arrays with mean pred - std for each IMT in imt_list
+        sd_bchydro:              List of arrays with standard deviation for each IMT in imt_list        
+    '''
+    
+    import numpy as np
+    from openquake.hazardlib import imt, const
+    from openquake.hazardlib.gsim.base import RuptureContext
+    from openquake.hazardlib.gsim.base import DistancesContext
+    from openquake.hazardlib.gsim.base import SitesContext
+    from openquake.hazardlib.gsim.abrahamson_2015 import AbrahamsonEtAl2015SSlab,AbrahamsonEtAl2015SSlabHigh,AbrahamsonEtAl2015SSlabLow
+                
+    # Initiate the rupture, distances, and sites objects:
+    rctx = RuptureContext()
+    dctx = DistancesContext()
+    sctx = SitesContext()
+    
+    # Add to it - get vs30 and backarc array from definition
+    sctx.vs30 = vs30
+    sctx.backarc = forebackarc
+    
+    dctx.rrup = rrup
+    dctx.rhypo = rhypo
+    
+    rctx.mag = mag
+    rctx.hypo_depth = hypo_depth
+    
+    # Get predictions:
+    if gmpe_type == 'central':
+        bchydro = AbrahamsonEtAl2015SSlab()
+    elif gmpe_type == 'high':
+        bchydro = AbrahamsonEtAl2015SSlabHigh()
+    elif gmpe_type == 'low':
+        bchydro = AbrahamsonEtAl2015SSlabLow()
+    
+    #Initiate emtpy arrays to append to:
+    lmean_bchydro = []
+    lmean_plus_sd_bchydro = []
+    lmean_mins_sd_bchydro = []
+    sd_bchydro = []
+    
+    for predictive_param in range(len(imt_list)):
+        i_lmean_bchydro, i_sd_bchydro = bchydro.get_mean_and_stddevs(sctx, rctx, dctx, imt_list[predictive_param], [const.StdDev.TOTAL])
+    
+        # Get plus/minus bounds:
+        i_lmean_plus_sd_bchydro = np.exp(i_lmean_bchydro + i_sd_bchydro[0])
+        i_lmean_mins_sd_bchydro = np.exp(i_lmean_bchydro - i_sd_bchydro[0])
+        
+        i_lmean_bchydro = np.exp(i_lmean_bchydro)
+        i_sd_bchydro = np.exp(i_sd_bchydro)
+    
+        # If it's PGV, convert from cm/s to m/s:
+        if 'PGV' in imt_list[predictive_param]:
+            i_lmean_plus_sd_bchydro = i_lmean_plus_sd_bchydro/100
+            i_lmean_mins_sd_bchydro = i_lmean_mins_sd_bchydro/100
+            i_lmean_bchydro = i_lmean_bchydro/100
+            i_sd_bchydro = i_sd_bchydro/100
+    
+        # Append:
+        lmean_bchydro.append(i_lmean_bchydro)
+        lmean_plus_sd_bchydro.append(i_lmean_plus_sd_bchydro)
+        lmean_mins_sd_bchydro.append(i_lmean_mins_sd_bchydro)
+        sd_bchydro.append(i_sd_bchydro)
+        
+    # Return:
+    return lmean_bchydro, lmean_plus_sd_bchydro, lmean_mins_sd_bchydro,sd_bchydro
