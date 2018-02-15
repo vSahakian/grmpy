@@ -830,6 +830,9 @@ def read_material_model(coordspath,modelpath):
         x:                      Array with the x values of the model nodes
         y:                      Array with the y values of the model nodes
         z:                      Array with the z values of the model nodes
+        nx:                     Float with number of x points
+        ny:                     Float with number of y points
+        nz:                     Float with number of z points
         model:                  Multi-dim array with model: len(model) = len(z);
                                     shape(model[0]) = len(y),len(x)
     '''
@@ -876,7 +879,6 @@ def read_material_model(coordspath,modelpath):
     
     #Initialize the model array:
     material_model=zeros((nz,ny,nx))
-    print shape(material_model[0])
                 
     #Now extract model values.
     #Loop over the number of z entries, and pull out the chunk that corresponds 
@@ -895,7 +897,157 @@ def read_material_model(coordspath,modelpath):
     
     #Return values:
     return x, y, z, nx, ny, nz, material_model
+
+
+############################################################################
+def read_hauksson_file(Qtxtpath):
+    '''
+    Read in Egill's Q model (Hauksson and Shearer 2006), parse into format to be read by
+    cdefs to make an object
+    Input:
+        Qtxtpath:             String with path to the model file, with info
+                                    about the x, y, and z limits of the model
+                                    and Q data
+                                    File format:
+                                        LAYER 2             1.00km      5.36kmsec-1
+                                         long., lat., percent velo change, abs. velocity
+                                         QpLatdegrLatminu  LondegrLonminu  -X-Ygrid  Depth(km)
+    Output:
+        lon:                      Array with the x values of the model nodes
+        lat:                      Array with the y values of the model nodes
+        depth:                    Array with the z values of the model nodes
+        Q:                        Multi-dim array with model: len(model) = len(z);
+                                    shape(model[0]) = len(y),len(x)
+    '''
+
+    import numpy as np
     
+    # Open file:
+    f = open(Qtxtpath,'r')
+
+    x = []
+    y = []
+    z = []
+    
+    # Now with the number of layers:
+    f = open(Qtxtpath,'r')
+    layercounter = 0
+    layer_lines = []
+
+    for line in f.readlines():
+        if 'LAYER' in line:
+            layercounter+=1
+            print line
+            if layercounter == 1:
+                i_layer_line = []
+            else:
+                print 'appending'
+                layer_lines.append(i_layer_line)
+                i_layer_line = []
+        if ('LAYER' not in line) and ('long.' not in line):
+                i_layer_line.append(line)
+        
+    # Append last one:
+    layer_lines.append(i_layer_line)
+    
+    f.close()
+            
+    # Now that all are in the list, loop through and pull out the info for each
+    #  z-slice:
+    
+    lon_deg = []
+    lon_min = []
+    lat_deg = []
+    lat_min = []
+    depth_arr = []
+    Q_arr = []
+
+    # Final lon and lat arrays:
+    lon_arr = []
+    lat_arr = []
+    
+    # Loop over the layers:
+    for i_layer in range(len(layer_lines)):
+        ilayer_lon_deg = []
+        ilayer_lon_min = []
+        ilayer_lat_deg = []
+        ilayer_lat_min = []
+        ilayer_depth_arr = []
+        ilayer_Q_arr = []
+
+        # Loop over the strings in this layer:
+        i_layer_line = layer_lines[i_layer]
+
+        for j_line in range(len(i_layer_line)):
+            ij_line = i_layer_line[j_line]
+            
+            ij_Q = np.float(ij_line[4:10])
+    
+            ij_lat_deg = np.float(ij_line[10:12])
+            ij_lat_min = np.float(ij_line[12:16])
+    
+            ij_lon_deg = np.float(ij_line[18:21])
+            ij_lon_min = np.float(ij_line[21:26])
+    
+            ij_depth = np.float(ij_line[52:57])
+            
+            # Append these to this layer's lists:
+            ilayer_lat_deg.append(ij_lat_deg)
+            ilayer_lat_min.append(ij_lat_min)
+            ilayer_lon_deg.append(ij_lon_deg)
+            ilayer_lon_min.append(ij_lon_min)
+            ilayer_depth_arr.append(ij_depth)
+            ilayer_Q_arr.append(ij_Q)
+        
+        # Turn these layer lists into arrays:
+        ilayer_lat_deg = np.array(ilayer_lat_deg)
+        ilayer_lat_min = np.array(ilayer_lat_min)
+        ilayer_lon_deg = np.array(ilayer_lon_deg)
+        ilayer_lon_min = np.array(ilayer_lon_min)
+        ilayer_depth_arr = np.array(ilayer_depth_arr)
+        ilayer_Q_arr = np.array(ilayer_Q_arr)
+
+        # Append this layer's arrays to the master lists:       
+        lat_deg.append(ilayer_lat_deg)
+        lat_min.append(ilayer_lat_min)
+        lon_deg.append(ilayer_lon_deg)
+        lon_min.append(ilayer_lon_min)
+        depth_arr.append(ilayer_depth_arr)
+        Q_arr.append(ilayer_Q_arr)
+        
+        # Convert lon/lat to decimal degrees:
+        ilayer_lat_arr = np.round(ilayer_lat_deg + (ilayer_lat_min/60.),decimals=6)
+        ilayer_lon_arr = np.round(ilayer_lon_deg + (ilayer_lon_min/60.),decimals=6)
+
+        # Append to main lon/lat arrays:
+        lat_arr.append(ilayer_lat_arr)
+        lon_arr.append(ilayer_lon_arr)
+#
+#    # Get unique arrays:
+#    lon = np.sort(np.unique(lon_arr))
+#    lat = np.sort(np.unique(lat_arr))
+#    depth = np.sort(np.unique(depth_arr))
+#
+#    # Number of points:
+#    nx = len(np.unique(lon))
+#    ny = len(np.unique(lat))
+#    nz = len(np.unique(depth))
+#
+#    #Initialize the model array:
+#    Q_model=np.zeros((nz,ny,nx))
+#
+#    # For each depth slice:
+#    for i_z in range(nz):
+#        for i_y in range(ny):
+#            for i_x in range(nx):
+#                grid_ind = np.where((lon_arr == lon[i_x]) and (lat_arr == lat[i_y]) and (depth_arr == depth[i_z]))[0]
+#                Q_model[i_z,i_y,i_x] = Q_arr[grid_ind]
+#        
+#        
+#
+#    # Return values:    
+#    return lon, lat, depth, nx, ny, nz, Q
+
 
 #####
 #Read in Janine's PGA format file
