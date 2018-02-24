@@ -916,11 +916,16 @@ def read_hauksson_file(Qtxtpath):
         lon:                      Array with the x values of the model nodes
         lat:                      Array with the y values of the model nodes
         depth:                    Array with the z values of the model nodes
+        nx:                       Float with number of unique x (longitude) values 
+        ny:                       Float with number of unique y (latutide) values
+        nz:                       Float with number of unique z (depth) values
         Q:                        Multi-dim array with model: len(model) = len(z);
                                     shape(model[0]) = len(y),len(x)
     '''
 
     import numpy as np
+    import matplotlib.pyplot as plt
+    from scipy.interpolate import griddata
     
     # Open file:
     f = open(Qtxtpath,'r')
@@ -934,6 +939,7 @@ def read_hauksson_file(Qtxtpath):
     layercounter = 0
     layer_lines = []
 
+    print 'Reading in lines to get the number of layers'
     for line in f.readlines():
         if 'LAYER' in line:
             layercounter+=1
@@ -955,6 +961,8 @@ def read_hauksson_file(Qtxtpath):
     # Now that all are in the list, loop through and pull out the info for each
     #  z-slice:
     
+    print ' Initializing arrays to parse information...'
+    
     lon_deg = []
     lon_min = []
     lat_deg = []
@@ -966,6 +974,7 @@ def read_hauksson_file(Qtxtpath):
     lon_arr = []
     lat_arr = []
     
+    print 'Starting to loop over layers to get information'
     # Loop over the layers:
     for i_layer in range(len(layer_lines)):
         ilayer_lon_deg = []
@@ -981,7 +990,7 @@ def read_hauksson_file(Qtxtpath):
         for j_line in range(len(i_layer_line)):
             ij_line = i_layer_line[j_line]
             
-            ij_Q = np.float(ij_line[4:10])
+            ij_Q = np.float(ij_line[3:10])
     
             ij_lat_deg = np.float(ij_line[10:12])
             ij_lat_min = np.float(ij_line[12:16])
@@ -1017,37 +1026,54 @@ def read_hauksson_file(Qtxtpath):
         
         # Convert lon/lat to decimal degrees:
         ilayer_lat_arr = np.round(ilayer_lat_deg + (ilayer_lat_min/60.),decimals=6)
-        ilayer_lon_arr = np.round(ilayer_lon_deg + (ilayer_lon_min/60.),decimals=6)
+        ilayer_lon_arr = -1.*np.round(ilayer_lon_deg + (ilayer_lon_min/60.),decimals=6)
 
         # Append to main lon/lat arrays:
         lat_arr.append(ilayer_lat_arr)
         lon_arr.append(ilayer_lon_arr)
-#
-#    # Get unique arrays:
-#    lon = np.sort(np.unique(lon_arr))
-#    lat = np.sort(np.unique(lat_arr))
-#    depth = np.sort(np.unique(depth_arr))
-#
-#    # Number of points:
-#    nx = len(np.unique(lon))
-#    ny = len(np.unique(lat))
-#    nz = len(np.unique(depth))
-#
-#    #Initialize the model array:
-#    Q_model=np.zeros((nz,ny,nx))
-#
-#    # For each depth slice:
-#    for i_z in range(nz):
-#        for i_y in range(ny):
-#            for i_x in range(nx):
-#                grid_ind = np.where((lon_arr == lon[i_x]) and (lat_arr == lat[i_y]) and (depth_arr == depth[i_z]))[0]
-#                Q_model[i_z,i_y,i_x] = Q_arr[grid_ind]
-#        
-#        
-#
-#    # Return values:    
-#    return lon, lat, depth, nx, ny, nz, Q
-
+        
+    # Now, loop through layers.  For each layer, findthe number of unique lats
+    #    and lons.  It should be the same for each depth slice:
+    i_num_uniquelon_list = []
+    i_num_uniquelat_list = []
+    for ilayer in range(len(layer_lines)):
+        i_num_uniquelon = len(np.unique(lon_arr[ilayer]))
+        i_num_uniquelon_list.append(i_num_uniquelon)
+        
+        i_num_uniquelat = len(np.unique(lat_arr[ilayer]))
+        i_num_uniquelat_list.append(i_num_uniquelat)
+        
+    # At end find number that are the same:
+    uniquelon_count = len(np.unique(i_num_uniquelon))
+    uniquelat_count = len(np.unique(i_num_uniquelat))
+    
+    if (uniquelon_count == 1) & (uniquelat_count == 1):
+        print 'Same number of unique lon and lat points in each layer'
+        nx = i_num_uniquelon_list[0]
+        ny = i_num_uniquelat_list[0]
+        nz = len(layer_lines)
+        
+        unique_x = np.unique(lon_arr[0])
+        unique_y = np.unique(lat_arr[0])
+        unique_z = np.unique(depth_arr)
+        
+    ########
+    # Get grid for data:
+    gridx = np.sort(unique_x)
+    gridy = np.sort(unique_y)
+    gridX,gridY = np.meshgrid(gridx,gridy)
+        
+    Q_grid = np.zeros((nz,ny,nx))
+    
+    for i_depth in range(nz):
+        i_existing_points = np.c_[lon_arr[i_depth],lat_arr[i_depth]]
+        i_Q_slice = griddata(i_existing_points,Q_arr[i_depth],(gridX,gridY),method='cubic',fill_value=0)
+        Q_grid[i_depth] = i_Q_slice
+                
+                
+    # Return values:
+    return unique_x, unique_y, unique_z, nx, ny, nz, Q_grid
+        
 
 #####
 #Read in Janine's PGA format file
