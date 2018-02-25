@@ -4,7 +4,7 @@
 import dread
 import cdefs as cdf
 import cPickle as pickle
-from numpy import meshgrid,zeros,where,array
+from numpy import meshgrid,zeros,where,array,genfromtxt
 import run_res_analysis as runra
 import res_analysis as ra
 import matplotlib.pyplot as plt
@@ -29,8 +29,8 @@ elif what_home==1:
 
 
 ## Path to Qp and Qs
-hauksson_model_path_Qp = HOME + '/anza/data/vm/Hauksson/Qp.pckl'
-hauksson_model_path_Qs = HOME + '/anza/data/vm/Hauksson/Qs.pckl'
+hauksson_model_path_Qp = HOME + '/anza/data/vm/Hauksson/Qp_simple.txt'
+hauksson_model_path_Qs = HOME + '/anza/data/vm/Hauksson/Qs_simple.txt'
 
 #Path to residuals object:
 rpath = HOME+'/anza/models/residuals/mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30/mixedcoeff_v3anza2013_pga_noVs30_5coeff_a4_-1.2_pga__ncoeff5_Mc_8.5_VR_99.6_a4_-1.2_robj_FILTERED_raydat.pckl'
@@ -65,15 +65,11 @@ rfile.close()
 print 'residuals object opened \n'
 
 print 'opening Qp... \n'
-qpfile = open(hauksson_model_path_Qp,'r')
-materialmodel_Qp = pickle.load(qpfile)
-qpfile.close()
+materialmodel_Qp = genfromtxt(hauksson_model_path_Qp)
 print 'opened Qp model. \n'
 
 print 'opening Qs... \n'
-qsfile = open(hauksson_model_path_Qs,'r')
-materialmodel_Qs = pickle.load(qsfile)
-qsfile.close()
+materialmodel_Qs = genfromtxt(hauksson_model_path_Qs)
 print 'opened Qs model. \n'
 
 print 'Interpolating model... \n'
@@ -83,9 +79,9 @@ interpolation_type='linear'
 
 # Run for s-waves through Qp:
 raytypes=array([1])
-Qp_ray_data=runra.interp_rays(robj,materialmodel_Qp,interpolation_type,raytypes)
+Qp_ray_data=runra.interp_rays(robj,materialmodel_Qp,interpolation_type,raytypes,modtype='nodes')
 #Run for s-waves through Qs:
-Qs_ray_data=runra.interp_rays(robj,materialmodel_Qs,interpolation_type,raytypes)
+Qs_ray_data=runra.interp_rays(robj,materialmodel_Qs,interpolation_type,raytypes,modtype='nodes')
 
 print 'Material model made.  \n adding to the residuals object...'
 

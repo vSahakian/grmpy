@@ -2,7 +2,7 @@
 ##VJS 6/2016
 
 ##Interpolate rays through a material model##
-def interpolate_rays(residobj,materialobj,interptype,rayflag):
+def interpolate_rays(residobj,materialobj,interptype,rayflag,modeltype='grid'):
     '''
     Interpolate rays through a material model
     Input:
@@ -10,6 +10,8 @@ def interpolate_rays(residobj,materialobj,interptype,rayflag):
         materialobj:        Object with material model.  Depth should be positive for input.
         interptype:         String with type of interpolation from rbf, i.e., 'linear'
         rayflag:            Flag for type of ray to interpolate.  0=Vp/1=Vs
+        modeltype:          String with model type.  Default: 'grid' (m x n x p array that is a material model class). 
+                                or: 'nodes', an n x 4 array, where the 4 columns are lon, lat, depth, Q and n is the number of nodes.
     Output:
         ray_data:           List of arrays, each of same length as corresponding ray.
                             Arrays contain values of model at those raypath positions.
@@ -18,20 +20,29 @@ def interpolate_rays(residobj,materialobj,interptype,rayflag):
     from numpy import meshgrid,zeros,where
     from scipy.interpolate import Rbf
 
-    #Get the actual grid x and y values:
-    grid_x=materialobj.x
-    grid_y=materialobj.y
-    grid_z=-materialobj.z
-
-    #Turn these into a grid, prepping for ravel for interpolation:
-    gX,gY,gZ=meshgrid(grid_x,grid_y,grid_z,indexing='ij')
-
-    #Make column vectors to put into the interpolation:
-    columnx=gX.ravel()
-    columny=gY.ravel()
-    columnz=gZ.ravel()
-    #Data to interpolate - transpose so the x is first, etc.:
-    data=materialobj.materials.transpose(2,1,0).ravel()  
+    # If the model type is a grid:
+    if modeltype == 'grid':
+        
+        #Get the actual grid x and y values:
+        grid_x=materialobj.x
+        grid_y=materialobj.y
+        grid_z=-materialobj.z
+    
+        #Turn these into a grid, prepping for ravel for interpolation:
+        gX,gY,gZ=meshgrid(grid_x,grid_y,grid_z,indexing='ij')
+    
+        #Make column vectors to put into the interpolation:
+        columnx=gX.ravel()
+        columny=gY.ravel()
+        columnz=gZ.ravel()
+        #Data to interpolate - transpose so the x is first, etc.:
+        data=materialobj.materials.transpose(2,1,0).ravel()  
+    
+    elif modeltype == 'nodes':
+        columnx = materialobj[:,0]
+        columny = materialobj[:,1]
+        columnz = materialobj[:,2]
+        data = materialobj[:,3]
     
     #Make interpolator
     print 'Making interpolator...'

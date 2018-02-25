@@ -900,7 +900,7 @@ def read_material_model(coordspath,modelpath):
 
 
 ############################################################################
-def read_hauksson_file(Qtxtpath):
+def read_hauksson_file(Qtxtpath,provide_simple=False):
     '''
     Read in Egill's Q model (Hauksson and Shearer 2006), parse into format to be read by
     cdefs to make an object
@@ -912,6 +912,8 @@ def read_hauksson_file(Qtxtpath):
                                         LAYER 2             1.00km      5.36kmsec-1
                                          long., lat., percent velo change, abs. velocity
                                          QpLatdegrLatminu  LondegrLonminu  -X-Ygrid  Depth(km)
+        provide_simple:       String with flag to provide a simple output of only the points of the model, in form: modelx,modely,modelz,modeldata
+                                    where each are vectors of length n, n being the total number of nodes in the model
     Output:
         lon:                      Array with the x values of the model nodes
         lat:                      Array with the y values of the model nodes
@@ -1069,10 +1071,20 @@ def read_hauksson_file(Qtxtpath):
         i_existing_points = np.c_[lon_arr[i_depth],lat_arr[i_depth]]
         i_Q_slice = griddata(i_existing_points,Q_arr[i_depth],(gridX,gridY),method='cubic',fill_value=0)
         Q_grid[i_depth] = i_Q_slice
-                
-                
-    # Return values:
-    return unique_x, unique_y, unique_z, nx, ny, nz, Q_grid
+        
+    ## If provide_simple was set to False, only return this infor:
+    if provide_simple == False:
+        return unique_x, unique_y, unique_z, nx, ny, nz, Q_grid
+        
+    ## OTherwise, if provide_simple is true, then provide lon_arr, lat_arr, depht_arr, and Q_arr in raveled formats, just arrays:
+    elif provide_simple == True:
+        nodex = np.array(lon_arr).ravel()
+        nodey = np.array(lat_arr).ravel()
+        nodez = np.array(depth_arr).ravel()
+        nodeQ = np.array(Q_arr).ravel()
+        
+        # Return values:
+        return unique_x, unique_y, unique_z, nx, ny, nz, Q_grid, nodex, nodey, nodez, nodeQ
         
 
 #####
