@@ -33,7 +33,7 @@ hauksson_model_path_Qp = HOME + '/anza/data/vm/Hauksson/Qp.pckl'
 hauksson_model_path_Qs = HOME + '/anza/data/vm/Hauksson/Qs.pckl'
 
 #Path to residuals object:
-rpath = HOME+'/anza/models/residuals/mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30/mixedcoeff_v3anza2013_pga_noVs30_5coeff_a4_-1.2_pga__ncoeff5_Mc_8.5_VR_99.6_a4_-1.2_robj_FILTERED_vp_vs.pckl'
+rpath = HOME+'/anza/models/residuals/mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30/mixedcoeff_v3anza2013_pga_noVs30_5coeff_a4_-1.2_pga__ncoeff5_Mc_8.5_VR_99.6_a4_-1.2_robj_FILTERED_raydat.pckl'
 
 #Material flag - what kind is it?  0=Vp, 1=Vs, 2=Vp/Vs, 3=Qp, 4=Qs, 5=Qp/Qs
 materialflag_Qp = 3
@@ -45,11 +45,11 @@ materialmodelname_Qp_Qs = 'HaukQp_Qs'
 #Residual Object paths:
 #interpolated ray values
 #rpath_interp_Qp_Qs = rpath.split('.pckl')[0]+'_interp_'+materialmodelname_Qp_Qs+'.pckl'
-rpath_interp_Qp_Qs = '/home/vsahakian/Desktop/' + rpath.split('.pckl')[0].split('vsahakian/')[1]+'_interp_'+materialmodelname_Qp_Qs+'.pckl'
+rpath_interp_Qp_Qs = '/home/vsahakian/Desktop/' + rpath.split('.pckl')[0].split('residuals/')[1].split('/')[1] +'_interp_'+materialmodelname_Qp_Qs+'.pckl'
 
 #interpolated ray values and indices
 #rpath_indices_Qp_Qs = rpath.split('.pckl')[0]+'_interp_indices_'+materialmodelname_Qp_Qs+'.pckl'
-tmp_rpath_indices_Qp_Qs = '/home/vsahakian/Desktop/' + rpath.split('.pckl')[0].split('vsahakian/')[1]+'_interp_indices_'+materialmodelname_Qp_Qs+'.pckl'
+tmp_rpath_indices_Qp_Qs = '/home/vsahakian/Desktop/' + rpath.split('.pckl')[0].split('residuals/')[1].split('/')[1] +'_interp_indices_'+materialmodelname_Qp_Qs+'.pckl'
 
 
 #######################################
@@ -101,3 +101,5 @@ print 'Saving new res object...'
 rfile_interp=open(rpath_interp_Qp_Qs,'w')
 pickle.dump(robj,rfile_interp)
 rfile_interp.close()
+
+print 'Saved new res object with interpolated Q values to %s' % rpath_interp_Qp_Qs
