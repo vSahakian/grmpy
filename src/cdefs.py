@@ -3102,7 +3102,7 @@ class material_model:
         print Y.min()
         print Y.max()
         
-        sliceaxis_handle = sliceaxis.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='upper',aspect=aspectr)
+        sliceaxis_handle = sliceaxis.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='lower',aspect=aspectr)
         cbar=plt.colorbar(sliceaxis_handle,ax=sliceaxis)
         cbar.set_label(modellab+' (km/s)')
                 
@@ -3160,7 +3160,7 @@ class material_model:
         print Y.min()
         print Y.max()
         
-        sliceaxis_handle = sliceaxis.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='upper',aspect=aspectr)
+        sliceaxis_handle = sliceaxis.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='lower',aspect=aspectr)
         cbar=plt.colorbar(sliceaxis_handle,ax=sliceaxis)
         cbar.set_label(modellab+' (km/s)')
         
