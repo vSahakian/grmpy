@@ -388,7 +388,7 @@ def plot_pterms(home,run_name,robj,index,axlims):
     
 ##################################################################################
 
-def plot_pathterms_colored(home,run_name,robj,index,axlims,color_by,cvals,mymap):
+def plot_pathterms_colored(home,run_name,robj,index,axlims,color_by,cvals,mymap,force_fig_dir='none'):
     '''
     Plot path terms vs. some index, with path terms on the x-axis.
     Input:
@@ -403,6 +403,7 @@ def plot_pathterms_colored(home,run_name,robj,index,axlims,color_by,cvals,mymap)
         color_by:       String with variable to color by: 'r', or 'mw'
         cvals:          Colorbar limits: [cmin,cmax]
         mymap:          String with colormap to use (i.e., 'jet')
+        force_fig_dir:  String with figure directory with no end '/', if want to force to not be run_name/figs. Default: 'none'
     Output:
         Saves plots to home/run_name/figs/pathterm_index
     '''
@@ -414,9 +415,14 @@ def plot_pathterms_colored(home,run_name,robj,index,axlims,color_by,cvals,mymap)
     import matplotlib.cm as cm
     
     #Get run directory, and figure directory:
-    run_dir=path.expanduser(home+run_name+'/')
-    fig_dir=run_dir+'figs/'
-    pdf_dir=fig_dir+'pdfs/'
+    if force_fig_dir == 'none':
+        run_dir=path.expanduser(home+run_name+'/')
+        fig_dir=run_dir+'figs/'
+        pdf_dir=fig_dir+'pdfs/'
+    else:
+        fig_dir = force_fig_dir + '/'
+        pdf_dir = force_fig_dir + '/pdfs/'
+    
     
     #Get a string for the plot name and title:
     figbasename='pathterm_'+index+'_'+color_by
