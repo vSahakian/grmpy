@@ -495,7 +495,7 @@ def plot_pathterms_colored(home,run_name,robj,index,axlims,color_by,cvals,mymap,
 ##
 #Other terms...
 ######################################################################################
-def plot_terms_colored(home,run_name,robj,term,index,axlims,color_by,cvals,mymap):
+def plot_terms_colored(home,run_name,robj,term,index,axlims,color_by,cvals,mymap,force_fig_dir='none'):
     '''
     Plot path terms vs. some index, with path terms on the x-axis.
     Input:
@@ -511,6 +511,7 @@ def plot_terms_colored(home,run_name,robj,term,index,axlims,color_by,cvals,mymap
         color_by:       String with variable to color by: 'r', or 'mw'
         cvals:          Colorbar limits: [cmin,cmax]
         mymap:          String with colormap to use (i.e., 'jet')
+        force_fig_dir:  String with figure directory with no end '/', if want to force to not be run_name/figs. Default: 'none'
     Output:
         Saves plots to home/run_name/figs/pathterm_index
     '''
@@ -522,9 +523,13 @@ def plot_terms_colored(home,run_name,robj,term,index,axlims,color_by,cvals,mymap
     import matplotlib.cm as cm
     
     #Get run directory, and figure directory:
-    run_dir=path.expanduser(home+run_name+'/')
-    fig_dir=run_dir+'figs/'
-    pdf_dir=fig_dir+'pdfs/'
+    if force_fig_dir == 'none':
+        run_dir=path.expanduser(home+run_name+'/')
+        fig_dir=run_dir+'figs/'
+        pdf_dir=fig_dir+'pdfs/'
+    else:
+        fig_dir = force_fig_dir + '/'
+        pdf_dir = force_fig_dir + '/pdfs/'
     
     #Get a string for the plot name and title:
     figbasename=term+index+'_'+color_by
@@ -1659,27 +1664,48 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
     # Get the metric:
     if metric == 'ind_s_vs_pathint':
         metricvalue = residualobj.ind_s_vs_pathint
-        xlabel = 'Path Integral Metric'
+        xlabel = 'Vs Path Integral Metric'
     elif metric == 'ind_s_vs_normpathint':
         metricvalue = residualobj.ind_s_vs_normpathint
-        xlabel = 'Normalized Path Metric'
+        xlabel = 'Vs Normalized Path Metric'
     elif metric == 'ind_s_vs_gradpathint':
         metricvalue = residualobj.ind_s_vs_gradpathint
-        xlabel = 'Gradient Metric'
+        xlabel = 'Vs Gradient Metric'
     elif metric == 'ind_s_vs_gradpathint_normdist':
         metricvalue = residualobj.ind_s_vs_gradpathint/residualobj.r
-        xlabel = 'Gradient Metric/Rrup'
+        xlabel = 'Vs Gradient Metric/Rrup'
 
 
     elif metric == 'ind_p_vs_pathint':
         metricvalue = residualobj.ind_p_vs_pathint
-        xlabel = 'Path Integral Metric'
+        xlabel = 'Vs Path Integral Metric'
     elif metric == 'ind_p_vs_normpathint':
         metricvalue = residualobj.ind_p_vs_normpathint
-        xlabel = 'Normalized Path Metric'
+        xlabel = 'Vs Normalized Path Metric'
     elif metric == 'ind_p_vs_gradpathint':
         metricvalue = residualobj.ind_p_vs_gradpathint
-        xlabel = 'Gradient Metric'
+        xlabel = 'Vs Gradient Metric'
+        
+    # Q metrics:
+    elif metric == 'ind_s_qs_pathint':
+        metricvalue = residualobj.ind_s_qs_pathint
+        xlabel = 'Qs Path Integral Metric'
+    elif metric == 'ind_s_qs_normpathint':
+        metricvalue = residualobj.ind_s_qs_normpathint
+        xlabel = 'Qs Normalized Path Metric'
+    elif metric == 'ind_s_qs_gradpathint':
+        metricvalue = residualobj.ind_s_qs_gradpathint
+        xlabel = 'Qs Gradient Metric'
+        
+    elif metric == 'ind_s_qp_pathint':
+        metricvalue = residualobj.ind_s_qp_pathint
+        xlabel = 'Qp Path Integral Metric'
+    elif metric == 'ind_s_qp_normpathint':
+        metricvalue = residualobj.ind_s_qp_normpathint
+        xlabel = 'Qp Normalized Path Metric'
+    elif metric == 'ind_s_qp_gradpathint':
+        metricvalue = residualobj.ind_s_qp_gradpathint
+        xlabel = 'Qp Gradient Metric'
         
     # Get the residual:
     if residualterm == 'event':

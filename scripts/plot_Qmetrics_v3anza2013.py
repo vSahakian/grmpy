@@ -80,27 +80,27 @@ for indexi in range(len(index)):
 term='site_terms'
 index=['ind_s_qp_pathint','ind_s_qp_normpathint','ind_s_qp_gradpathint','ind_s_qs_pathint','ind_s_qs_normpathint','ind_s_qs_gradpathint']
 color_by=['r','mw']
-axlims=[[[-4,4.5],[10,8450]],[[-4,4.5],[0.60,0.85]],[[-4,4.5],[0,6.5]]]
+axlims=[[[-4,4.5],[420,220000]],[[-4,4.5],[0.01,0.16]],[[-4,4.5],[10,910]],[[-4,4.5],[500,333000]],[[-4,4.5],[0.01,0.17]],[[-4,4.5],[10,820]]]
 cmap='viridis'
 cvals=[[0,150],[0.5,3.2]]
 
 for indexi in range(len(index)):
     for color_by_i in range(len(color_by)):
-        ra.plot_terms_colored(home,run_name,robj,term,index[indexi],axlims[indexi],color_by[color_by_i],cvals[color_by_i],cmap)
-        
+        ra.plot_terms_colored(home,run_name,robj,term,index[indexi],axlims[indexi],color_by[color_by_i],cvals[color_by_i],cmap,force_fig_dir=fig_dir)
+        plt.close('all')
 
 #Event residual:
 term='E_residual'
 index=['ind_s_qp_pathint','ind_s_qp_normpathint','ind_s_qp_gradpathint','ind_s_qs_pathint','ind_s_qs_normpathint','ind_s_qs_gradpathint']
 color_by=['r','mw']
-axlims=[[[-4,4.5],[10,8450]],[[-4,4.5],[0.60,0.85]],[[-4,4.5],[0,6.5]]]
+axlims=[[[-4,4.5],[420,220000]],[[-4,4.5],[0.01,0.16]],[[-4,4.5],[10,910]],[[-4,4.5],[500,333000]],[[-4,4.5],[0.01,0.17]],[[-4,4.5],[10,820]]]
 cmap='viridis'
 cvals=[[0,150],[0.5,3.2]]
 
 for indexi in range(len(index)):
     for color_by_i in range(len(color_by)):
-        ra.plot_terms_colored(home,run_name,robj,term,index[indexi],axlims[indexi],color_by[color_by_i],cvals[color_by_i],cmap)
-
+        ra.plot_terms_colored(home,run_name,robj,term,index[indexi],axlims[indexi],color_by[color_by_i],cvals[color_by_i],cmap,force_fig_dir=fig_dir)
+        plt.close('all')
 
 
 
@@ -108,14 +108,14 @@ for indexi in range(len(index)):
 ######################       Path      ###################################
 ##########################################################################
 
-## Make binned distance plot for gradient metric
+## Make binned distance plot for Qs and gradient metric
 
 # Bin and color gradient/path term by distance:
 plotterm = 'path'
-plotmetric = 'ind_s_vs_gradpathint'
+plotmetric = 'ind_s_qs_gradpathint'
 binedges = array([  0,  20,  40,  60,  80, 100, 120, 180])
 bin_by = 'Rrup'
-axlims = [[0, 7], [-3, 5.5]]
+axlims = [[10, 815], [-3, 5.5]]
 color_by = 'Rrup'
 colorscheme = 'viridis'
 clims = [0, 140, 1]
@@ -128,16 +128,16 @@ figname = plotmetric + '_' + plotterm + '_' + bin_by + '_' + color_by
 
 path_distance_distance = ra.plot_binned_metric(robj,plotterm,plotmetric,binedges,bin_by,axlims,color_by,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz)
 
-path_distance_distance.savefig(fig_dir + 'pdfs/' + figname + '.pdf')
-path_distance_distance.savefig(fig_dir + figname + '.png')
+path_distance_distance.savefig(fig_dir + '/pdfs/' + figname + '.pdf')
+path_distance_distance.savefig(fig_dir + '/' + figname + '.png')
 
 
 # Bin and color gradient/path term by magnitude:
 plotterm = 'path'
-plotmetric = 'ind_s_vs_gradpathint'
+plotmetric = 'ind_s_qs_gradpathint'
 binedges = array([  0, 1.0,  1.5,  2.0, 2.5, 3.0, 4.0])
 bin_by = 'M'
-axlims = [[0, 7], [-3, 5.5]]
+axlims = [[10, 815], [-3, 5.5]]
 color_by = 'M'
 colorscheme = 'viridis'
 clims = [0, 3.05, 0.1]
@@ -150,39 +150,20 @@ figname = plotmetric + '_' + plotterm + '_' + bin_by + '_' + color_by
 
 path_distance_distance = ra.plot_binned_metric(robj,plotterm,plotmetric,binedges,bin_by,axlims,color_by,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz)
 
-path_distance_distance.savefig(fig_dir + 'pdfs/' + figname + '.pdf')
-path_distance_distance.savefig(fig_dir + figname + '.png')
+path_distance_distance.savefig(fig_dir + '/pdfs/' + figname + '.pdf')
+path_distance_distance.savefig(fig_dir + '/' + figname + '.png')
 
 
+#############################################################################
 
-# Bin gradient/path term by distance, color by azimuth:
+## Make plots for Qp and gradient metric
+
+# Bin and color gradient/path term by distance:
 plotterm = 'path'
-plotmetric = 'ind_s_vs_gradpathint'
+plotmetric = 'ind_s_qp_gradpathint'
 binedges = array([  0,  20,  40,  60,  80, 100, 120, 180])
 bin_by = 'Rrup'
-axlims = [[0, 7], [-3, 5.5]]
-color_by = 'Site Azimuth'
-colorscheme = 'viridis'
-clims = [0, 360, 1]
-cbartick = 90
-plotdims = [48, 16]
-plotrowscols = [2, 4]
-fontsz = 14
-
-figname = plotmetric + '_' + plotterm + '_' + bin_by + '_' + color_by
-
-path_distance_distance = ra.plot_binned_metric(robj,plotterm,plotmetric,binedges,bin_by,axlims,color_by,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz)
-
-path_distance_distance.savefig(fig_dir + 'pdfs/' + figname + '.pdf')
-path_distance_distance.savefig(fig_dir + figname + '.png')
-
-
-# Bin gradient/path term by azimuth, color by distance:
-plotterm = 'path'
-plotmetric = 'ind_s_vs_gradpathint'
-binedges = array([  0,  45,  90,  135,  180,  225, 270, 315, 360])
-bin_by = 'Site Azimuth'
-axlims = [[0, 7], [-3, 5.5]]
+axlims = [[10, 920], [-3, 5.5]]
 color_by = 'Rrup'
 colorscheme = 'viridis'
 clims = [0, 140, 1]
@@ -195,19 +176,44 @@ figname = plotmetric + '_' + plotterm + '_' + bin_by + '_' + color_by
 
 path_distance_distance = ra.plot_binned_metric(robj,plotterm,plotmetric,binedges,bin_by,axlims,color_by,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz)
 
-path_distance_distance.savefig(fig_dir + 'pdfs/' + figname + '.pdf')
-path_distance_distance.savefig(fig_dir + figname + '.png')
+path_distance_distance.savefig(fig_dir + '/pdfs/' + figname + '.pdf')
+path_distance_distance.savefig(fig_dir + '/' + figname + '.png')
 
 
-#################
-
-
-# Bin and color gradient/path term normalized by distance, by distance:
+# Bin and color gradient/path term by magnitude:
 plotterm = 'path'
-plotmetric = 'ind_s_vs_gradpathint_normdist'
+plotmetric = 'ind_s_qp_gradpathint'
+binedges = array([  0, 1.0,  1.5,  2.0, 2.5, 3.0, 4.0])
+bin_by = 'M'
+axlims = [[10, 920], [-3, 5.5]]
+color_by = 'M'
+colorscheme = 'viridis'
+clims = [0, 3.05, 0.1]
+cbartick = 1.0
+plotdims = [48, 16]
+plotrowscols = [2, 3]
+fontsz = 14
+
+figname = plotmetric + '_' + plotterm + '_' + bin_by + '_' + color_by
+
+path_distance_distance = ra.plot_binned_metric(robj,plotterm,plotmetric,binedges,bin_by,axlims,color_by,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz)
+
+path_distance_distance.savefig(fig_dir + '/pdfs/' + figname + '.pdf')
+path_distance_distance.savefig(fig_dir + '/' + figname + '.png')
+
+
+
+
+##########################################################################
+
+## Make binned distance plot for Qs and norm path metric
+
+# Bin and color gradient/path term by distance:
+plotterm = 'path'
+plotmetric = 'ind_s_qs_normpathint'
 binedges = array([  0,  20,  40,  60,  80, 100, 120, 180])
 bin_by = 'Rrup'
-axlims = [[0, 7], [-3, 5.5]]
+axlims = [[0.0, 0.17], [-3, 5.5]]
 color_by = 'Rrup'
 colorscheme = 'viridis'
 clims = [0, 140, 1]
@@ -220,8 +226,150 @@ figname = plotmetric + '_' + plotterm + '_' + bin_by + '_' + color_by
 
 path_distance_distance = ra.plot_binned_metric(robj,plotterm,plotmetric,binedges,bin_by,axlims,color_by,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz)
 
-path_distance_distance.savefig(fig_dir + 'pdfs/' + figname + '.pdf')
-path_distance_distance.savefig(fig_dir + figname + '.png')
+path_distance_distance.savefig(fig_dir + '/pdfs/' + figname + '.pdf')
+path_distance_distance.savefig(fig_dir + '/' + figname + '.png')
+
+
+# Bin and color gradient/path term by magnitude:
+plotterm = 'path'
+plotmetric = 'ind_s_qs_normpathint'
+binedges = array([  0, 1.0,  1.5,  2.0, 2.5, 3.0, 4.0])
+bin_by = 'M'
+axlims = [[0.0, 0.17], [-3, 5.5]]
+color_by = 'M'
+colorscheme = 'viridis'
+clims = [0, 3.05, 0.1]
+cbartick = 1.0
+plotdims = [48, 16]
+plotrowscols = [2, 3]
+fontsz = 14
+
+figname = plotmetric + '_' + plotterm + '_' + bin_by + '_' + color_by
+
+path_distance_distance = ra.plot_binned_metric(robj,plotterm,plotmetric,binedges,bin_by,axlims,color_by,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz)
+
+path_distance_distance.savefig(fig_dir + '/pdfs/' + figname + '.pdf')
+path_distance_distance.savefig(fig_dir + '/' + figname + '.png')
+
+#############################################################################
+
+## Make binned distance plot for Qp and norm path metric
+
+# Bin and color gradient/path term by distance:
+plotterm = 'path'
+plotmetric = 'ind_s_qp_normpathint'
+binedges = array([  0,  20,  40,  60,  80, 100, 120, 180])
+bin_by = 'Rrup'
+axlims = [[0.0, 0.17], [-3, 5.5]]
+color_by = 'Rrup'
+colorscheme = 'viridis'
+clims = [0, 140, 1]
+cbartick = 40
+plotdims = [48, 16]
+plotrowscols = [2, 4]
+fontsz = 14
+
+figname = plotmetric + '_' + plotterm + '_' + bin_by + '_' + color_by
+
+path_distance_distance = ra.plot_binned_metric(robj,plotterm,plotmetric,binedges,bin_by,axlims,color_by,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz)
+
+path_distance_distance.savefig(fig_dir + '/pdfs/' + figname + '.pdf')
+path_distance_distance.savefig(fig_dir + '/' + figname + '.png')
+
+
+# Bin and color gradient/path term by magnitude:
+plotterm = 'path'
+plotmetric = 'ind_s_qp_normpathint'
+binedges = array([  0, 1.0,  1.5,  2.0, 2.5, 3.0, 4.0])
+bin_by = 'M'
+axlims = [[0.0, 0.17], [-3, 5.5]]
+color_by = 'M'
+colorscheme = 'viridis'
+clims = [0, 3.05, 0.1]
+cbartick = 1.0
+plotdims = [48, 16]
+plotrowscols = [2, 3]
+fontsz = 14
+
+figname = plotmetric + '_' + plotterm + '_' + bin_by + '_' + color_by
+
+path_distance_distance = ra.plot_binned_metric(robj,plotterm,plotmetric,binedges,bin_by,axlims,color_by,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz)
+
+path_distance_distance.savefig(fig_dir + '/pdfs/' + figname + '.pdf')
+path_distance_distance.savefig(fig_dir + '/' + figname + '.png')
+
+
+
+#############################################################################
+#
+#
+## Bin gradient/path term by distance, color by azimuth:
+#plotterm = 'path'
+#plotmetric = 'ind_s_qs_gradpathint'
+#binedges = array([  0,  20,  40,  60,  80, 100, 120, 180])
+#bin_by = 'Rrup'
+#axlims = [[10, 815], [-3, 5.5]]
+#color_by = 'Site Azimuth'
+#colorscheme = 'viridis'
+#clims = [0, 360, 1]
+#cbartick = 90
+#plotdims = [48, 16]
+#plotrowscols = [2, 4]
+#fontsz = 14
+#
+#figname = plotmetric + '_' + plotterm + '_' + bin_by + '_' + color_by
+#
+#path_distance_distance = ra.plot_binned_metric(robj,plotterm,plotmetric,binedges,bin_by,axlims,color_by,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz)
+#
+#path_distance_distance.savefig(fig_dir + 'pdfs/' + figname + '.pdf')
+#path_distance_distance.savefig(fig_dir + figname + '.png')
+#
+#
+## Bin gradient/path term by azimuth, color by distance:
+#plotterm = 'path'
+#plotmetric = 'ind_s_vs_gradpathint'
+#binedges = array([  0,  45,  90,  135,  180,  225, 270, 315, 360])
+#bin_by = 'Site Azimuth'
+#axlims = [[0, 7], [-3, 5.5]]
+#color_by = 'Rrup'
+#colorscheme = 'viridis'
+#clims = [0, 140, 1]
+#cbartick = 40
+#plotdims = [48, 16]
+#plotrowscols = [2, 4]
+#fontsz = 14
+#
+#figname = plotmetric + '_' + plotterm + '_' + bin_by + '_' + color_by
+#
+#path_distance_distance = ra.plot_binned_metric(robj,plotterm,plotmetric,binedges,bin_by,axlims,color_by,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz)
+#
+#path_distance_distance.savefig(fig_dir + 'pdfs/' + figname + '.pdf')
+#path_distance_distance.savefig(fig_dir + figname + '.png')
+#
+#
+##################
+#
+#
+## Bin and color gradient/path term normalized by distance, by distance:
+#plotterm = 'path'
+#plotmetric = 'ind_s_vs_gradpathint_normdist'
+#binedges = array([  0,  20,  40,  60,  80, 100, 120, 180])
+#bin_by = 'Rrup'
+#axlims = [[0, 7], [-3, 5.5]]
+#color_by = 'Rrup'
+#colorscheme = 'viridis'
+#clims = [0, 140, 1]
+#cbartick = 40
+#plotdims = [48, 16]
+#plotrowscols = [2, 4]
+#fontsz = 14
+#
+#figname = plotmetric + '_' + plotterm + '_' + bin_by + '_' + color_by
+#
+#path_distance_distance = ra.plot_binned_metric(robj,plotterm,plotmetric,binedges,bin_by,axlims,color_by,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz)
+#
+#path_distance_distance.savefig(fig_dir + 'pdfs/' + figname + '.pdf')
+#path_distance_distance.savefig(fig_dir + figname + '.png')
 
 
 
