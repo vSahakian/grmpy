@@ -296,8 +296,8 @@ scatterfig = plt.figure(figsize=(12,9))
 plt.scatter(Qs_model_reshape_noNan,mean_Qs_reshape_noNan,marker='o',color='#2f2772',label='Mean path term - r = %.2f, p = %.1f' % (mean_Qs_r,mean_Qs_p))
 plt.scatter(Qs_model_reshape_noNan,median_Qs_reshape_noNan,marker='^',color='#30705b',label='Median path term - r = %.2f, p = %.1f' % (median_Qs_r,median_Qs_p))
 
-plt.ylim([-2.5,2])
-plt.xlim([0,1200])
+plt.ylim([-1.6,1.2])
+plt.xlim([0,500])
 
 plt.xlabel('Cell Qs (km/s)')
 plt.ylabel('Path Term (ln residual)')
@@ -320,8 +320,8 @@ scatterfig = plt.figure(figsize=(12,9))
 plt.scatter(Qp_model_reshape_noNan,mean_Qp_reshape_noNan,marker='o',color='#2f2772',label='Mean path term - r = %.2f, p = %.1f' % (mean_Qp_r,mean_Qp_p))
 plt.scatter(Qp_model_reshape_noNan,median_Qp_reshape_noNan,marker='^',color='#30705b',label='Median path term - r = %.2f, p = %.1f' % (median_Qp_r,median_Qp_p))
 
-plt.ylim([-2.5,2])
-plt.xlim([0,1200])
+plt.ylim([-1.6,1.2])
+plt.xlim([0,500])
 
 plt.xlabel('Cell Qp (km/s)')
 plt.ylabel('Path Term (ln residual)')
