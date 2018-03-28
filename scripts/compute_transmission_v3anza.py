@@ -27,6 +27,8 @@ elif what_home==1:
 
 velmodelpath = HOME + '/anza/data/pckl/FangVs.pckl'
 velmodel_gridded_path = HOME + '/anza/data/pckl/FangVs_transmissionregridded.pckl'
+velmodel_gradient_path = HOME + '/anza/data/pckl/FangVs_gradient.pckl'
+
 
 residualpath = HOME + '/anza/models/residuals/mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30/mixedcoeff_v3anza2013_pga_noVs30_5coeff_a4_-1.2_pga__ncoeff5_Mc_8.5_VR_99.6_a4_-1.2_robj_FILTERED_raydat.pckl'
 
@@ -140,9 +142,14 @@ dx = np.diff(FangVs_regridded.x)
 
 # Set up gradient - give the sample intervals in the order of the array's shape
 #   i.e., FangVs_gradient.shape = (nz,ny,nx), therefore give dz, dy, dx
-FangVs_gradient = np.gradient(FangVs_regridded.materials,dz[0],dy[0],dx[0])
+FangVs_gradient_array = np.gradient(FangVs_regridded.materials,dz[0],dy[0],dx[0])
 
+## Make a material model of it, write to file:
+FangVs_gradient = cdf.material_model(mobj.x,mobj.y,new_z,new_nx,new_ny,new_nz,FangVs_gradient_array)
 
+gfile = open(velmodel_gradient_path,'w')
+pickle.dump(FangVs_gradient,gfile)
+gfile.close()
 
 ############################################################################
 ##################  Step 4: Get grad vec norms   ###########################

@@ -915,4 +915,120 @@ def save_box_data(robj,text_dir,select_sta,bound_name,station_ind,event_ind):
         writeline = '%s \t %.8f \t %.8f \t %.4f \t %i \t %.8f \t %.8f \t %.4f \t %.3f \t %.3f \t %.3f \t %.3f \t %.3f \t %.3f \n' % (sta[recordingi],stlon[recordingi],stlat[recordingi],stelv[recordingi],evnum[recordingi],evlon[recordingi],evlat[recordingi],evdep[recordingi],site_residual[recordingi],site_stderr[recordingi],path_residual[recordingi],pathint[recordingi],normpathint[recordingi],gradpathint[recordingi])
         f.write(writeline)
     f.close()
+
     
+def compute_raypt_vector(ray_lon,ray_lat,ray_depth):
+    '''
+    Compute the instantaneous vector and its norm at a number of points along a ray
+    Input:
+        ray_lon:                 Array with longitude values of points along ray    
+        ray_lat:                 Array with latitude values of points along ray
+        ray_depth:               Array with depth values of points along ray
+    Output:
+        ray_vectors:             List with arrays (3 x 1) of vectors at each poitn on ray
+        ray_norms:               List with vector norms at each point on ray
+    '''
+    
+    import numpy as np
+    
+    # Initiate empty lists:
+    ray_vectors = []
+    ray_norms = []
+    
+    for i_point in range(len(ray_lon)):
+        # If it is not the last point, use forward finite difference...
+        if i_point < len(ray_lon) - 1:
+            # Get this point:
+            i_point_array = np.array([ray_lon[i_point],ray_lat[i_point],ray_depth[i_point]])
+            # Get the point in front of it.
+            i_point_ahead_array = np.array([ray_lon[i_point+1],ray_lat[i_point+1],ray_depth[i_point+1]])
+        
+            # Get the vector:
+            # subtract the current value from the ahead point:
+            i_xdiff = i_point_ahead_array[0] - i_point_array[0]
+            i_ydiff = i_point_ahead_array[1] - i_point_array[1]
+            i_zdiff = i_point_ahead_array[2] - i_point_array[2]
+            
+            # Make vector:
+            i_vector = np.array([i_xdiff,i_ydiff,i_zdiff])
+            
+            # Vector norm:
+            i_vectornorm = np.linalg.norm(i_vector)
+            
+            # Append to list:
+            ray_vectors.append(i_vector)
+            ray_norms.append(i_vectornorm)
+        
+        # If it's the last point, then use the vector obtained in the past point:
+        if i_point == len(ray_lon) - 1:
+            ray_vectors.append(ray_vectors[i_point-1])
+            ray_norms.append(ray_norms[i_point-1])
+        
+    return ray_vectors, ray_norms
+    
+    
+def find_nearest_point(ray_lon,ray_lat,ray_depth,gradient_object):
+    '''
+    For each point along a ray, find the nearest grid node in a gradient object.
+    Return the x, y, and z indices of that point.
+    Input:
+        ray_lon:                 Array with longitude values of points along ray    
+        ray_lat:                 Array with latitude values of points along ray
+        ray_depth:               Array with depth values of points along ray
+        gradient_object:         cdefs material model object with gradient instead of materials
+    Output:
+        closest_index:           List, length npoints, with 3 x 1 arrays - NOTE: (z_index, y_index, x_index) for each point
+    '''
+    
+    import numpy as np
+    from pyproj import Proj
+    
+    # First, convert x and y to UTM....
+    projection = Proj(proj='utm',zone='11S',ellps='WGS84',inverse=True)
+    ray_x_m,ray_y_m = projection(ray_lon,ray_lat)
+    grad_x_m,grad_y_m = projection(gradient_object.x, gradient_object.y)
+    
+    # Mesh data:
+    # Multiply z by 1000 since it is in km, x and y are in meters
+    gradX,gradY,gradZ = np.meshgrid(grad_x_m,grad_y_m,gradient_object.z*1000)
+    gradX_ind,gradY_ind,gradZ_ind = np.meshgrid(range(len(gradient_object.x)), range(len(gradient_object.y)), range(len(gradient_object.z)))
+    
+    # Unravel:
+    gradX = gradX.ravel()
+    gradY = gradY.ravel()
+    gradZ = gradZ.ravel()
+    gradX_ind = gradX_ind.ravel()
+    gradY_ind = gradY_ind.ravel()
+    gradZ_ind = gradZ_ind.ravel()
+    
+    # Initiate 
+    closest_index = []
+    for i_point in range(len(ray_lon)):
+        # Find distance from this point to every other point:
+        i_x_dist = ray_x_m[i_point] - gradX
+        i_y_dist = ray_y_m[i_point] - gradY
+        # Multiply ray_depth by -1000 since negative is down, and it's in km
+        i_z_dist = ray_depth[i_point]*-1000 - gradZ
+        
+        # get horizontal distance
+        i_totaldistances = np.sqrt(i_x_dist**2 + i_y_dist**2 + i_z_dist**2)
+        
+        # Find minimum distance:
+        i_mindistance_ind = np.argmin(i_totaldistances)
+        i_Xind,i_Yind,i_Zind = [gradX_ind[i_mindistance_ind],gradY_ind[i_mindistance_ind],gradZ_ind[i_mindistance_ind]]
+        i_index_array = np.array([i_Zind,i_Yind,i_Xind])
+        
+        # Append to list of arrays:
+        closest_index.append(i_index_array)
+    
+    return closest_index
+    
+    
+def compute_angle_of_incidence(ray_vectors,ray_norms,gradient_ray_vectors,gradient_ray_norms):
+    '''
+    '''
+    
+
+def compute_transmission_coefficient():
+    '''
+    '''
