@@ -54,22 +54,26 @@ new_z = np.array([-2., -1., 0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12
 ###################    Step 1: Read in Models    ###########################
 ############################################################################
 
+print 'opening residuals\n'
 # Open residuals object
 rfile = open(residualpath,'r')
 robj = pickle.load(rfile)
 rfile.close()
+print 'opened residuals.\n'
 
+print 'opening Fang Vs\n'
 # Open Fang model:
 mfile = open(velmodelpath,'r')
 mobj = pickle.load(mfile)
 mfile.close()
+print 'opened Fang Vs.\n'
 
 
 ############################################################################
 ###################  Step 2: Make Fang Vp mod    ###########################
 ############################################################################
 
-
+print 'Making Vp...\n'
 #Make material model:
 #Convert the longitudes from positive west to negative:
 lonconvert=2
@@ -80,10 +84,12 @@ FangVp_model = runra.make_material_object(coordspath_vp,materialasciipath_vp,vel
 ###################  Step 3: Regrid vel model    ###########################
 ############################################################################
 
+print 'regridding Fang vs and vp\n'
 # Regrid Fang Vs and Vp according to the new depths listed in paths section
 FangVs_regridded = rt.regrid_z_materialmodel(mobj,new_z)
 FangVp_regridded = rt.regrid_z_materialmodel(FangVp_model,new_z)
 
+print 'saving these to file \n'
 # Save Vp to file
 new_gridfile = open(velmodel_gridded_path,'w')
 pickle.dump(FangVs_regridded,new_gridfile)
@@ -94,9 +100,11 @@ new_gridfile = open(velmodel_gridded_path_vp,'w')
 pickle.dump(FangVp_regridded,new_gridfile)
 new_gridfile.close()
 
+print 'making density...\n'
 # Convert Vp to density using Brocher:
 Density = rt.convert_velocity2density(FangVp_regridded)
 
+print 'saivng density to file.\n'
 ## Save to file:
 denfile = open(denmodelpath,'w')
 pickle.dump(Density,denfile)
@@ -106,6 +114,7 @@ denfile.close()
 ###################  Step 4: Compute gradient    ###########################
 ############################################################################
 
+print 'computing gradient...\n'
 # Need dx, dy, and dz:
 dz = np.diff(FangVs_regridded.z)
 dy = np.diff(FangVs_regridded.y)
@@ -131,6 +140,7 @@ gfile.close()
 ###############  Step 5: Compute transmission per ray  #####################
 ############################################################################
 
+print 'starting transmission.\n'
 # Loop over each ray, and compute for each ray.
 
 ## Initiate array with all values of transmission:
@@ -164,10 +174,13 @@ for i_ray in range(len(robj.vs_lon)):
     ## Append to overall array:
     totaltransmission = np.r_[totaltransmission,i_ray_totaltransmission]
 
+print 'saving transmission to file...\n'
 ## Save this to a file:
 tfile = open(transmission_path,'w')
 pickle.dump(totaltransmission,tfile)
 tfile.close()
+
+print 'Done!'
 
 ############################################################################
 ###################  Step 5: Compute angle of inc    #######################
