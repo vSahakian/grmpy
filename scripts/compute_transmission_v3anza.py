@@ -12,7 +12,7 @@ import raytracing as rt
 #0=desktop
 #1=mac
 
-what_home=1
+what_home=0
 
 if what_home==0:
     #Desktop:
@@ -41,6 +41,8 @@ denmodelpath = HOME + '/anza/data/pckl/FangDensity_brocher.pckl'
 coordspath_vp = HOME+'/anza/data/vm/Fang2016/coords.txt'
 materialasciipath_vp = HOME+'/anza/data/vm/Fang2016/Vp.dat'
 
+# Path to output transmission file:
+transmission_path = HOME + '/anza/data/pckl/v3anza_FangVs_transmission.pckl'
 
 residualpath = HOME + '/anza/models/residuals/mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30/mixedcoeff_v3anza2013_pga_noVs30_5coeff_a4_-1.2_pga__ncoeff5_Mc_8.5_VR_99.6_a4_-1.2_robj_FILTERED_raydat.pckl'
 
@@ -132,8 +134,8 @@ gfile.close()
 ## Initiate array with all values of transmission:
 totaltransmission = np.array([])
 
-#for i_ray in range(len(robj.vs_lon)):
-for i_ray in range(2000):
+for i_ray in range(len(robj.vs_lon)):
+#for i_ray in range(2000):
 
     ## Pritn the ray number the loop is on:
     if i_ray % 1000 == 0:
@@ -159,6 +161,11 @@ for i_ray in range(2000):
     
     ## Append to overall array:
     totaltransmission = np.r_[totaltransmission,i_ray_totaltransmission]
+
+## Save this to a file:
+tfile = open(transmission_path,'w')
+pickle.dump(totaltransmission,tfile)
+tfile.close()
 
 ############################################################################
 ###################  Step 5: Compute angle of inc    #######################
