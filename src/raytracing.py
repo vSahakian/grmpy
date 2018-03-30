@@ -916,7 +916,132 @@ def save_box_data(robj,text_dir,select_sta,bound_name,station_ind,event_ind):
         f.write(writeline)
     f.close()
 
+
+def regrid_z_materialmodel(mobj,new_z):
+    '''
+    '''
+    import numpy as np
+    from scipy import interpolate
+    import cdefs as cdf
     
+    # First get current points:
+    current_lon_arr = mobj.x
+    current_lat_arr = mobj.y
+    current_dep_arr = mobj.z
+    
+    # Meshgrid them, to have each point:
+    current_dep,current_lat,current_lon = np.meshgrid(current_dep_arr,current_lat_arr,current_lon_arr,indexing='ij')
+    
+    # Meshgrid the new points, with the new z array:
+    new_dep,new_lat,new_lon = np.meshgrid(new_z,current_lat_arr,current_lon_arr,indexing='ij')
+    
+    # Get numbres of points:
+    current_nx = mobj.nx
+    current_ny = mobj.ny
+    current_nz = mobj.nz
+    
+    new_nx = mobj.nx
+    new_ny = mobj.ny
+    new_nz = len(new_z)
+    
+    # Reshape everything, by each z-slice:
+    lon_points = np.array([])
+    lat_points = np.array([])
+    dep_points = np.array([])
+    vs_values = np.array([])
+    
+    lon_interp = np.array([])
+    lat_interp = np.array([])
+    dep_interp = np.array([])
+    
+    for i_depth in range(current_nz):
+        # Reshape the existing values of everything:
+        i_lon_pts = current_lon[i_depth].ravel()
+        i_lat_pts = current_lat[i_depth].ravel()
+        i_dep_pts = current_dep[i_depth].ravel()
+        
+        i_vs_vals = mobj.materials[i_depth].ravel()
+        
+        # Append these to the arrays:
+        lon_points = np.r_[lon_points,i_lon_pts]
+        lat_points = np.r_[lat_points,i_lat_pts]
+        dep_points = np.r_[dep_points,i_dep_pts]
+        
+        vs_values = np.r_[vs_values,i_vs_vals]
+        
+    # And now for interp points, to get them as arrays:
+    for i_depth in range(new_nz):
+        
+        i_lon_interp = new_lon[i_depth].ravel()
+        i_lat_interp = new_lat[i_depth].ravel()
+        i_dep_interp = new_dep[i_depth].ravel()
+        
+        # Append these to the arrays:    
+        lon_interp = np.r_[lon_interp,i_lon_interp]
+        lat_interp = np.r_[lat_interp,i_lat_interp]
+        dep_interp = np.r_[dep_interp,i_dep_interp]
+        
+    ## Re grid them to get vs_values at new points
+    # concatenate points:
+    existing_points = np.c_[lon_points,lat_points,dep_points]
+    # grid:
+    vs_interp_array = interpolate.griddata(existing_points,vs_values,(lon_interp,lat_interp,dep_interp),method='linear')
+    
+    ## Re-format from 1D arrays to properly sized 3D array:
+    vs_interp = np.zeros((new_nz,new_ny,new_nx))
+    for i_depth in range(new_nz):
+        # Reshape to new length of x and y, for each slice:
+        slice_length = new_nx * new_ny
+        slice_shape = (new_ny,new_nx)
+        vs_interp[i_depth] = vs_interp_array[i_depth*slice_length:(i_depth+1)*slice_length].reshape(slice_shape)
+        
+    ## Make a new velocity model object, and save to file:
+    model_regridded = cdf.material_model(mobj.x,mobj.y,new_z,new_nx,new_ny,new_nz,vs_interp)    
+        
+    # Return:
+    return model_regridded
+
+    
+def convert_velocity2density(vpobject):
+    '''
+    Convert a Vp (p-wave velocity) model to density using Equation 1 of Brocher (2005).
+    Input:
+        vpobject:           Material object as defined in cdefs, for Vp (km/s)
+    Output:
+        densityobject:      Material object as defined in cdefs, for density (kg/m**3)
+    '''
+    import cdefs as cdf
+    
+    ## Get the x, y, z, and nx, ny, nz values for new object:    
+    density_x = vpobject.x
+    density_y = vpobject.y
+    density_z = vpobject.z
+    
+    density_nx = vpobject.nx
+    density_ny = vpobject.ny
+    density_nz = vpobject.nz
+    
+    ## Convert Vp to density in g/cm**3:
+    vp = vpobject.materials
+    
+    density_gcm3 = (1.6612*vp) - (0.4721*(vp**2)) + (0.0671*(vp**3)) - (0.0043*(vp**4)) + (0.000106*(vp**5))
+    
+    ## Convert this density to kg/m**3:
+    #    1/cm**3 to 1/m**3 - x (100/1) * (100/1) * (100/1) = x 100**3
+    density_gm3 = density_gcm3 * (100.**3)
+    
+    #    1/m**3 to 1/km**3 - x (1000/1) * (1000/1) * (1000/1) = x 1000**3
+    density_gkm3 = density_gm3 * (1000**3)
+
+    #    g to kg: x 0.001:
+    density_kgm3 = density_gkm3 * 0.001  
+    
+    ## Make a new material model:
+    density_model = cdf.material_model(density_x,density_y,density_z,density_nx,density_ny,density_nz,density_kgm3) 
+    
+    ## Return
+    return density_model   
+            
 def compute_raypt_vector(ray_lon,ray_lat,ray_depth):
     '''
     Compute the instantaneous vector and its norm at a number of points along a ray
@@ -925,7 +1050,7 @@ def compute_raypt_vector(ray_lon,ray_lat,ray_depth):
         ray_lat:                 Array with latitude values of points along ray
         ray_depth:               Array with depth values of points along ray
     Output:
-        ray_vectors:             List with arrays (3 x 1) of vectors at each poitn on ray
+        ray_vectors:             List with arrays (3 x 1) of vectors at each poitn on ray (x, y, z)
         ray_norms:               List with vector norms at each point on ray
     '''
     
@@ -1016,19 +1141,212 @@ def find_nearest_point(ray_lon,ray_lat,ray_depth,gradient_object):
         # Find minimum distance:
         i_mindistance_ind = np.argmin(i_totaldistances)
         i_Xind,i_Yind,i_Zind = [gradX_ind[i_mindistance_ind],gradY_ind[i_mindistance_ind],gradZ_ind[i_mindistance_ind]]
-        i_index_array = np.array([i_Zind,i_Yind,i_Xind])
+        i_index_list = [i_Zind,i_Yind,i_Xind]
         
         # Append to list of arrays:
-        closest_index.append(i_index_array)
+        closest_index.append(i_index_list)
     
     return closest_index
     
     
-def compute_angle_of_incidence(ray_vectors,ray_norms,gradient_ray_vectors,gradient_ray_norms):
+def compute_angle_of_incidence(ray_vectors,ray_norms,closest_index,gradient_object):
     '''
+    Given a ray vector and closest gradient point, compute the angle of incidence
+    Input: 
+        ray_vectors:             List with 3 x 1 arrays of vectors of each point along ray (x, y, z)
+        ray_norms:               List with norms of the vector along each poitn of a ray 
+        closest_index:           List with array of closest index in gradient model (Zind, Yind, Xind)
+        gradient_object:         Cdefs gradient object
+    Output:
+        incidence_angles:        List with angle of incidence at every point along the ray
     '''
     
+    import numpy as np
 
-def compute_transmission_coefficient():
+    ## Initiate empty array for angles:
+    incidence_angles = []
+    
+    ## Loop over the points in a ray, and compute for every point:
+    for i_point in range(len(ray_norms)):
+        ## Get the ray_vector and norm:
+        i_ray_vector = ray_vectors[i_point]
+        i_ray_norm = ray_norms[i_point]
+        
+        ## Get the z, y, and x index point:
+
+        ## Get the gradeint vector/norm
+        # First, the index tuple - closest index is given with [z,y,x], and that's also what gradient_boject is oriented as (shape = (nz,ny,nx) )
+        i_index_tuple_z = closest_index[i_point][0]
+        i_index_tuple_y = closest_index[i_point][1]
+        i_index_tuple_x = closest_index[i_point][2]
+        # Get x, y, and z directions of gradient:
+        i_grad_x = gradient_object.materials[2][i_index_tuple_z,i_index_tuple_y,i_index_tuple_x]
+        i_grad_y = gradient_object.materials[1][i_index_tuple_z,i_index_tuple_y,i_index_tuple_x]
+        i_grad_z = gradient_object.materials[0][i_index_tuple_z,i_index_tuple_y,i_index_tuple_x]
+        
+        ## Make vector and norm from x, y, and z components:
+        i_grad_vector = np.array([i_grad_x,i_grad_y,i_grad_z])
+        i_grad_norm = np.linalg.norm(i_grad_vector)
+        
+        ## dot product is equal to: ||ray_vector|| * ||gradient_vector|| * cos(theta)
+        #   Therefore, theta = arcos ( dotproduct / (||ray_vector|| * ||gradient_vector||) )
+        i_dotproduct = np.vdot(i_ray_vector,i_grad_vector)
+        i_normproduct = i_ray_norm * i_grad_norm
+        i_angle_incidence = np.arccos(i_dotproduct/i_normproduct)
+        
+        ## Append to overall list:
+        incidence_angles.append(i_angle_incidence)
+        
+    ## Return these:
+    return incidence_angles    
+        
+def obtain_interface_properties(closest_index,velocity_model,density_model):
     '''
+    Given a ray, find the difference across interface for every point along the ray, in a forward sense.
+    Give it for velocity, and density.
+    Input:
+        closest_index:              List with (3 x 1) arrays of closest indices in gradient model (given as Zind,Yind,Xind)
+        velocity_model:             Cdefs material object with Velocity (Vs) in km/s
+        density_model:              Cdefs material object with density in kg/m**3
+    Output:
+        velocity_difference:        List length npoints with 2 x 1 lists of velocity difference at every point along ray: [v1,v2] - v1 behind point, v2 in front
+        density_difference:         List length npoints with 2 x 1 lists of density differences at every point along ray: [rho1,rho2] - rho1 behind point, rho2 in front
     '''
+        
+    ## Initiate empty lists:
+    velocity_differences = []
+    density_differences = []
+    
+    ## Loop over points in a ray:
+    for i_point in range(len(closest_index)):
+        # Get x, y, and z indices at point:
+        i_x_ind_atpoint = closest_index[i_point][2]
+        i_y_ind_atpoint = closest_index[i_point][1]
+        i_z_ind_atpoint = closest_index[i_point][0]
+        
+        ## For each point, find the velocity/density at the point and the point in front.
+        #  If the point is not the last point:
+        if i_point < len(closest_index)-1:
+            # Get them at the point ahead:
+            i_x_ind_ahead = closest_index[i_point+1][2]
+            i_y_ind_ahead = closest_index[i_point+1][1]
+            i_z_ind_ahead = closest_index[i_point+1][0]
+
+            i_vel_ahead = velocity_model.materials[i_z_ind_ahead,i_y_ind_ahead,i_x_ind_ahead]
+            i_vel_atpoint = velocity_model.materials[i_z_ind_atpoint,i_y_ind_atpoint,i_x_ind_atpoint]
+            i_vel_differences = [i_vel_atpoint,i_vel_ahead]
+
+            i_den_ahead = density_model.materials[i_z_ind_ahead,i_y_ind_ahead,i_x_ind_ahead]
+            i_den_atpoint = density_model.materials[i_z_ind_atpoint,i_y_ind_atpoint,i_x_ind_atpoint]
+            i_den_differences = [i_den_atpoint,i_den_ahead]
+            
+            ## Append to main lists:
+            velocity_differences.append(i_vel_differences)
+            density_differences.append(i_den_differences)
+            
+        # If the point is the last point:
+        else:
+            # Get the velocity/density at the ray's point...
+            i_vel_atpoint = velocity_model.materials[i_z_ind_atpoint,i_y_ind_atpoint,i_x_ind_atpoint]
+            i_den_atpoint = density_model.materials[i_z_ind_atpoint,i_y_ind_atpoint,i_x_ind_atpoint]
+            
+            # And assume the one ahead is the same, to have homogeneous material:
+            i_vel_differences = [i_vel_atpoint,i_vel_atpoint]
+            i_den_differences = [i_den_atpoint,i_den_atpoint]
+
+            ## Append to arrays:
+            velocity_differences.append(i_vel_differences)
+            density_differences.append(i_den_differences)
+            
+    ## Return:
+    return velocity_differences,density_differences
+            
+            
+        
+
+def compute_transmission_coefficient(incidence_angles,velocity_diff,density_diff):
+    '''
+    Compute the transmission coefficient at every point along a ray.
+    Input:
+        incidence_angles:           Array (length npoints) with the incidence angle at everypoint along ray
+        velocity_diff:              List with (2 x 1) lists with velocity before and after interface
+        density_diff:               List with (2 x 1) lists with density before and after interface
+    Output:
+        transmission_coeff:         Array with transmission coefficient at every point along ray, length npoints
+    '''
+    
+    import numpy as np
+
+    ## Make empty array for transmission coeffs:
+    transmission_coeff = np.array([])
+    
+    ## Loop over all points in a ray:
+    for i_point in range(len(incidence_angles)):
+        i_rho1 = density_diff[i_point][0]
+        i_beta1 = velocity_diff[i_point][0]
+        i_theta1 = incidence_angles[i_point]
+        
+        i_rho2 = density_diff[i_point][1]
+        i_beta2 = velocity_diff[i_point][1]
+        
+        ## If the angle of incidence is greater than 90 degrees, then theta1 should
+        #    be converted to theta1 - 90, and beta and rho for interface 1 and 2 should be switched:
+        if i_theta1 > np.deg2rad(90.):
+            i_theta1 = i_theta1 - np.deg2rad(90.)
+            i_rho1 = density_diff[i_point][1]
+            i_beta1 = velocity_diff[i_point][0]
+            
+            i_rho2 = density_diff[i_point][0]
+            i_beta2 = velocity_diff[i_point][0]
+
+        ## Need to get the takeoff angle:
+        #   1/beta1 * sin(theta1) = 1/beta2 * sin(theta2), so theta2 = arcsin( beta2/beta1 * sin(theta1) )
+        i_theta2 = np.arcsin( (i_beta2/i_beta1) * np.sin(i_theta1) )
+        
+        # There seems to be a precision problem at ~15 or 16 decimal places...so if ibeta1 and ibeta2 are the same,
+        #   we would expecta theta1 and theta2 to be the same, so set them equal in this case:
+        if i_beta1 == i_beta2:
+            i_theta2 = i_theta1
+        
+        ## And the transmission coefficient...
+        # Numerator:        
+        i_transmission_numerator = 2 * i_rho1 * i_beta1 * np.cos(i_theta1)
+        
+        # Denominator:
+        i_transmission_denominator = (i_rho1 * i_beta1 * np.cos(i_theta1)) + (i_rho2 * i_beta2 * np.cos(i_theta2))
+        
+        # Overall:
+        i_transmission_coeff = i_transmission_numerator/i_transmission_denominator
+        
+        ## Append to array:
+        transmission_coeff = np.r_[transmission_coeff,i_transmission_coeff]
+        
+    ## Return:
+    return transmission_coeff
+    
+    
+def transmission_summation(transmission_coeff):
+    '''
+    Assume unit energy of 1 at the origin of the ray, and compute what fraction is transmitted by the end.
+    Input:
+        transmission_coeff:             Array with transmission coefficient at every point along ray
+    Output:
+        total_transmission:             Float with the overall transmission (proportion of original energy)
+    '''
+    
+    import numpy as np
+    
+    # Initiate original unit energy:
+    total_transmission = 1.
+    
+    for i_point in range(len(transmission_coeff)):
+        i_transmission = transmission_coeff[i_point]
+        ## If it's NaN, that's because the ray vector or norm are near surface
+        ##  where the grid values are NaN, so assume those don't affect the energy:
+        if np.isnan(i_transmission) == True:
+            total_transmission = total_transmission * 1.
+        ## otherwise, the total is multiplied by how much is getting through at this point:
+        else:
+            total_transmission = total_transmission * i_transmission
+            
+    return total_transmission

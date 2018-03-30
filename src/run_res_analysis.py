@@ -35,6 +35,8 @@ def make_material_object(coordspath,materialpath,matobjectpath,lon_convert):
     mfile=open(matobjectpath,'w')
     pickle.dump(materialobject,mfile)
     mfile.close()
+    
+    print 'Saved object to %s' % matobjectpath
 
     #Return object:
     return materialobject
