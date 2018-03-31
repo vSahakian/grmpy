@@ -44,6 +44,7 @@ materialasciipath_vp = HOME+'/anza/data/vm/Fang2016/Vp.dat'
 # Path to output transmission file:
 #transmission_path = HOME + '/anza/data/pckl/v3anza_FangVs_transmission.pckl'
 transmission_path = '/home/vsahakian/Desktop/transmission_computation_v3anza/v3anza_FangVs_transmission.pckl'
+transmission_path_txt = '/home/vsahakian/Desktop/transmission_computation_v3anza/v3anza_FangVs_transmission.txt'
 
 
 residualpath = HOME + '/anza/models/residuals/mixedregr_v3anza2013_pga_5coeff_a4_-1.20_Mc_8.5_res4_noVs30/mixedcoeff_v3anza2013_pga_noVs30_5coeff_a4_-1.2_pga__ncoeff5_Mc_8.5_VR_99.6_a4_-1.2_robj_FILTERED_raydat.pckl'
@@ -179,6 +180,9 @@ print 'saving transmission to file...\n'
 tfile = open(transmission_path,'w')
 pickle.dump(totaltransmission,tfile)
 tfile.close()
+
+# Also save to a text file:
+np.savetxt
 
 print 'Done!'
 
