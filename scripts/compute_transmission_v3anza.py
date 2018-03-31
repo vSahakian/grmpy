@@ -182,7 +182,7 @@ pickle.dump(totaltransmission,tfile)
 tfile.close()
 
 # Also save to a text file:
-np.savetxt
+np.savetxt(transmission_path_txt,totaltransmission)
 
 print 'Done!'
 
