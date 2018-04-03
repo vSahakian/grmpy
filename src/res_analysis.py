@@ -1587,7 +1587,7 @@ def plot_method_method(home,run_name,method_type,largerpath,smallerpath,largerna
 
 
 #############################################################################
-def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,color_by,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz):
+def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,color_by,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz,xticks='none',yticks='none'):
     '''
     VJS 10/2017
     Plots a metric vs. residual for certain bins, returns a figure with number
@@ -1608,7 +1608,9 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
         cbartick:               Tick increment for colorbar (a single number)
         plotdims:               Plot dimensions: [width,height]
         plotrowscols:           List with rows and columns: [numberrows, numbercolumns]
-        fontsz:               Number with font size, i.e., 14
+        fontsz:                 Number with font size, i.e., 14
+        xticks:                 Array with tick locations on x axis (Default: 'none')
+        yticks:                 Array with tick locations on y axis (Default: 'none')          
     Output:
         binned_figure:          Figure with subplots for bins
     '''
@@ -1768,7 +1770,7 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
         
         plottext = str(binedges[subplot_i]) + ' < ' + bin_by + ' <= ' + str(binedges[subplot_i + 1])
         p_val = '%.1e' % p_value_list[subplot_i]
-        plottextstats = 'r = ' + str(around(r_value_list[subplot_i],2))  # + ', p = ' + str(p_val)
+        plottextstats = 'r = ' + str(around(r_value_list[subplot_i],2)) + ', p = ' + str(p_val)
         
         # Make colormap
         colormap=plt.get_cmap(colorscheme)
@@ -1795,6 +1797,13 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
         axis_i_cb = plt.colorbar(c,ax=axis_i,shrink=0.70)
         axis_i_cb.set_label(color_by,labelpad=0,rotation=90,fontsize=fontsz)
         axis_i_cb.set_ticks(ticks=arange(clims[0],clims[1],cbartick))
+        
+        # Tick locations:
+        #  If they are not specified, default is none. Otherwise:
+        if xticks != 'none':
+            axis_i.xaxis.set_ticks(xticks)
+        if yticks != 'none':
+            axis_i.yaxis.set_ticks(yticks)
         
         # Labels:
         axis_i.set_xlabel(xlabel,labelpad=0,fontsize=fontsz)
@@ -2512,7 +2521,181 @@ def plot_binned_metric_statistic_df(dataframe,residualterm,metric,statistic,bine
     # Return figure:
     return binnedplot
     
+
+   
+#############################################################################
+def plot_binned_variables(residualobj,x,y,xlabel,ylabel,binedges,bin_by,axlims,color_by,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz):
+    '''
+    VJS 10/2017
+    Plots a metric vs. residual for certain bins, returns a figure with number
+    of subplots equal to number of bins
+    Input: 
+        residualobj:            Residuals object, including metrics
+        x:                      Array with variable to plot on x axis 
+        y:                      Array with variable to plot on y axis
+        xlabel:                 String with x label
+        ylabel:                 String with y label
+        binedges:               Array with bin edges: ([bin1left,bin1right,bin2right,bin3right,etc.])
+        bin_by:                 String with variable to bin by: Rrup - 'Rrup', M - 'M', Az from site - 'Site Azimuth'
+        axlims:                 List with axis limits: [[xmin,xmax],[ymin,ymax]]
+        color_by:               String with variable to color by: Rrup - 'Rrup', M - 'M', Az from site - 'Site Azimuth'
+        colorscheme:            String with colormap to use 
+        clims:                  List with colorscale limits: [cmin,cmax,cincrement]
+        cbartick:               Tick increment for colorbar (a single number)
+        plotdims:               Plot dimensions: [width,height]
+        plotrowscols:           List with rows and columns: [numberrows, numbercolumns]
+        fontsz:               Number with font size, i.e., 14
+    Output:
+        binned_figure:          Figure with subplots for bins
+    '''
     
+    import matplotlib.pyplot as plt
+    from numpy import where,arange,around,shape
+    from pyproj import Geod
+    from scipy.stats.stats import pearsonr
+    import matplotlib.cm as cm
+    import matplotlib.colors as colors
+    
+    # Number of bins:
+    numberbins = len(binedges)-1
+    
+    # Get what you're binning by:
+    if bin_by == 'Rrup':
+        binvalue = residualobj.r
+    elif bin_by == 'M':
+        binvalue = residualobj.mw
+    elif bin_by == 'Site Azimuth':
+        # Initiate projection object:
+        g = Geod(ellps='WGS84')
+        az,backaz,distance = g.inv(residualobj.stlon,residualobj.stlat,residualobj.elon,residualobj.elat)
+        
+        # But azimuth from this is -180 to 180, so change to be 0 to 360
+        # Find where it's negative
+        az_negative = where(az<0)[0]
+        # Where it's negative, set it to the 180 + absolute value of negative
+        az[az_negative] = 180 + abs(az[az_negative])
+        
+        # Set bin value to this
+        binvalue = az
+        
+    # Get what you're coloring by:
+    if color_by == 'Rrup':
+        colorvalue = residualobj.r
+    elif color_by == 'M':
+        colorvalue = residualobj.mw
+    elif color_by == 'Site Azimuth':
+        # Initiate projection object:
+        g = Geod(ellps='WGS84')
+        az,backaz,distance = g.inv(residualobj.stlon,residualobj.stlat,residualobj.elon,residualobj.elat)
+        
+        # But azimuth from this is -180 to 180, so change to be 0 to 360
+        # Find where it's negative
+        az_negative = where(az<0)[0]
+        # Where it's negative, set it to the 180 + absolute value of negative
+        az[az_negative] = 180 + abs(az[az_negative])
+        
+        # Set color value to this
+        colorvalue = az
+
+    
+    # Now go through bins, and append them to a list:
+    y_list = []
+    x_list = []
+    r_value_list = []
+    p_value_list = []
+    color_value_list = []
+    
+    # Loop through bins to get indices for each bin:
+    for bin_i in range(numberbins):
+        i_bin_ind = where((binvalue > binedges[bin_i]) & (binvalue <= binedges[bin_i+1]))
+        i_y = y[i_bin_ind]
+
+        i_x = x[i_bin_ind]
+        i_colorval = colorvalue[i_bin_ind]
+        
+        # Append to their lists:
+        y_list.append(i_y)
+        x_list.append(i_x)
+        color_value_list.append(i_colorval)
+        
+        # Get Statistics - pearsons and p value:
+        i_bin_r,i_bin_p = pearsonr(i_y,i_x)
+        
+        # Append statistics to lists:
+        r_value_list.append(i_bin_r)
+        p_value_list.append(i_bin_p)
+    
+    
+    ########################
+    
+    ## Initiate plot:
+    binnedplot, binnedaxes = plt.subplots(nrows=plotrowscols[0],ncols=plotrowscols[1],figsize=(plotdims[0],plotdims[1]))
+    
+    # Flatten the axes array so that it can easily be looped over per bin:    
+    if len(shape(binnedaxes))>0:
+        binnedaxes = binnedaxes.flatten()
+    
+    # For each bin, plot:
+    for subplot_i in range(numberbins):
+        
+        if len(shape(binnedaxes))>0:
+            axis_i = binnedaxes[subplot_i]
+        else:
+            axis_i = binnedaxes
+        
+        plottext = str(binedges[subplot_i]) + ' < ' + bin_by + ' <= ' + str(binedges[subplot_i + 1])
+        p_val = '%.1e' % p_value_list[subplot_i]
+        plottextstats = 'r = ' + str(around(r_value_list[subplot_i],2))  # + ', p = ' + str(p_val)
+        
+        # Make colormap
+        colormap=plt.get_cmap(colorscheme)
+        # Make a normalized colorscale
+        cNorm=colors.Normalize(vmin=clims[0], vmax=clims[1])
+        # Apply normalization to colormap:
+        scalarMap=cm.ScalarMappable(norm=cNorm, cmap=colormap)
+        
+        # Make a fake contour plot for the colorbar:
+        Z=[[0,0],[0,0]]
+        levels=arange(clims[0],clims[1],clims[2])
+        c=plt.contourf(Z, levels, cmap=colormap)
+        
+        # Assign values to colormap
+        colorVal = scalarMap.to_rgba(color_value_list[subplot_i])
+        
+        # Clear axes:
+        axis_i.clear()
+        
+        # Scatter:
+        axis_i.scatter(x_list[subplot_i],y_list[subplot_i],facecolors='none',edgecolors=colorVal,marker='o',s=5)
+        
+        # Colorbar: 
+        axis_i_cb = plt.colorbar(c,ax=axis_i,shrink=0.70)
+        axis_i_cb.set_label(color_by,labelpad=0,rotation=90,fontsize=fontsz)
+        axis_i_cb.set_ticks(ticks=arange(clims[0],clims[1],cbartick))
+        
+        # Labels:
+        axis_i.set_xlabel(xlabel,labelpad=0,fontsize=fontsz)
+        axis_i.set_ylabel(ylabel,labelpad=0,fontsize=fontsz)
+        axis_i.set_title(plottext + '\n' + plottextstats,fontsize=fontsz)
+        
+        # Limits:
+        axis_i.set_xlim(axlims[0])
+        axis_i.set_ylim(axlims[1])        
+
+        
+    # Remove empty axes:
+    if len(shape(binnedaxes)) > 0:
+        for axis_j in range(len(binnedaxes)):
+            if axis_j >= numberbins:
+                binnedaxes[axis_j].axis('off')
+                binnedplot.delaxes(binnedaxes[axis_j])
+                
+    
+    plt.tight_layout()
+                    
+    # Return figure:
+    return binnedplot
+             
     
 ###################################################################################
 def get_total_res_imtlist(dataframe,IMT,prediction,pred_plus_sd,pred_mins_sd,resname):
