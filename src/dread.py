@@ -450,7 +450,7 @@ def db_station_sample(dbpath_in,numstas,dbpath_out):
 ######
 def recording_sample(dbpath_in,recording_indices,dbpath_out):
     '''
-    Sample a database to only include events recorded on a minimum number
+    Sample a database to only include certain indices
     of stations
     VJS 8/2016
     

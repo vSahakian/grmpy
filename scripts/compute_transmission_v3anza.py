@@ -227,3 +227,58 @@ axlims = [[0,7],[-0.3,1.2]]
 refl_vs_grad_fig = ra.plot_binned_variables(robj,robj.ind_s_vs_gradpathint,(1. - totaltransmission_coeff),'gradpathint','reflection',binedges,bin_by,axlims,color_by,cmap,clims,cbartick,plotdims,plotrowscols,fontsz)
 plt.suptitle('Reflection vs. Gradient metric',fontsize=16)
 refl_vs_grad_fig.savefig('/Users/vsahakian/Desktop/transmission_figs/refl_vs_grad.png')
+
+
+
+
+## Color by something different:
+
+## Plot transmission vs. gradient metric:
+binedges = np.array([0,20,40,60,80,120,190])
+bin_by = 'Rrup'
+axlims = [[0,7],[-0.5,1.3]]
+color_by = robj.path_terms
+cmap = 'viridis'
+clims = [-2.4,2.4,0.5]  # min, max, increment
+cbartick = 1.
+plotdims = [20,12]
+plotrowscols = [3,2]
+fontsz = 14
+color_by_lab = 'Path residual'
+
+trans_vs_gradmetric_fig = ra.plot_binned_variables(robj,robj.ind_s_vs_gradpathint,totaltransmission_coeff,'gradpathint','transmission',binedges,bin_by,axlims,color_by,cmap,clims,cbartick,plotdims,plotrowscols,fontsz,color_by_label=color_by_lab)
+plt.suptitle('Transmission vs. gradient metric',fontsize=16)
+trans_vs_gradmetric_fig.savefig('/Users/vsahakian/Desktop/transmission_figs/transm_vs_gradmetric_colorbypathresid.png')
+
+## path term vs. transmission:
+axlims = [[-0.1,1.3],[-5,5]]
+color_by = robj.ind_s_vs_gradpathint
+clims = [0.,5,0.5]
+cbartick = 2.
+color_by_lab = 'Gradient metric'
+
+dp_vs_trans_fig = ra.plot_binned_variables(robj,totaltransmission_coeff,robj.path_terms,'transmission','path term',binedges,bin_by,axlims,color_by,cmap,clims,cbartick,plotdims,plotrowscols,fontsz,color_by_label=color_by_lab)
+plt.suptitle('Path term vs. Transmission',fontsize=16)
+dp_vs_trans_fig.savefig('/Users/vsahakian/Desktop/transmission_figs/dp_vs_transm_colorbygrad.png')
+
+## path term vs. reflection:
+axlims = [[-0.3,1.3],[-5,5]]
+color_by = robj.ind_s_vs_gradpathint
+clims = [0.,5,0.5]
+cbartick = 2.
+color_by_lab = 'Gradient metric'
+
+dp_vs_refl_fig = ra.plot_binned_variables(robj,(1. - totaltransmission_coeff),robj.path_terms,'reflection','path term',binedges,bin_by,axlims,color_by,cmap,clims,cbartick,plotdims,plotrowscols,fontsz,color_by_label=color_by_lab)
+plt.suptitle('Path term vs. Reflection',fontsize=16)
+dp_vs_refl_fig.savefig('/Users/vsahakian/Desktop/transmission_figs/dp_vs_refl_colorbygrad.png')
+
+## reflection vs. gradient metric:
+axlims = [[0,7],[-0.3,1.2]]
+color_by = robj.path_terms
+clims = [-2.4,2.4,0.5]  # min, max, increment
+cbartick = 1.
+color_by_lab = 'Path residual'
+
+refl_vs_grad_fig = ra.plot_binned_variables(robj,robj.ind_s_vs_gradpathint,(1. - totaltransmission_coeff),'gradpathint','reflection',binedges,bin_by,axlims,color_by,cmap,clims,cbartick,plotdims,plotrowscols,fontsz,color_by_label=color_by_lab)
+plt.suptitle('Reflection vs. Gradient metric',fontsize=16)
+refl_vs_grad_fig.savefig('/Users/vsahakian/Desktop/transmission_figs/refl_vs_grad_colorbypathresid.png')

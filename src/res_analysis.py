@@ -1621,6 +1621,10 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
     from scipy.stats.stats import pearsonr
     import matplotlib.cm as cm
     import matplotlib.colors as colors
+    from statsmodels.stats.power import tt_ind_solve_power
+    
+    # Set information for statistical power:
+    sig_level = 0.05
     
     # Number of bins:
     numberbins = len(binedges)-1
@@ -1728,11 +1732,12 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
     metric_list = []
     r_value_list = []
     p_value_list = []
+    power_value_list = []
     color_value_list = []
     
     # Loop through bins to get indices for each bin:
     for bin_i in range(numberbins):
-        i_bin_ind = where((binvalue > binedges[bin_i]) & (binvalue <= binedges[bin_i+1]))
+        i_bin_ind = where((binvalue > binedges[bin_i]) & (binvalue <= binedges[bin_i+1]))[0]
         i_residual = residual[i_bin_ind]
 
         i_metric = metricvalue[i_bin_ind]
@@ -1746,9 +1751,17 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
         # Get Statistics - pearsons and p value:
         i_bin_r,i_bin_p = pearsonr(i_residual,i_metric)
         
+        # Get statistical power:
+        #   population size in this bin:
+        i_bin_population_size = len(i_bin_ind)
+        i_bin_power = tt_ind_solve_power(effect_size=i_bin_r,nobs1=i_bin_population_size,alpha=sig_level)
+
+        
         # Append statistics to lists:
         r_value_list.append(i_bin_r)
         p_value_list.append(i_bin_p)
+        power_value_list.append(i_bin_power)
+        
     
     
     ########################
@@ -1770,7 +1783,7 @@ def plot_binned_metric(residualobj,residualterm,metric,binedges,bin_by,axlims,co
         
         plottext = str(binedges[subplot_i]) + ' < ' + bin_by + ' <= ' + str(binedges[subplot_i + 1])
         p_val = '%.1e' % p_value_list[subplot_i]
-        plottextstats = 'r = ' + str(around(r_value_list[subplot_i],2)) + ', p = ' + str(p_val)
+        plottextstats = 'r = ' + str(around(r_value_list[subplot_i],2)) + ', p = ' + str(p_val) + '\n power = ' + str(around(power_value_list[subplot_i],2))
         
         # Make colormap
         colormap=plt.get_cmap(colorscheme)
@@ -2524,7 +2537,7 @@ def plot_binned_metric_statistic_df(dataframe,residualterm,metric,statistic,bine
 
    
 #############################################################################
-def plot_binned_variables(residualobj,x,y,xlabel,ylabel,binedges,bin_by,axlims,color_by,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz):
+def plot_binned_variables(residualobj,x,y,xlabel,ylabel,binedges,bin_by,axlims,color_by,colorscheme,clims,cbartick,plotdims,plotrowscols,fontsz,xticks='none',yticks='none',color_by_label='none'):
     '''
     VJS 10/2017
     Plots a metric vs. residual for certain bins, returns a figure with number
@@ -2538,13 +2551,16 @@ def plot_binned_variables(residualobj,x,y,xlabel,ylabel,binedges,bin_by,axlims,c
         binedges:               Array with bin edges: ([bin1left,bin1right,bin2right,bin3right,etc.])
         bin_by:                 String with variable to bin by: Rrup - 'Rrup', M - 'M', Az from site - 'Site Azimuth'
         axlims:                 List with axis limits: [[xmin,xmax],[ymin,ymax]]
-        color_by:               String with variable to color by: Rrup - 'Rrup', M - 'M', Az from site - 'Site Azimuth'
+        color_by:               Array with value to colorby, or string with variable to color by: Rrup - 'Rrup', M - 'M', Az from site - 'Site Azimuth'
         colorscheme:            String with colormap to use 
         clims:                  List with colorscale limits: [cmin,cmax,cincrement]
         cbartick:               Tick increment for colorbar (a single number)
         plotdims:               Plot dimensions: [width,height]
         plotrowscols:           List with rows and columns: [numberrows, numbercolumns]
-        fontsz:               Number with font size, i.e., 14
+        fontsz:                 Number with font size, i.e., 14
+        xticks:                 Array with tick locations for x axis (Default: 'none')
+        yticks:                 Array with tick locations for y axis (Default: 'none')
+        color_by_label:         String with label for color by, if not using Rrup, M, or Az in color_by. Default: 'none'          
     Output:
         binned_figure:          Figure with subplots for bins
     '''
@@ -2581,8 +2597,10 @@ def plot_binned_variables(residualobj,x,y,xlabel,ylabel,binedges,bin_by,axlims,c
     # Get what you're coloring by:
     if color_by == 'Rrup':
         colorvalue = residualobj.r
+        color_by_label = color_by
     elif color_by == 'M':
         colorvalue = residualobj.mw
+        color_by_label = color_by
     elif color_by == 'Site Azimuth':
         # Initiate projection object:
         g = Geod(ellps='WGS84')
@@ -2596,6 +2614,12 @@ def plot_binned_variables(residualobj,x,y,xlabel,ylabel,binedges,bin_by,axlims,c
         
         # Set color value to this
         colorvalue = az
+        # and label:
+        color_by_label = color_by
+
+    else:
+        colorvalue = color_by
+        color_by_label = color_by_label
 
     
     # Now go through bins, and append them to a list:
@@ -2670,8 +2694,15 @@ def plot_binned_variables(residualobj,x,y,xlabel,ylabel,binedges,bin_by,axlims,c
         
         # Colorbar: 
         axis_i_cb = plt.colorbar(c,ax=axis_i,shrink=0.70)
-        axis_i_cb.set_label(color_by,labelpad=0,rotation=90,fontsize=fontsz)
+        axis_i_cb.set_label(color_by_label,labelpad=0,rotation=90,fontsize=fontsz)
         axis_i_cb.set_ticks(ticks=arange(clims[0],clims[1],cbartick))
+        
+        # Tick locations:
+        #  If they are not specified, default is none. Otherwise:
+        if xticks != 'none':
+            axis_i.xaxis.set_ticks(xticks)
+        if yticks != 'none':
+            axis_i.yaxis.set_ticks(yticks)
         
         # Labels:
         axis_i.set_xlabel(xlabel,labelpad=0,fontsize=fontsz)
