@@ -55,13 +55,13 @@ def compute_model(m,rng,mw,r,ffdf,vs30,Mc,vref,mdep_ffdf,ncoeff):
         if ncoeff==5:
             d_predicted_i=a1+a2*mw_rangei + a3*(Mc-mw_rangei)**2 + a4*np.log(ffdf_rangei) + \
                 a5*r_rangei 
-            print 'predicting with just 5 coefficients...'
+            print('predicting with just 5 coefficients...')
             print '%f, %f, %f, %f, %f ' % (a1, a2, a3, a4, a5)
         elif ncoeff==6:
             d_predicted_i=a1+a2*mw_rangei + a3*(Mc-mw_rangei)**2 + a4*np.log(ffdf_rangei) + \
                 a5*r_rangei + a6*np.log(vs30_rangei/vref) 
-            print 'predicting with 6 coefficients...'
-            print '%f, %f, %f, %f, %f, %f ' % (a1, a2, a3, a4, a5, a6)
+            print('predicting with 6 coefficients...')
+            print('%f, %f, %f, %f, %f, %f ' % (a1, a2, a3, a4, a5, a6))
         
         #d_predicted_i=a1+a2*mw_rangei + a3*(Mc-mw_rangei)**2 + a4*np.log(ffdf_rangei) + \
         #        a5*r_rangei + 0.6*np.log(vs30_rangei/vref)  
@@ -98,11 +98,11 @@ def compute_model_fixeddist(m,rng,sdist,Mc,mdep_ffdf,ncoeff=5):
     ####
     #Magnitude dependence?
     if mdep_ffdf==0:
-        print 'Magnitude dependent fictitious depth is OFF - check you provided the right ffdf'
+        print('Magnitude dependent fictitious depth is OFF - check you provided the right ffdf')
     elif mdep_ffdf==1:
-        print 'Magnitude dependent fictitious depth is ON - check you provided the right ffdf'
+        print('Magnitude dependent fictitious depth is ON - check you provided the right ffdf')
     else:
-        print 'Magnitude dependent fictitous depth flag not provided correctly: OFF=0, ON=1'
+        print('Magnitude dependent fictitous depth flag not provided correctly: OFF=0, ON=1')
             
             
     #Loop over distances and ranges to get model output for each distance range, R.
