@@ -1055,9 +1055,9 @@ def zhao2006(imt_list,rrup,hypo_depth,mag,rake,gmpe_type,vs30):
     
     
 #########################################################################################
-def bchydro_fixeddist(imt_list,rrup,rhypo,hypo_depth,mag,gmpe_type):
+def bchydro_fixeddist(imt_list,rrup,rhypo,hypo_depth,mag,gmpe_type,event_type):
     '''
-    Compute fixed distances for frequencies from a set of IMT's for BC Hydro model for Inslab events
+    Compute fixed distances (magnitude, really) for frequencies from a set of IMT's for BC Hydro model for Inslab events
     Input:
         imt_list:                   List of intensity measures to compute (openquake IMT class)
         rrup:                       Logspace array with Rrup to compute for
@@ -1065,7 +1065,8 @@ def bchydro_fixeddist(imt_list,rrup,rhypo,hypo_depth,mag,gmpe_type):
         hypo_depth:                 Number with hypocenter depth
         mag:                        Magnitude to compute for
         rake:                       Rake for rupture to use
-        gmpe_type:                  String with which Inslab to use: 'central','high','low'
+        gmpe_type:                  String with which model to use: 'central','high','low'
+        event_type:                 String with the type of event to use: 'inslab', 'interface'
     Output:
         lmean_bchydro:           List of arrays with mean prediction for each IMT in imt_list
         lmean_plus_sd_bchydro:   List of arrays with mean pred + std for each IMT in imt_list
@@ -1078,7 +1079,7 @@ def bchydro_fixeddist(imt_list,rrup,rhypo,hypo_depth,mag,gmpe_type):
     from openquake.hazardlib.gsim.base import RuptureContext
     from openquake.hazardlib.gsim.base import DistancesContext
     from openquake.hazardlib.gsim.base import SitesContext
-    from openquake.hazardlib.gsim.abrahamson_2015 import AbrahamsonEtAl2015SSlab,AbrahamsonEtAl2015SSlabHigh,AbrahamsonEtAl2015SSlabLow
+    from openquake.hazardlib.gsim.abrahamson_2015 import AbrahamsonEtAl2015SSlab,AbrahamsonEtAl2015SSlabHigh,AbrahamsonEtAl2015SSlabLow,AbrahamsonEtAl2015SInter,AbrahamsonEtAl2015SInterHigh,AbrahamsonEtAl2015SInterLow
     # Initiate the rupture, distances, and sites objects:
     rctx = RuptureContext()
     dctx = DistancesContext()
@@ -1096,12 +1097,20 @@ def bchydro_fixeddist(imt_list,rrup,rhypo,hypo_depth,mag,gmpe_type):
     rctx.hypo_depth = hypo_depth
     
     # Get predictions:
-    if gmpe_type == 'central':
-        bchydro = AbrahamsonEtAl2015SSlab()
-    elif gmpe_type == 'high':
-        bchydro = AbrahamsonEtAl2015SSlabHigh()
-    elif gmpe_type == 'low':
-        bchydro = AbrahamsonEtAl2015SSlabLow()
+    if event_type == 'inslab':
+        if gmpe_type == 'central':
+            bchydro = AbrahamsonEtAl2015SSlab()
+        elif gmpe_type == 'high':
+            bchydro = AbrahamsonEtAl2015SSlabHigh()
+        elif gmpe_type == 'low':
+            bchydro = AbrahamsonEtAl2015SSlabLow()
+    elif event_type == 'interface':
+        if gmpe_type == 'central':
+            bchydro = AbrahamsonEtAl2015SInter()
+        elif gmpe_type == 'high':
+            bchydro = AbrahamsonEtAl2015SInterHigh()
+        elif gmpe_type == 'low':
+            bchydro = AbrahamsonEtAl2015SInterLow()
     
     #Initiate emtpy arrays to append to:
     lmean_bchydro = []
@@ -1137,7 +1146,7 @@ def bchydro_fixeddist(imt_list,rrup,rhypo,hypo_depth,mag,gmpe_type):
     
     
 #########################################################################################
-def bchydro(imt_list,rrup,rhypo,hypo_depth,mag,gmpe_type,vs30,forebackarc):
+def bchydro(imt_list,rrup,rhypo,hypo_depth,mag,gmpe_type,vs30,forebackarc,event_type):
     '''
     Compute for frequencies from a set of IMT's for BC Hydro model for Inslab events
     Input:
@@ -1150,6 +1159,7 @@ def bchydro(imt_list,rrup,rhypo,hypo_depth,mag,gmpe_type,vs30,forebackarc):
         gmpe_type:                  String with which Inslab to use: 'central','high','low'
         vs30:                       Array with Vs30 values
         forebackarc:                Boolean array with True for a backarc site, False for a forearc or uknown site
+        event_type:                 String with the type of event to use: 'inslab', 'interface'
     Output:
         lmean_bchydro:           List of arrays with mean prediction for each IMT in imt_list
         lmean_plus_sd_bchydro:   List of arrays with mean pred + std for each IMT in imt_list
@@ -1162,7 +1172,7 @@ def bchydro(imt_list,rrup,rhypo,hypo_depth,mag,gmpe_type,vs30,forebackarc):
     from openquake.hazardlib.gsim.base import RuptureContext
     from openquake.hazardlib.gsim.base import DistancesContext
     from openquake.hazardlib.gsim.base import SitesContext
-    from openquake.hazardlib.gsim.abrahamson_2015 import AbrahamsonEtAl2015SSlab,AbrahamsonEtAl2015SSlabHigh,AbrahamsonEtAl2015SSlabLow
+    from openquake.hazardlib.gsim.abrahamson_2015 import AbrahamsonEtAl2015SSlab,AbrahamsonEtAl2015SSlabHigh,AbrahamsonEtAl2015SSlabLow,AbrahamsonEtAl2015SInter,AbrahamsonEtAl2015SInterHigh,AbrahamsonEtAl2015SInterLow
                 
     # Initiate the rupture, distances, and sites objects:
     rctx = RuptureContext()
@@ -1171,21 +1181,30 @@ def bchydro(imt_list,rrup,rhypo,hypo_depth,mag,gmpe_type,vs30,forebackarc):
     
     # Add to it - get vs30 and backarc array from definition
     sctx.vs30 = vs30
-    sctx.backarc = forebackarc
+    sctx.backarc = forebackarc  
     
     dctx.rrup = rrup
     dctx.rhypo = rhypo
     
     rctx.mag = mag
     rctx.hypo_depth = hypo_depth
+
     
     # Get predictions:
-    if gmpe_type == 'central':
-        bchydro = AbrahamsonEtAl2015SSlab()
-    elif gmpe_type == 'high':
-        bchydro = AbrahamsonEtAl2015SSlabHigh()
-    elif gmpe_type == 'low':
-        bchydro = AbrahamsonEtAl2015SSlabLow()
+    if event_type == 'inslab':
+        if gmpe_type == 'central':
+            bchydro = AbrahamsonEtAl2015SSlab()
+        elif gmpe_type == 'high':
+            bchydro = AbrahamsonEtAl2015SSlabHigh()
+        elif gmpe_type == 'low':
+            bchydro = AbrahamsonEtAl2015SSlabLow()
+    elif event_type == 'interface':
+        if gmpe_type == 'central':
+            bchydro = AbrahamsonEtAl2015SInter()
+        elif gmpe_type == 'high':
+            bchydro = AbrahamsonEtAl2015SInterHigh()
+        elif gmpe_type == 'low':
+            bchydro = AbrahamsonEtAl2015SInterLow()
     
     #Initiate emtpy arrays to append to:
     lmean_bchydro = []

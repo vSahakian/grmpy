@@ -565,17 +565,17 @@ def recording_sample(dbpath_in,recording_indices,dbpath_out):
     doutfile.close()
     
     # Print stats:
-    print 'Originally %i events, now %i events' % (nevents_orig,len(unique(evnum)))
-    print 'Originally %i stations, now %i stations' % (nsta_orig,len(unique(sta)))
+    print('Originally %i events, now %i events' % (nevents_orig,len(unique(evnum))))
+    print('Originally %i stations, now %i stations' % (nsta_orig,len(unique(sta))))
     
     #   Difference of old and new event sets:
     event_diff=setdiff1d(unique_events_orig,unique(evnum))
     sta_diff=setdiff1d(unique_sta_orig,unique(sta))
     
-    print 'The events removed are: \n'
-    print event_diff
-    print '\n The stations removed are: \n'
-    print sta_diff
+    print('The events removed are: \n')
+    print(event_diff)
+    print('\n The stations removed are: \n')
+    print(sta_diff)
     
     
 def db_propgrid_sample(dbpath_in,propgrid,dbpath_out):
@@ -609,8 +609,8 @@ def db_propgrid_sample(dbpath_in,propgrid,dbpath_out):
     
     gridpath = path.Path([[w,s],[e,s],[e,n],[w,n],[w,s]])
     
-    print 'Read file %s' % dbpath_in
-    print '%s recordings read in, with %s unique events, and %s unique stations' % (str(len(dbin.evnum)),str(len(unique(dbin.evnum))),str(len(unique(dbin.sta))))
+    print('Read file %s' % dbpath_in)
+    print('%s recordings read in, with %s unique events, and %s unique stations' % (str(len(dbin.evnum)),str(len(unique(dbin.evnum))),str(len(unique(dbin.sta)))))
     
     
     # Loop through the recordings, and if both the event and station are inside
@@ -660,7 +660,7 @@ def db_propgrid_sample(dbpath_in,propgrid,dbpath_out):
     
     
     
-    print 'Data reduced to %s unique events, and %s unique stations' % (str(len(unique(evnum))),str(len(unique(sta))))
+    print('Data reduced to %s unique events, and %s unique stations' % (str(len(unique(evnum))),str(len(unique(sta)))))
         
         
         
@@ -941,15 +941,15 @@ def read_hauksson_file(Qtxtpath,provide_simple=False):
     layercounter = 0
     layer_lines = []
 
-    print 'Reading in lines to get the number of layers'
+    print('Reading in lines to get the number of layers')
     for line in f.readlines():
         if 'LAYER' in line:
             layercounter+=1
-            print line
+            print(line)
             if layercounter == 1:
                 i_layer_line = []
             else:
-                print 'appending'
+                print('appending')
                 layer_lines.append(i_layer_line)
                 i_layer_line = []
         if ('LAYER' not in line) and ('long.' not in line):
@@ -963,7 +963,7 @@ def read_hauksson_file(Qtxtpath,provide_simple=False):
     # Now that all are in the list, loop through and pull out the info for each
     #  z-slice:
     
-    print ' Initializing arrays to parse information...'
+    print(' Initializing arrays to parse information...')
     
     lon_deg = []
     lon_min = []
@@ -976,7 +976,7 @@ def read_hauksson_file(Qtxtpath,provide_simple=False):
     lon_arr = []
     lat_arr = []
     
-    print 'Starting to loop over layers to get information'
+    print('Starting to loop over layers to get information')
     # Loop over the layers:
     for i_layer in range(len(layer_lines)):
         ilayer_lon_deg = []
@@ -1050,7 +1050,7 @@ def read_hauksson_file(Qtxtpath,provide_simple=False):
     uniquelat_count = len(np.unique(i_num_uniquelat))
     
     if (uniquelon_count == 1) & (uniquelat_count == 1):
-        print 'Same number of unique lon and lat points in each layer'
+        print('Same number of unique lon and lat points in each layer')
         nx = i_num_uniquelon_list[0]
         ny = i_num_uniquelat_list[0]
         nz = len(layer_lines)
@@ -1627,14 +1627,14 @@ def match_pga_pgv(evnum_pga,evlat,evlon,evdep,sta_pga,stlat,stlon,stelv,grcircle
     
     # First check that pga and pgv are unique sets:
     if len(np.unique(recording_pga_str))==len(recording_pga_str):
-        print 'PGA is a unique set of recordings'
+        print('PGA is a unique set of recordings')
     else:
-        print 'WARNING!!!! PGA IS NOT UNIQUE!!!'
+        print('WARNING!!!! PGA IS NOT UNIQUE!!!')
         
     if len(np.unique(recording_pgv_str))==len(recording_pgv_str):
-        print 'PGV is a unique set of recordings'
+        print('PGV is a unique set of recordings')
     else:
-        print 'WARNING!!!! PGV IS NOT UNIQUE!!!'
+        print('WARNING!!!! PGV IS NOT UNIQUE!!!')
     
     # Find the boolean intersection - first for where in pga pgv lies, then the opposite:
     intersect_array_pga = np.in1d(recording_pga_str,recording_pgv_str)
@@ -1648,16 +1648,16 @@ def match_pga_pgv(evnum_pga,evlat,evlon,evdep,sta_pga,stlat,stlon,stelv,grcircle
     # Set a counter to 0 before entering - if it's changed to 2, can continue; else won't:
     checkmatch_counter = 0
     if len(np.where((evnum_pga[match_indices_pga] - evnum_pgv[match_indices_pgv])==0)[0])==len(evnum_pga[match_indices_pga]):
-        print 'Events match...'
+        print('Events match...')
         checkmatch_counter+=1
     else:
-        print 'Events do not match, check something...'
+        print('Events do not match, check something...')
         
     if len(set(sta_pga[match_indices_pga]) - set(sta_pgv[match_indices_pgv]))==0:
-        print 'Stations match...'
+        print('Stations match...')
         checkmatch_counter+=1
     else:
-        print 'Stations do not match, check something...'
+        print('Stations do not match, check something...')
     
     # If they both match, checkmatch_counter will be 2:
     if checkmatch_counter==2:
