@@ -283,7 +283,7 @@ def read_obj_list(objfile):
         obj_list:   List with event or station objects in it
     '''
     
-    import cPickle as pickle
+    import cloudpickle as pickle
     
     #Open the file
     obj=open(objfile,'r')
@@ -320,7 +320,7 @@ def db_station_sample(dbpath_in,numstas,dbpath_out):
     Output:
         Writes out the sampled database to dbpath_out
     '''
-    import cPickle as pickle
+    import Pickle as pickle
     from numpy import unique,where,array,r_,zeros
     import cdefs as cdf
     
@@ -461,7 +461,7 @@ def recording_sample(dbpath_in,recording_indices,dbpath_out):
     Output:
         Writes out the sampled database to dbpath_out
     '''
-    import cPickle as pickle
+    import Pickle as pickle
     from numpy import unique,where,array,r_,zeros,setdiff1d
     import cdefs as cdf
     
@@ -591,7 +591,7 @@ def db_propgrid_sample(dbpath_in,propgrid,dbpath_out):
     Output:
         Writes out the sampled database to dbpath_out
     '''
-    import cPickle as pickle
+    import Pickle as pickle
     from numpy import unique,where,array,r_,zeros
     import cdefs as cdf
     from matplotlib import path
@@ -731,7 +731,7 @@ def multiseg2pckl(multisegpath,pcklpath,pathlimits):
     
     from numpy import zeros,array,where
     import matplotlib.path as mplPath
-    import cPickle as pickle
+    import Pickle as pickle
     
     #Get the corner coordinates out of pathlimits: first lonmin/max, latmin/max:
     lonmin=pathlimits[0][0]

@@ -1252,7 +1252,7 @@ class residuals:
         
         #Save for p-waves?
         if ray_type==0:
-            print 'Adding values for p-rays into object'
+            print('Adding values for p-rays into object')
             if value_flag==0:
                 self.rayval_p_vp=value_list
             elif value_flag==1:
@@ -1270,7 +1270,7 @@ class residuals:
                             
         #S- rays?
         elif ray_type==1:
-            print 'Adding values for s-rays into object'
+            print('Adding values for s-rays into object')
             if value_flag==0:
                 self.rayval_s_vp=value_list
             elif value_flag==1:
@@ -1569,7 +1569,7 @@ class residuals:
             cb=plt.colorbar(c)
             cb.set_label('Path term (ln residual)')
             
-            print 'Raypaths plotted'
+            print('Raypaths plotted')
             
                     
             #If stations are to be plotted:             
@@ -1579,7 +1579,7 @@ class residuals:
                 #Scatter events:
                 plt.scatter(evx,evy,edgecolors='g',facecolors='none',s=15,linewidths=1.5,zorder=len(self.mw)+5)
                 
-                print 'Events plotted'
+                print('Events plotted')
                 
             if stations==1:
                 #Hold on:
@@ -1587,7 +1587,7 @@ class residuals:
                 #Scatter:
                 plt.scatter(stx,sty,color='black',s=100,marker='^',zorder=len(self.mw)+7)   
                 
-                print 'Stations plotted'
+                print('Stations plotted')
                 
             #Plot faults, if it's map view:
             if view==0:
@@ -1796,7 +1796,7 @@ class residuals:
         cb=plt.colorbar(c)
         cb.set_label('Path term (ln residual)')
         
-        print 'Raypaths plotted'
+        print('Raypaths plotted')
         
         #If stations are to be plotted:    
         if events==1:
@@ -1805,7 +1805,7 @@ class residuals:
             #Scatter events:
             plt.scatter(evx,evy,edgecolors='g',facecolors='none',s=15,linewidths=1.5,zorder=len(self.mw)+5)
             
-            print 'Events plotted'
+            print('Events plotted')
             
         if stations==1:
             #Hold on:
@@ -1813,7 +1813,7 @@ class residuals:
             #Scatter:
             plt.scatter(stx,sty,color='black',s=100,marker='^',zorder=len(self.mw)+7)
             
-            print 'Stations plotted'
+            print('Stations plotted')
             
         #Plot faults, if it's map view:
         if view==0:
@@ -2269,7 +2269,7 @@ class mixed_residuals:
         
         #Save for p-waves?
         if ray_type==0:
-            print 'Adding values for p-rays into object'
+            print('Adding values for p-rays into object')
             if value_flag==0:
                 self.rayval_p_vp=value_list
             elif value_flag==1:
@@ -2285,7 +2285,7 @@ class mixed_residuals:
         
         #S- rays?
         elif ray_type==1:
-            print 'Adding values for s-rays into object'
+            print('Adding values for s-rays into object')
             if value_flag==0:
                 self.rayval_s_vp=value_list
             elif value_flag==1:
@@ -3039,7 +3039,7 @@ class material_model:
         min_zdist_i=argmin(z_dist)
         
         #Print which distance:
-        print 'Closest z node to requested value is '+str(self.z[min_zdist_i])
+        print('Closest z node to requested value is '+str(self.z[min_zdist_i]))
         
         #Get array to plot:
         slice_array=self.materials[min_zdist_i]
@@ -3087,7 +3087,7 @@ class material_model:
         min_ydist_i=argmin(y_dist)
         
         #Print which distance:
-        print 'Closest y node to requested value is '+str(self.y[min_ydist_i])
+        print('Closest y node to requested value is '+str(self.y[min_ydist_i]))
         
         #Get array to plot:
         slice_array=self.materials[:,min_ydist_i,:]
@@ -3095,12 +3095,12 @@ class material_model:
         X=self.x
         Y=self.z
         
-        print X
-        print Y
-        print X.min()
-        print X.max()
-        print Y.min()
-        print Y.max()
+        print(X)
+        print(Y)
+        print(X.min())
+        print(X.max())
+        print(Y.min())
+        print(Y.max())
         
         sliceaxis_handle = sliceaxis.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='lower',aspect=aspectr)
         cbar=plt.colorbar(sliceaxis_handle,ax=sliceaxis)
@@ -3145,7 +3145,7 @@ class material_model:
         min_xdist_i=argmin(x_dist)
         
         #Print which distance:
-        print 'Closest x node to requested value is '+str(self.x[min_xdist_i])
+        print('Closest x node to requested value is '+str(self.x[min_xdist_i]))
         
         #Get array to plot:
         slice_array=self.materials[:,:,min_xdist_i]
@@ -3153,12 +3153,12 @@ class material_model:
         X=self.y
         Y=self.z
         
-        print X
-        print Y
-        print X.min()
-        print X.max()
-        print Y.min()
-        print Y.max()
+        print(X)
+        print(Y)
+        print(X.min())
+        print(X.max())
+        print(Y.min())
+        print(Y.max())
         
         sliceaxis_handle = sliceaxis.imshow(slice_array,cmap=colormap,vmin=climits[0],vmax=climits[1],extent=[X.min(),X.max(),Y.min(),Y.max()],interpolation='spline36',origin='lower',aspect=aspectr)
         cbar=plt.colorbar(sliceaxis_handle,ax=sliceaxis)
@@ -3229,7 +3229,7 @@ class pterm_3dgrid:
             if binind==len(self.binedges[0]):
                 binind=binind-1
             #Get array to plot:
-            print binind
+            print(binind)
             statistic=self.statistic[binind,:,:]
             
             # Get extent location.  If binnodes are not specified, just use the binedges, which will push things to the left.
@@ -3238,7 +3238,7 @@ class pterm_3dgrid:
             try:
                 # If binnodes ARE specified inside the gridding object, use those:
                 self.binnodes
-                print 'Binnodes specified in function, use these for extent'
+                print('Binnodes specified in function, use these for extent')
                 xmin = min(self.binnodes[1])
                 xmax = max(self.binnodes[1])
                 ymin = min(self.binnodes[2])
@@ -3248,7 +3248,7 @@ class pterm_3dgrid:
                 # If binnodes ARE NOT specified inside the gridding object
                 #  and binnode in plotting are not specified:
                 if binnodes == None:
-                    print 'Using bin edges for extent, nodes not specified anywhere'
+                    print('Using bin edges for extent, nodes not specified anywhere')
                     #Get axes and extent information - here x is latitude, y is depth:
                     xmin=min(self.binedges[1])
                     xmax=max(self.binedges[1])
@@ -3258,7 +3258,7 @@ class pterm_3dgrid:
                 # If binnodes are not specified in the gridding object but are in plotting, use
                 #   those that are specified in the plotting:
                 elif binnodes != None:
-                    print 'Using plotting function specified bin nodes'
+                    print('Using plotting function specified bin nodes')
                     xmin = min(binnodes[1])
                     xmax = max(binnodes[1])
                     ymin = min(binnodes[2])
@@ -3292,7 +3292,7 @@ class pterm_3dgrid:
             try:
                 # If binnodes ARE specified inside the gridding object, use those:
                 self.binnodes
-                print 'Binnodes specified in function, use these for extent'
+                print('Binnodes specified in function, use these for extent')
                 xmin = min(self.binnodes[0])
                 xmax = max(self.binnodes[0])
                 ymin = min(self.binnodes[2])
@@ -3302,7 +3302,7 @@ class pterm_3dgrid:
                 # If binnodes ARE NOT specified inside the gridding object
                 #  and binnode in plotting are not specified:
                 if binnodes == None:
-                    print 'Using bin edges for extent, nodes not specified anywhere'
+                    print('Using bin edges for extent, nodes not specified anywhere')
                     #Get axes and extent information - here x is latitude, y is depth:
                     xmin=min(self.binedges[0])
                     xmax=max(self.binedges[0])
@@ -3312,7 +3312,7 @@ class pterm_3dgrid:
                 # If binnodes are not specified in the gridding object but are in plotting, use
                 #   those that are specified in the plotting:
                 elif binnodes != None:
-                    print 'Using plotting function specified bin nodes'
+                    print('Using plotting function specified bin nodes')
                     xmin = min(binnodes[0])
                     xmax = max(binnodes[0])
                     ymin = min(binnodes[2])
@@ -3344,7 +3344,7 @@ class pterm_3dgrid:
             try:
                 # If binnodes ARE specified inside the gridding object, use those:
                 self.binnodes
-                print 'Binnodes specified in function, use these for extent'
+                print('Binnodes specified in function, use these for extent')
                 xmin = min(self.binnodes[0])
                 xmax = max(self.binnodes[0])
                 ymin = min(self.binnodes[1])
@@ -3354,7 +3354,7 @@ class pterm_3dgrid:
                 # If binnodes ARE NOT specified inside the gridding object
                 #  and binnode in plotting are not specified:
                 if binnodes == None:
-                    print 'Using bin edges for extent, nodes not specified anywhere'
+                    print('Using bin edges for extent, nodes not specified anywhere')
                     #Get axes and extent information - here x is latitude, y is depth:
                     xmin=min(self.binedges[0])
                     xmax=max(self.binedges[0])
@@ -3364,7 +3364,7 @@ class pterm_3dgrid:
                 # If binnodes are not specified in the gridding object but are in plotting, use
                 #   those that are specified in the plotting:
                 elif binnodes != None:
-                    print 'Using plotting function specified bin nodes'
+                    print('Using plotting function specified bin nodes')
                     xmin = min(binnodes[0])
                     xmax = max(binnodes[0])
                     ymin = min(binnodes[1])

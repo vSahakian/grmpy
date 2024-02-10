@@ -168,6 +168,73 @@ def compute_model_fixeddist(m,rng,sdist,Mc,mdep_ffdf,ncoeff=5):
 
     #Print them out...
     return mw_out,d_out
+    
+    
+###############################################################################
+def compute_model_fixedmag(m,mw,sdist,Mc,mdep_ffdf,ncoeff=5):
+    '''
+    Compute the model values given the coefficients resulting from an inversion;
+    Obtain values for given distances.
+    ****NOTE: This one only works if the model has a set range it was computed on for M!!!!
+    i.e., same set of coefficients for all M.
+        
+    Input:
+        m:          Model coefficients
+        mw: 		Float with the magnitude at which to compute the model
+        sdist:      Array with distances at which to compute the model
+        Mc:         Magnitude squred term (i.e., 8.5 or 8.1)
+        mdep_ffdf:  Flag for fictitious depth mag-dependence; 0=no, 1=yes
+        ncoeff:     Number of coefficients inverted for. Default: 5
+    Output:
+        d_out:      Predicted ln(PGA)
+    '''
+    
+    import numpy as np
+    
+    ####
+    #Magnitude dependence?
+    if mdep_ffdf==0:
+        print('Magnitude dependent fictitious depth is OFF - check you provided the right ffdf')
+    elif mdep_ffdf==1:
+        print('Magnitude dependent fictitious depth is ON - check you provided the right ffdf')
+    else:
+        print('Magnitude dependent fictitous depth flag not provided correctly: OFF=0, ON=1')
+            
+            
+    #Loop over distances and ranges to get model output for each distance range, R.
+    d_out = []
+    
+    #Loop over distances, get the values for each distance first:
+    for j in range(len(sdist)):        
+        #Get magnitude dependent fictitious depth??
+        #Fictitous depth coefficient:
+        c4 = 4.5
+		
+		#If it's not agnitude dependent, use the scalar coefficient; if not,
+		#Use the rules in ASK 2014
+        if mdep_ffdf==0:
+            R=np.sqrt(sdist[j]**2 + c4**2)
+            
+		#Get the coefficients for this range:
+        a1=m[0]
+        a2=m[1]
+        a3=m[2]
+        a4=m[3]
+        a5=m[4]
+        
+            
+		#    GMPE:    #
+		# This now predicts lnPGA, but it goes into somethign that plots log10PGA...
+		#       So convert to log10...
+        d_ln=a1+a2*mw + a3*(Mc-mw)**2 + a4*np.log(R) + \
+			a5*sdist[j] 
+            
+        #Add these onto the bigger array, for this range:     
+        d_out.append(d_ln)
+
+
+    #Print them out...
+    return np.array(d_out)
 
 
 
